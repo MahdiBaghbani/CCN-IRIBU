@@ -67,7 +67,10 @@ ccnl_interest_new(struct ccnl_relay_s *ccnl, struct ccnl_face_s *from,
     i->from = from;
     i->last_used = CCNL_NOW();
 
-    if (ccnl->pitcnt >= ccnl->max_pit_entries) {
+    /** default value for max_pit_entries is defined in ccnl-defs.h as CCNL_DEFAULT_MAX_PIT_ENTRIES */
+    /** it is set to -1 (means infinity) for anything other than arduino, riot or android */
+    /** this code checks if max_pit_entries isn't defaulted to -1 and then compares its value against pitcnt value */
+    if ((ccnl->max_pit_entries != -1) && (ccnl->pitcnt >= ccnl->max_pit_entries)) {
         ccnl_pkt_free(i->pkt);
         ccnl_free(i);
         return NULL;
