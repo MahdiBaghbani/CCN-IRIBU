@@ -1,5 +1,5 @@
 
-#include "ccnl-common.h"
+#include "ccn-iribu-common.h"
 
 
 int
@@ -34,9 +34,9 @@ mkInterestCompute(char **namecomp, char *computation, int computationlen, char *
 
 int main(int argc, char **argv){
 
-    unsigned char out[CCNL_MAX_PACKET_SIZE];
+    unsigned char out[CCN_IRIBU_MAX_PACKET_SIZE];
     int i = 0, len, opt, sock = 0;
-    char *namecomp[CCNL_MAX_NAME_COMP], *cp, *dest, *comp;
+    char *namecomp[CCN_IRIBU_MAX_NAME_COMP], *cp, *dest, *comp;
     char *udp = "127.0.0.1/9695", *ux = NULL;
     float wait = 3.0;
     int (*sendproc)(int,char*,unsigned char*,int);
@@ -61,7 +61,7 @@ int main(int argc, char **argv){
             if (isdigit(optarg[0]))
                 debug_level =  (int)strtol(optarg, (char **)NULL, 10); 
             else
-                debug_level = ccnl_debug_str2level(optarg);
+                debug_level = ccn_iribu_debug_str2level(optarg);
 #endif
             break;
         case 'h':
@@ -86,7 +86,7 @@ Usage:
     if (!argv[optind])
         goto Usage;
 
-    struct ccnl_prefix_s *prefix = create_prefix_from_name(argv[optind]);
+    struct ccn_iribu_prefix_s *prefix = create_prefix_from_name(argv[optind]);
     len = mkInterestCompute(prefix->comp, comp, strlen(comp), out);
 
     if(print){

@@ -1,5 +1,5 @@
 /*
- * @f ccnl-buf.c
+ * @f ccn-iribu-buf.c
  * @b CCN lite (CCNL), core header file (internal data structures)
  *
  * Copyright (C) 2011-17, University of Basel
@@ -20,29 +20,29 @@
  * 2017-06-16 created
  */
 
-#ifndef CCNL_LINUXKERNEL
+#ifndef CCN_IRIBU_LINUXKERNEL
 #include <stdio.h>
-#include "ccnl-os-time.h"
-#include "ccnl-buf.h"
-#include "ccnl-logging.h"
-#include "ccnl-relay.h"
-#include "ccnl-forward.h"
-#include "ccnl-prefix.h"
-#include "ccnl-malloc.h"
+#include "ccn-iribu-os-time.h"
+#include "ccn-iribu-buf.h"
+#include "ccn-iribu-logging.h"
+#include "ccn-iribu-relay.h"
+#include "ccn-iribu-forward.h"
+#include "ccn-iribu-prefix.h"
+#include "ccn-iribu-malloc.h"
 #else
-#include "../include/ccnl-os-time.h"
-#include "../include/ccnl-buf.h"
-#include "../include/ccnl-logging.h"
-#include "../include/ccnl-relay.h"
-#include "../include/ccnl-forward.h"
-#include "../include/ccnl-prefix.h"
-#include "../include/ccnl-malloc.h"
+#include "../include/ccn-iribu-os-time.h"
+#include "../include/ccn-iribu-buf.h"
+#include "../include/ccn-iribu-logging.h"
+#include "../include/ccn-iribu-relay.h"
+#include "../include/ccn-iribu-forward.h"
+#include "../include/ccn-iribu-prefix.h"
+#include "../include/ccn-iribu-malloc.h"
 #endif
 
-struct ccnl_buf_s*
-ccnl_buf_new(void *data, size_t len)
+struct ccn_iribu_buf_s*
+ccn_iribu_buf_new(void *data, size_t len)
 {
-    struct ccnl_buf_s *b = (struct ccnl_buf_s*) ccnl_malloc(sizeof(*b) + len);
+    struct ccn_iribu_buf_s *b = (struct ccn_iribu_buf_s*) ccn_iribu_malloc(sizeof(*b) + len);
 
     if (!b) {
         return NULL;
@@ -56,29 +56,29 @@ ccnl_buf_new(void *data, size_t len)
 }
 
 void
-ccnl_core_cleanup(struct ccnl_relay_s *ccnl)
+ccn_iribu_core_cleanup(struct ccn_iribu_relay_s *ccnl)
 {
     int k;
 
-    DEBUGMSG_CORE(TRACE, "ccnl_core_cleanup %p\n", (void *) ccnl);
+    DEBUGMSG_CORE(TRACE, "ccn_iribu_core_cleanup %p\n", (void *) ccnl);
 
-    while (ccnl->pit)
-        ccnl_interest_remove(ccnl, ccnl->pit);
-    while (ccnl->faces)
-        ccnl_face_remove(ccnl, ccnl->faces); // removes allmost all FWD entries
-    while (ccnl->fib) {
-        struct ccnl_forward_s *fwd = ccnl->fib->next;
-        ccnl_prefix_free(ccnl->fib->prefix);
-        ccnl_free(ccnl->fib);
-        ccnl->fib = fwd;
+    while (ccn-iribu->pit)
+        ccn_iribu_interest_remove(ccnl, ccn-iribu->pit);
+    while (ccn-iribu->faces)
+        ccn_iribu_face_remove(ccnl, ccn-iribu->faces); // removes allmost all FWD entries
+    while (ccn-iribu->fib) {
+        struct ccn_iribu_forward_s *fwd = ccn-iribu->fib->next;
+        ccn_iribu_prefix_free(ccn-iribu->fib->prefix);
+        ccn_iribu_free(ccn-iribu->fib);
+        ccn-iribu->fib = fwd;
     }
-    while (ccnl->contents)
-        ccnl_content_remove(ccnl, ccnl->contents);
-    while (ccnl->nonces) {
-        struct ccnl_buf_s *tmp = ccnl->nonces->next;
-        ccnl_free(ccnl->nonces);
-        ccnl->nonces = tmp;
+    while (ccn-iribu->contents)
+        ccn_iribu_content_remove(ccnl, ccn-iribu->contents);
+    while (ccn-iribu->nonces) {
+        struct ccn_iribu_buf_s *tmp = ccn-iribu->nonces->next;
+        ccn_iribu_free(ccn-iribu->nonces);
+        ccn-iribu->nonces = tmp;
     }
-    for (k = 0; k < ccnl->ifcount; k++)
-        ccnl_interface_cleanup(ccnl->ifs + k);
+    for (k = 0; k < ccn-iribu->ifcount; k++)
+        ccn_iribu_interface_cleanup(ccn-iribu->ifs + k);
 }

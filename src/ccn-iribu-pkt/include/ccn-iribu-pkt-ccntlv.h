@@ -20,19 +20,19 @@
  * 2014-03-05 created
  */
 
-#ifndef CCNL_PKT_CCNTLV_H
-#define CCNL_PKT_CCNTLV_H
+#ifndef CCN_IRIBU_PKT_CCNTLV_H
+#define CCN_IRIBU_PKT_CCNTLV_H
 
-#ifndef CCNL_LINUXKERNEL
+#ifndef CCN_IRIBU_LINUXKERNEL
 #include <stdint.h>
 #else
 #include <linux/types.h>
 #endif
 
-#ifndef CCNL_LINUXKERNEL
-#include "ccnl-core.h"
+#ifndef CCN_IRIBU_LINUXKERNEL
+#include "ccn-iribu-core.h"
 #else
-#include "../../ccnl-core/include/ccnl-core.h"
+#include "../../ccn-iribu-core/include/ccn-iribu-core.h"
 #endif
 
 #ifndef CCN_UDP_PORT
@@ -179,44 +179,44 @@ struct ccnx_tlvhdr_ccnx201409_s {
  * @return 0 on success, -1 on failure.
  */
 int8_t
-ccnl_ccntlv_dehead(uint8_t **buf, size_t *len,
+ccn_iribu_ccntlv_dehead(uint8_t **buf, size_t *len,
                    uint16_t *typ, size_t *vallen);
 
-struct ccnl_pkt_s*
-ccnl_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen);
+struct ccn_iribu_pkt_s*
+ccn_iribu_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen);
 
 int8_t
-ccnl_ccntlv_cMatch(struct ccnl_pkt_s *p, struct ccnl_content_s *c);
+ccn_iribu_ccntlv_cMatch(struct ccn_iribu_pkt_s *p, struct ccn_iribu_content_s *c);
 
 int8_t
-ccnl_ccntlv_getHdrLen(uint8_t *data, size_t datalen, size_t *hdrlen);
+ccn_iribu_ccntlv_getHdrLen(uint8_t *data, size_t datalen, size_t *hdrlen);
 
 int8_t
-ccnl_ccntlv_prependInterestWithHdr(struct ccnl_prefix_s *name,
+ccn_iribu_ccntlv_prependInterestWithHdr(struct ccn_iribu_prefix_s *name,
                                    size_t *offset, uint8_t *buf, size_t *len);
 
 int8_t
-ccnl_ccntlv_prependTL(uint16_t type, size_t len,
+ccn_iribu_ccntlv_prependTL(uint16_t type, size_t len,
                       size_t *offset, uint8_t *buf);
 
 int8_t
-ccnl_ccntlv_prependContentWithHdr(struct ccnl_prefix_s *name,
+ccn_iribu_ccntlv_prependContentWithHdr(struct ccn_iribu_prefix_s *name,
                                   uint8_t *payload, size_t paylen,
                                   uint32_t *lastchunknum, size_t *contentpos,
                                   size_t *offset, uint8_t *buf, size_t *reslen);
 
 int8_t
-ccnl_ccntlv_prependChunkInterestWithHdr(struct ccnl_prefix_s *name,
+ccn_iribu_ccntlv_prependChunkInterestWithHdr(struct ccn_iribu_prefix_s *name,
                                         size_t *offset, uint8_t *buf, size_t *reslen);
 
 int8_t
-ccnl_ccntlv_prependContent(struct ccnl_prefix_s *name,
+ccn_iribu_ccntlv_prependContent(struct ccn_iribu_prefix_s *name,
                            uint8_t *payload, size_t paylen,
                            uint32_t *lastchunknum, size_t *contentpos,
                            size_t *offset, uint8_t *buf, size_t *reslen);
 
 int8_t
-ccnl_ccntlv_prependFixedHdr(uint8_t ver,
+ccn_iribu_ccntlv_prependFixedHdr(uint8_t ver,
                             uint8_t packettype,
                             size_t payloadlen,
                             uint8_t hoplimit,

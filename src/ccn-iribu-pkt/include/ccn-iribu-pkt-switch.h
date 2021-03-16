@@ -1,5 +1,5 @@
 /*
- * @f ccnl-pkt-switch.h
+ * @f ccn-iribu-pkt-switch.h
  * @b CCN lite (CCNL), fwd header file (internal data structures)
  *
  * Copyright (C) 2011-17, University of Basel
@@ -20,10 +20,10 @@
  * 2017-06-19 created
  */
 
-#ifndef CCNL_PKT_SWITCH_H
-#define CCNL_PKT_SWITCH_H
+#ifndef CCN_IRIBU_PKT_SWITCH_H
+#define CCN_IRIBU_PKT_SWITCH_H
 
-#ifndef CCNL_LINUXKERNEL
+#ifndef CCN_IRIBU_LINUXKERNEL
 #include <stdint.h>
 #else
 #include <linux/types.h>
@@ -31,18 +31,18 @@
 #include <stddef.h>
 
 int8_t
-ccnl_switch_dehead(uint8_t **buf, size_t *len, int32_t *code);
+ccn_iribu_switch_dehead(uint8_t **buf, size_t *len, int32_t *code);
 
 int
-ccnl_enc2suite(int enc);
+ccn_iribu_enc2suite(int enc);
 
 #ifdef NEEDS_PACKET_CRAFTING
-#ifndef CCNL_LINUXKERNEL
+#ifndef CCN_IRIBU_LINUXKERNEL
 int
-ccnl_switch_prependCodeVal(unsigned long val, int *offset, unsigned char *buf);
+ccn_iribu_switch_prependCodeVal(unsigned long val, int *offset, unsigned char *buf);
 #endif
 int8_t
-ccnl_switch_prependCoding(uint64_t code, size_t *offset, uint8_t *buf, size_t *res);
+ccn_iribu_switch_prependCoding(uint64_t code, size_t *offset, uint8_t *buf, size_t *res);
 
 #endif
 

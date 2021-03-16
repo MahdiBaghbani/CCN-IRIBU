@@ -1,5 +1,5 @@
 /*
- * @f ccnl-forward.c
+ * @f ccn-iribu-forward.c
  * @b CCN lite (CCNL), core header file (internal data structures)
  *
  * Copyright (C) 2011-17, University of Basel
@@ -20,4 +20,4 @@
  * 2017-06-16 created
  */
 
-#include "ccnl-forward.h"
+#include "ccn-iribu-forward.h"

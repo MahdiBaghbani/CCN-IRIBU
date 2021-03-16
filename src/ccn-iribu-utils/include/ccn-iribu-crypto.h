@@ -2,7 +2,7 @@
  * @addtogroup CCNL-utils
  * @{
  *
- * @file ccnl-crypto.h
+ * @file ccn-iribu-crypto.h
  * @brief Crypto functions for CCN-lite utilities
  *
  * Copyright (C) 2013-2018, Christian Tschudin, University of Basel
@@ -19,8 +19,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifndef CCNL_CRYPTO_H
-#define CCNL_CRYPTO_H
+#ifndef CCN_IRIBU_CRYPTO_H
+#define CCN_IRIBU_CRYPTO_H
 
 #ifdef USE_SIGNATURES
 #include <openssl/pem.h>

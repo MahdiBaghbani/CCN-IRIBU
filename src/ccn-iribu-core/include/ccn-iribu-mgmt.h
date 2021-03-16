@@ -1,5 +1,5 @@
 /*
- * @f ccnl-ext-mgmt.h
+ * @f ccn-iribu-ext-mgmt.h
  * @b CCN lite extension, management logic (face mgmt and registration)
  *
  * Copyright (C) 2012-18, Christian Tschudin, University of Basel
@@ -18,25 +18,25 @@
  *
  */
 
-#ifndef CCNL_MGMT_H
-#define CCNL_MGMT_H
+#ifndef CCN_IRIBU_MGMT_H
+#define CCN_IRIBU_MGMT_H
 
 #ifdef USE_MGMT
 
-#ifndef CCNL_LINUXKERNEL
+#ifndef CCN_IRIBU_LINUXKERNEL
 #include <stdint.h>
 #else
 #include <linux/types.h>
 #endif
 
-struct ccnl_buf_s;
-struct ccnl_relay_s;
-struct ccnl_prefix_s;
-struct ccnl_face_s;
+struct ccn_iribu_buf_s;
+struct ccn_iribu_relay_s;
+struct ccn_iribu_prefix_s;
+struct ccn_iribu_face_s;
 
 int8_t
-ccnl_mgmt(struct ccnl_relay_s *ccnl, struct ccnl_buf_s *orig,
-          struct ccnl_prefix_s *prefix, struct ccnl_face_s *from);
+ccn_iribu_mgmt(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
+          struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from);
 
 #endif // USE_MGMT
 

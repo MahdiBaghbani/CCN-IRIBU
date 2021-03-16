@@ -2,7 +2,7 @@
  * @addtogroup CCNL-core
  * @{
  *
- * @file ccnl-malloc.h
+ * @file ccn-iribu-malloc.h
  * @brief Malloc (re-)definition of CCN-lite
  *
  * Copyright (C) 2011-18, University of Basel
@@ -19,14 +19,14 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifndef CCNL_MALLOC_H
-#define CCNL_MALLOC_H
+#ifndef CCN_IRIBU_MALLOC_H
+#define CCN_IRIBU_MALLOC_H
 
-#ifndef CCNL_LINUXKERNEL
+#ifndef CCN_IRIBU_LINUXKERNEL
 #include <stdlib.h>
 #include <string.h>
-#include "ccnl-os-time.h"
-#endif //CCNL_LINUXKERNEL
+#include "ccn-iribu-os-time.h"
+#endif //CCN_IRIBU_LINUXKERNEL
 
 
 #ifdef USE_DEBUG_MALLOC
@@ -35,11 +35,11 @@ struct mhdr {
     char *fname;
     int lineno;
     size_t size;
-#ifdef CCNL_ARDUINO
+#ifdef CCN_IRIBU_ARDUINO
     double tstamp;
 #else
-    char *tstamp; // Linux kernel (no double), also used for CCNL_UNIX
-#endif // CCNL_ARDUINO
+    char *tstamp; // Linux kernel (no double), also used for CCN_IRIBU_UNIX
+#endif // CCN_IRIBU_ARDUINO
 } *mem;
 #endif // USE_DEBUG_MALLOC
 
@@ -49,7 +49,7 @@ struct mhdr {
 void *debug_realloc(void *p, size_t s, const char *fn, int lno);
 void debug_free(void *p, const char *fn, int lno);
 
-#ifdef CCNL_ARDUINO
+#ifdef CCN_IRIBU_ARDUINO
 void*
 debug_malloc(size_t num, size_t size, const char *fn, int lno, double tstamp);
 void*
@@ -57,11 +57,11 @@ debug_calloc(size_t num, size_t size, const char *fn, int lno, double tstamp);
 void*
 debug_strdup(const char *s, const char *fn, int lno, double tstamp);
 
-#  define ccnl_malloc(s)        debug_malloc(s, PSTR(__FILE__), __LINE__, CCNL_NOW())
-#  define ccnl_calloc(n,s)      debug_calloc(n, s, PSTR(__FILE__), __LINE__, CCNL_NOW())
-#  define ccnl_realloc(p,s)     debug_realloc(p, s, PSTR(__FILE__), __LINE__)
-#  define ccnl_strdup(s)        debug_strdup(s, PSTR(__FILE__), __LINE__, CCNL_NOW())
-#  define ccnl_free(p)          debug_free(p, PSTR(__FILE__), __LINE__)
+#  define ccn_iribu_malloc(s)        debug_malloc(s, PSTR(__FILE__), __LINE__, CCN_IRIBU_NOW())
+#  define ccn_iribu_calloc(n,s)      debug_calloc(n, s, PSTR(__FILE__), __LINE__, CCN_IRIBU_NOW())
+#  define ccn_iribu_realloc(p,s)     debug_realloc(p, s, PSTR(__FILE__), __LINE__)
+#  define ccn_iribu_strdup(s)        debug_strdup(s, PSTR(__FILE__), __LINE__, CCN_IRIBU_NOW())
+#  define ccn_iribu_free(p)          debug_free(p, PSTR(__FILE__), __LINE__)
 
 #else 
 void*
@@ -71,33 +71,33 @@ debug_calloc(size_t num, size_t size, const char *fn, int lno, char *tstamp);
 void*
 debug_strdup(const char *s, const char *fn, int lno, char *tstamp);
 
-#  define ccnl_malloc(s)        debug_malloc(s, __FILE__, __LINE__,timestamp())
-#  define ccnl_calloc(n,s)      debug_calloc(n, s, __FILE__, __LINE__,timestamp())
-#  define ccnl_realloc(p,s)     debug_realloc(p, s, __FILE__, __LINE__)
-#  define ccnl_strdup(s)        debug_strdup(s, __FILE__, __LINE__,timestamp())
-#  define ccnl_free(p)          debug_free(p, __FILE__, __LINE__)
+#  define ccn_iribu_malloc(s)        debug_malloc(s, __FILE__, __LINE__,timestamp())
+#  define ccn_iribu_calloc(n,s)      debug_calloc(n, s, __FILE__, __LINE__,timestamp())
+#  define ccn_iribu_realloc(p,s)     debug_realloc(p, s, __FILE__, __LINE__)
+#  define ccn_iribu_strdup(s)        debug_strdup(s, __FILE__, __LINE__,timestamp())
+#  define ccn_iribu_free(p)          debug_free(p, __FILE__, __LINE__)
 
-#endif // CCNL_ARDUINO
+#endif // CCN_IRIBU_ARDUINO
 
 #else // !USE_DEBUG_MALLOC
 
 
-# ifndef CCNL_LINUXKERNEL
-#  define ccnl_malloc(s)        malloc(s)
+# ifndef CCN_IRIBU_LINUXKERNEL
+#  define ccn_iribu_malloc(s)        malloc(s)
     #ifdef __linux__ 
     char* strdup(const char* str);// {
-    //    return strcpy( ccnl_malloc( strlen(str)+1), str );
+    //    return strcpy( ccn_iribu_malloc( strlen(str)+1), str );
     //}
     #endif
-#  define ccnl_calloc(n,s)      calloc(n,s)
-#  define ccnl_realloc(p,s)     realloc(p,s)
-#  define ccnl_strdup(s)        strdup(s)
-#  define ccnl_free(p)          free(p)
+#  define ccn_iribu_calloc(n,s)      calloc(n,s)
+#  define ccn_iribu_realloc(p,s)     realloc(p,s)
+#  define ccn_iribu_strdup(s)        strdup(s)
+#  define ccn_iribu_free(p)          free(p)
 # endif
 
 #endif// USE_DEBUG_MALLOC
 
-#ifdef CCNL_LINUXKERNEL
+#ifdef CCN_IRIBU_LINUXKERNEL
 
 
 /**
@@ -110,13 +110,13 @@ debug_strdup(const char *s, const char *fn, int lno, char *tstamp);
  */
 /*
 static inline void*
-ccnl_malloc(size_t s);
+ccn_iribu_malloc(size_t s);
 
 static inline void*
-ccnl_calloc(size_t num, size_t size);
+ccn_iribu_calloc(size_t num, size_t size);
 
 static inline void
-ccnl_free(void *ptr);*/
+ccn_iribu_free(void *ptr);*/
 #endif
 
 #endif 

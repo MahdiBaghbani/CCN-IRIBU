@@ -1,5 +1,5 @@
 /*
- * @f ccnl-os-includes.h
+ * @f ccn-iribu-os-includes.h
  * @b does the #include of all (system) header file
  *
  * Copyright (C) 2011, Christian Tschudin, University of Basel
@@ -20,7 +20,7 @@
  * 2011-03-30 created
  */
 
-#ifndef CCNL_LINUXKERNEL
+#ifndef CCN_IRIBU_LINUXKERNEL
 
 #include <assert.h>
 #include <ctype.h>
@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef CCNL_UNIX
+#ifdef CCN_IRIBU_UNIX
 
 # include <time.h>
 # include <getopt.h>
@@ -68,7 +68,7 @@
 #ifdef USE_CCNxDIGEST
 #  include <openssl/sha.h>
 #endif
-#endif // CCNL_UNIX
+#endif // CCN_IRIBU_UNIX
 
 #else // else we are compiling for the Linux kernel
 
@@ -106,6 +106,6 @@
 #define inet_aton(s,p)	(p)->s_addr = in_aton(s)
 #define USE_LINKLAYER
 
-#endif // CCNL_LINUXKERNEL
+#endif // CCN_IRIBU_LINUXKERNEL
 
 // eof

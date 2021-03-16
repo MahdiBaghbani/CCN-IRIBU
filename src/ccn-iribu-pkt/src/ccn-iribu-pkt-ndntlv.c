@@ -23,9 +23,9 @@
 
 #ifdef USE_SUITE_NDNTLV
 
-#ifndef CCNL_LINUXKERNEL
-#include "ccnl-pkt-ndntlv.h"
-#include "ccnl-core.h"
+#ifndef CCN_IRIBU_LINUXKERNEL
+#include "ccn-iribu-pkt-ndntlv.h"
+#include "ccn-iribu-core.h"
 #include <stdlib.h>
 #include <string.h>
 #include <arpa/inet.h>
@@ -33,8 +33,8 @@
 #include <stdint.h>
 #else
 #include <linux/types.h>
-#include "../include/ccnl-pkt-ndntlv.h"
-#include "../../ccnl-core/include/ccnl-core.h"
+#include "../include/ccn-iribu-pkt-ndntlv.h"
+#include "../../ccn-iribu-core/include/ccn-iribu-core.h"
 # define UINT32_MAX		(4294967295U)
 # define UINT16_MAX		(65535)
 #endif
@@ -46,7 +46,7 @@
 // packet parsing
 
 int8_t
-ccnl_ndntlv_varlenint(uint8_t **buf, size_t *len, uint64_t *val)
+ccn_iribu_ndntlv_varlenint(uint8_t **buf, size_t *len, uint64_t *val)
 {
     if (**buf < 253 && *len >= 1) {
         *val = **buf;
@@ -71,7 +71,7 @@ ccnl_ndntlv_varlenint(uint8_t **buf, size_t *len, uint64_t *val)
 }
 
 uint64_t
-ccnl_ndntlv_nonNegInt(uint8_t *cp, size_t len)
+ccn_iribu_ndntlv_nonNegInt(uint8_t *cp, size_t len)
 {
     uint64_t val = 0;
 
@@ -83,15 +83,15 @@ ccnl_ndntlv_nonNegInt(uint8_t *cp, size_t len)
 }
 
 int8_t
-ccnl_ndntlv_dehead(uint8_t **buf, size_t *len,
+ccn_iribu_ndntlv_dehead(uint8_t **buf, size_t *len,
                    uint64_t *typ, size_t *vallen)
 {
     size_t maxlen = *len;
     uint64_t vallen_int = 0;
-    if (ccnl_ndntlv_varlenint(buf, len, typ)) {
+    if (ccn_iribu_ndntlv_varlenint(buf, len, typ)) {
         return -1;
     }
-    if (ccnl_ndntlv_varlenint(buf, len, &vallen_int)) {
+    if (ccn_iribu_ndntlv_varlenint(buf, len, &vallen_int)) {
         return -1;
     }
     if (vallen_int > SIZE_MAX) {
@@ -105,22 +105,22 @@ ccnl_ndntlv_dehead(uint8_t **buf, size_t *len,
 }
 
 // we use one extraction routine for each of interest, data and fragment pkts
-struct ccnl_pkt_s*
-ccnl_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
+struct ccn_iribu_pkt_s*
+ccn_iribu_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
                       uint8_t **data, size_t *datalen)
 {
-    struct ccnl_pkt_s *pkt;
+    struct ccn_iribu_pkt_s *pkt;
     size_t oldpos, len, i;
     uint64_t typ;
-    struct ccnl_prefix_s *prefix = 0;
+    struct ccn_iribu_prefix_s *prefix = 0;
 #ifdef USE_HMAC256
     int validAlgoIsHmac256 = 0;
 #endif
 
 
-    DEBUGMSG(DEBUG, "ccnl_ndntlv_bytes2pkt len=%zu\n", *datalen);
+    DEBUGMSG(DEBUG, "ccn_iribu_ndntlv_bytes2pkt len=%zu\n", *datalen);
 
-    pkt = (struct ccnl_pkt_s*) ccnl_calloc(1, sizeof(struct ccnl_pkt_s));
+    pkt = (struct ccn_iribu_pkt_s*) ccn_iribu_calloc(1, sizeof(struct ccn_iribu_pkt_s));
     if (!pkt) {
         return NULL;
     }
@@ -131,14 +131,14 @@ ccnl_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
 #endif
     switch(pkttype) {
     case NDN_TLV_Interest:
-        pkt->flags |= CCNL_PKT_REQUEST;
+        pkt->flags |= CCN_IRIBU_PKT_REQUEST;
         break;
     case NDN_TLV_Data:
-        pkt->flags |= CCNL_PKT_REPLY;
+        pkt->flags |= CCN_IRIBU_PKT_REPLY;
         break;
 #ifdef USE_FRAG
     case NDN_TLV_Fragment:
-        pkt->flags |= CCNL_PKT_FRAGMENT;
+        pkt->flags |= CCN_IRIBU_PKT_FRAGMENT;
         break;
 #endif
     default:
@@ -146,15 +146,15 @@ ccnl_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
         goto Bail;
     }
 
-    pkt->suite = CCNL_SUITE_NDNTLV;
+    pkt->suite = CCN_IRIBU_SUITE_NDNTLV;
     pkt->s.ndntlv.scope = 3;
-    pkt->s.ndntlv.maxsuffix = CCNL_MAX_NAME_COMP;
+    pkt->s.ndntlv.maxsuffix = CCN_IRIBU_MAX_NAME_COMP;
 
     /* set default lifetime, in case InterestLifetime guider is absent */
-    pkt->s.ndntlv.interestlifetime = CCNL_INTEREST_TIMEOUT;
+    pkt->s.ndntlv.interestlifetime = CCN_IRIBU_INTEREST_TIMEOUT;
 
     oldpos = *data - start;
-    while (ccnl_ndntlv_dehead(data, datalen, &typ, &len) == 0) {
+    while (ccn_iribu_ndntlv_dehead(data, datalen, &typ, &len) == 0) {
         uint8_t *cp = *data;
         size_t len2 = len;
 
@@ -164,7 +164,7 @@ ccnl_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
                 DEBUGMSG(WARNING, " ndntlv: name already defined\n");
                 goto Bail;
             }
-            prefix = ccnl_prefix_new(CCNL_SUITE_NDNTLV, CCNL_MAX_NAME_COMP);
+            prefix = ccn_iribu_prefix_new(CCN_IRIBU_SUITE_NDNTLV, CCN_IRIBU_MAX_NAME_COMP);
             if (!prefix) {
                 goto Bail;
             }
@@ -174,17 +174,17 @@ ccnl_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
 
             prefix->nameptr = start + oldpos;
             while (len2 > 0) {
-                if (ccnl_ndntlv_dehead(&cp, &len2, &typ, &i)) {
+                if (ccn_iribu_ndntlv_dehead(&cp, &len2, &typ, &i)) {
                     goto Bail;
                 }
                 if (typ == NDN_TLV_NameComponent &&
-                            prefix->compcnt < CCNL_MAX_NAME_COMP) {
+                            prefix->compcnt < CCN_IRIBU_MAX_NAME_COMP) {
                     if(cp[0] == NDN_Marker_SegmentNumber) {
                         uint64_t chunknum;
-                        prefix->chunknum = (uint32_t *) ccnl_malloc(sizeof(uint32_t));
-                        // TODO: requires ccnl_ndntlv_includedNonNegInt which includes the length of the marker
+                        prefix->chunknum = (uint32_t *) ccn_iribu_malloc(sizeof(uint32_t));
+                        // TODO: requires ccn_iribu_ndntlv_includedNonNegInt which includes the length of the marker
                         // it is implemented for encode, the decode is not yet implemented
-                        chunknum = ccnl_ndntlv_nonNegInt(cp + 1, i - 1);
+                        chunknum = ccn_iribu_ndntlv_nonNegInt(cp + 1, i - 1);
                         if (chunknum > UINT32_MAX) {
                             goto Bail;
                         }
@@ -202,16 +202,16 @@ ccnl_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
             break;
         case NDN_TLV_Selectors:
             while (len2 > 0) {
-                if (ccnl_ndntlv_dehead(&cp, &len2, &typ, &i)) {
+                if (ccn_iribu_ndntlv_dehead(&cp, &len2, &typ, &i)) {
                     goto Bail;
                 }
                 switch(typ) {
                 case NDN_TLV_MinSuffixComponents:
-                    pkt->s.ndntlv.minsuffix = ccnl_ndntlv_nonNegInt(cp, i);
+                    pkt->s.ndntlv.minsuffix = ccn_iribu_ndntlv_nonNegInt(cp, i);
                     break;
                 case NDN_TLV_MaxSuffixComponents:
-//                    fprintf(stderr, "setting to %d\n", (int)ccnl_ndntlv_nonNegInt(cp, i));
-                    pkt->s.ndntlv.maxsuffix = ccnl_ndntlv_nonNegInt(cp, i);
+//                    fprintf(stderr, "setting to %d\n", (int)ccn_iribu_ndntlv_nonNegInt(cp, i));
+                    pkt->s.ndntlv.maxsuffix = ccn_iribu_ndntlv_nonNegInt(cp, i);
                     break;
                 case NDN_TLV_MustBeFresh:
                     pkt->s.ndntlv.mbf = 1;
@@ -227,10 +227,10 @@ ccnl_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
             }
             break;
         case NDN_TLV_Nonce:
-            pkt->s.ndntlv.nonce = ccnl_buf_new(*data, len);
+            pkt->s.ndntlv.nonce = ccn_iribu_buf_new(*data, len);
             break;
         case NDN_TLV_Scope:
-            pkt->s.ndntlv.scope = ccnl_ndntlv_nonNegInt(*data, len);
+            pkt->s.ndntlv.scope = ccn_iribu_ndntlv_nonNegInt(*data, len);
             break;
         case NDN_TLV_Content:
         case NDN_TLV_NdnlpFragment: // payload
@@ -239,24 +239,24 @@ ccnl_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
             break;
         case NDN_TLV_MetaInfo:
             while (len2 > 0) {
-                if (ccnl_ndntlv_dehead(&cp, &len2, &typ, &i)) {
+                if (ccn_iribu_ndntlv_dehead(&cp, &len2, &typ, &i)) {
                     goto Bail;
                 }
                 if (typ == NDN_TLV_ContentType) {
                     // Not used
-                    // = ccnl_ndntlv_nonNegInt(cp, i);
+                    // = ccn_iribu_ndntlv_nonNegInt(cp, i);
                     DEBUGMSG(WARNING, "'ContentType' field ignored\n");
                 }
                 if (typ == NDN_TLV_FreshnessPeriod) {
-                    pkt->s.ndntlv.freshnessperiod = ccnl_ndntlv_nonNegInt(cp, i);
+                    pkt->s.ndntlv.freshnessperiod = ccn_iribu_ndntlv_nonNegInt(cp, i);
                 }
                 if (typ == NDN_TLV_FinalBlockId) {
-                    if (ccnl_ndntlv_dehead(&cp, &len2, &typ, &i)) {
+                    if (ccn_iribu_ndntlv_dehead(&cp, &len2, &typ, &i)) {
                         goto Bail;
                     }
                     if (typ == NDN_TLV_NameComponent) {
                         // TODO: again, includedNonNeg not yet implemented
-                        pkt->val.final_block_id = ccnl_ndntlv_nonNegInt(cp + 1, i - 1);
+                        pkt->val.final_block_id = ccn_iribu_ndntlv_nonNegInt(cp + 1, i - 1);
                         if (pkt->val.final_block_id < 0) { // TODO: Is this check ok?
                             goto Bail;
                         }
@@ -267,23 +267,23 @@ ccnl_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
             }
             break;
         case NDN_TLV_InterestLifetime:
-            pkt->s.ndntlv.interestlifetime = ccnl_ndntlv_nonNegInt(*data, len);
+            pkt->s.ndntlv.interestlifetime = ccn_iribu_ndntlv_nonNegInt(*data, len);
             break;
         case NDN_TLV_Frag_BeginEndFields:
-            pkt->val.seqno = ccnl_ndntlv_nonNegInt(*data, len);
+            pkt->val.seqno = ccn_iribu_ndntlv_nonNegInt(*data, len);
             DEBUGMSG(TRACE, "  frag: %04llux\n", (unsigned long long)pkt->val.seqno);
             if (pkt->val.seqno & 0x4000) {
-                pkt->flags |= CCNL_PKT_FRAG_BEGIN;
+                pkt->flags |= CCN_IRIBU_PKT_FRAG_BEGIN;
             }
             if (pkt->val.seqno & 0x8000) {
-                pkt->flags |= CCNL_PKT_FRAG_END;
+                pkt->flags |= CCN_IRIBU_PKT_FRAG_END;
             }
             pkt->val.seqno &= 0x3fff;
             break;
 #ifdef USE_HMAC256
         case NDN_TLV_SignatureInfo:
             while (len2 > 0) {
-                if (ccnl_ndntlv_dehead(&cp, &len2, &typ, &i)) {
+                if (ccn_iribu_ndntlv_dehead(&cp, &len2, &typ, &i)) {
                     goto Bail;
                 }
                 if (typ == NDN_TLV_SignatureType && i == 1 &&
@@ -314,7 +314,7 @@ ccnl_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
     }
 
     pkt->pfx = prefix;
-    pkt->buf = ccnl_buf_new(start, *data - start);
+    pkt->buf = ccn_iribu_buf_new(start, *data - start);
     if (!pkt->buf) {
         goto Bail;
     }
@@ -333,7 +333,7 @@ ccnl_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
 
     return pkt;
 Bail:
-    ccnl_pkt_free(pkt);
+    ccn_iribu_pkt_free(pkt);
     return NULL;
 }
 
@@ -343,18 +343,18 @@ Bail:
 
 // returns: 0=match, -1=otherwise
 int8_t
-ccnl_ndntlv_cMatch(struct ccnl_pkt_s *p, struct ccnl_content_s *c)
+ccn_iribu_ndntlv_cMatch(struct ccn_iribu_pkt_s *p, struct ccn_iribu_content_s *c)
 {
-#ifndef CCNL_LINUXKERNEL
+#ifndef CCN_IRIBU_LINUXKERNEL
     assert(p);
-    assert(p->suite == CCNL_SUITE_NDNTLV);
+    assert(p->suite == CCN_IRIBU_SUITE_NDNTLV);
 #endif
 
-    if (ccnl_i_prefixof_c(p->pfx, p->s.ndntlv.minsuffix, p->s.ndntlv.maxsuffix, c) < 0) {
+    if (ccn_iribu_i_prefixof_c(p->pfx, p->s.ndntlv.minsuffix, p->s.ndntlv.maxsuffix, c) < 0) {
         return -1;
     }
 
-    if (p->s.ndntlv.mbf && ((c->flags & CCNL_CONTENT_FLAGS_STALE) != 0)) {
+    if (p->s.ndntlv.mbf && ((c->flags & CCN_IRIBU_CONTENT_FLAGS_STALE) != 0)) {
         DEBUGMSG(DEBUG, "ignore stale content\n");
         return -1;
     }
@@ -372,7 +372,7 @@ ccnl_ndntlv_cMatch(struct ccnl_pkt_s *p, struct ccnl_content_s *c)
 #ifdef NEEDS_PACKET_CRAFTING
 
 int8_t
-ccnl_ndntlv_prependTLval(uint64_t val, size_t *offset, uint8_t *buf)
+ccn_iribu_ndntlv_prependTLval(uint64_t val, size_t *offset, uint8_t *buf)
 {
     uint8_t len, i, t;
 
@@ -399,14 +399,14 @@ ccnl_ndntlv_prependTLval(uint64_t val, size_t *offset, uint8_t *buf)
 }
 
 int8_t
-ccnl_ndntlv_prependTL(uint64_t type, uint64_t len,
+ccn_iribu_ndntlv_prependTL(uint64_t type, uint64_t len,
                       size_t *offset, uint8_t *buf)
 {
 //    size_t oldoffset = *offset;
-    if (ccnl_ndntlv_prependTLval(len, offset, buf) < 0) {
+    if (ccn_iribu_ndntlv_prependTLval(len, offset, buf) < 0) {
         return -1;
     }
-    if (ccnl_ndntlv_prependTLval(type, offset, buf) < 0) {
+    if (ccn_iribu_ndntlv_prependTLval(type, offset, buf) < 0) {
         return -1;
     }
     // return (oldoffset - *offset);
@@ -414,7 +414,7 @@ ccnl_ndntlv_prependTL(uint64_t type, uint64_t len,
 }
 
 int8_t
-ccnl_ndntlv_prependNonNegIntVal(uint64_t val,
+ccn_iribu_ndntlv_prependNonNegIntVal(uint64_t val,
                                 size_t *offset, uint8_t *buf) {
     int len = 0;
     uint8_t i;
@@ -441,15 +441,15 @@ ccnl_ndntlv_prependNonNegIntVal(uint64_t val,
 }
 
 int8_t
-ccnl_ndntlv_prependNonNegInt(uint64_t type,
+ccn_iribu_ndntlv_prependNonNegInt(uint64_t type,
                              uint64_t val,
                              size_t *offset, uint8_t *buf)
 {
     size_t oldoffset = *offset;
-    if (ccnl_ndntlv_prependNonNegIntVal(val, offset, buf) < 0) {
+    if (ccn_iribu_ndntlv_prependNonNegIntVal(val, offset, buf) < 0) {
         return -1;
     }
-    if (ccnl_ndntlv_prependTL(type, oldoffset - *offset, offset, buf) < 0) {
+    if (ccn_iribu_ndntlv_prependTL(type, oldoffset - *offset, offset, buf) < 0) {
         return -1;
     }
     // return oldoffset - *offset;
@@ -458,12 +458,12 @@ ccnl_ndntlv_prependNonNegInt(uint64_t type,
 
 
 int8_t
-ccnl_ndntlv_prependIncludedNonNegInt(uint64_t type, uint64_t val,
+ccn_iribu_ndntlv_prependIncludedNonNegInt(uint64_t type, uint64_t val,
                                      uint8_t marker,
                                      size_t *offset, uint8_t *buf)
 {
     size_t oldoffset = *offset;
-    if (ccnl_ndntlv_prependNonNegIntVal(val, offset, buf) < 0) {
+    if (ccn_iribu_ndntlv_prependNonNegIntVal(val, offset, buf) < 0) {
         return -1;
     }
 
@@ -472,7 +472,7 @@ ccnl_ndntlv_prependIncludedNonNegInt(uint64_t type, uint64_t val,
     }
     buf[*offset] = marker;
 
-    if (ccnl_ndntlv_prependTL(type, oldoffset - *offset, offset, buf) < 0) {
+    if (ccn_iribu_ndntlv_prependTL(type, oldoffset - *offset, offset, buf) < 0) {
         return -1;
     }
     // return oldoffset - *offset;
@@ -481,7 +481,7 @@ ccnl_ndntlv_prependIncludedNonNegInt(uint64_t type, uint64_t val,
 
 
 int8_t
-ccnl_ndntlv_prependBlob(uint64_t type, uint8_t *blob, size_t len,
+ccn_iribu_ndntlv_prependBlob(uint64_t type, uint8_t *blob, size_t len,
                         size_t *offset, uint8_t *buf)
 {
 
@@ -490,21 +490,21 @@ ccnl_ndntlv_prependBlob(uint64_t type, uint8_t *blob, size_t len,
     }
     memcpy(buf + *offset - len, blob, len);
     *offset -= len;
-    if (ccnl_ndntlv_prependTL(type, len, offset, buf) < 0) {
+    if (ccn_iribu_ndntlv_prependTL(type, len, offset, buf) < 0) {
         return -1;
     }
     return 0;
 }
 
 int8_t
-ccnl_ndntlv_prependName(struct ccnl_prefix_s *name,
+ccn_iribu_ndntlv_prependName(struct ccn_iribu_prefix_s *name,
                         size_t *offset, uint8_t *buf)
 {
     size_t oldoffset = *offset;
     uint64_t cnt;
 
     if (name->chunknum) {
-        if (ccnl_ndntlv_prependIncludedNonNegInt(NDN_TLV_NameComponent,
+        if (ccn_iribu_ndntlv_prependIncludedNonNegInt(NDN_TLV_NameComponent,
                                                  *name->chunknum,
                                                  NDN_Marker_SegmentNumber,
                                                  offset, buf) < 0) {
@@ -513,12 +513,12 @@ ccnl_ndntlv_prependName(struct ccnl_prefix_s *name,
     }
 
     for (cnt = name->compcnt; cnt > 0; cnt--) {
-        if (ccnl_ndntlv_prependBlob(NDN_TLV_NameComponent, name->comp[cnt-1],
+        if (ccn_iribu_ndntlv_prependBlob(NDN_TLV_NameComponent, name->comp[cnt-1],
                                     name->complen[cnt-1], offset, buf) < 0) {
             return -1;
         }
     }
-    if (ccnl_ndntlv_prependTL(NDN_TLV_Name, oldoffset - *offset,
+    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_Name, oldoffset - *offset,
                               offset, buf) < 0) {
         return -1;
     }
@@ -529,7 +529,7 @@ ccnl_ndntlv_prependName(struct ccnl_prefix_s *name,
 // ----------------------------------------------------------------------
 
 int8_t
-ccnl_ndntlv_prependInterest(struct ccnl_prefix_s *name, int scope, struct ccnl_ndntlv_interest_opts_s *opts,
+ccn_iribu_ndntlv_prependInterest(struct ccn_iribu_prefix_s *name, int scope, struct ccn_iribu_ndntlv_interest_opts_s *opts,
                             size_t *offset, uint8_t *buf, size_t *reslen)
 {
     size_t oldoffset = *offset;
@@ -538,40 +538,40 @@ ccnl_ndntlv_prependInterest(struct ccnl_prefix_s *name, int scope, struct ccnl_n
         if (scope > 2) {
             return -1;
         }
-        if (ccnl_ndntlv_prependNonNegInt(NDN_TLV_Scope, (uint64_t) scope, offset, buf) < 0) {
+        if (ccn_iribu_ndntlv_prependNonNegInt(NDN_TLV_Scope, (uint64_t) scope, offset, buf) < 0) {
             return -1;
         }
     }
 
     /* only include InterestLifetime TLV Guider, if life time > 0 milli seconds */
     if (opts->interestlifetime) {
-        if (ccnl_ndntlv_prependNonNegInt(NDN_TLV_InterestLifetime,
+        if (ccn_iribu_ndntlv_prependNonNegInt(NDN_TLV_InterestLifetime,
                                          opts->interestlifetime, offset, buf) < 0) {
             return -1;
         }
     }
 
-    if (ccnl_ndntlv_prependBlob(NDN_TLV_Nonce, (uint8_t *) &opts->nonce, 4, offset, buf) < 0) {
+    if (ccn_iribu_ndntlv_prependBlob(NDN_TLV_Nonce, (uint8_t *) &opts->nonce, 4, offset, buf) < 0) {
         return -1;
     }
 
     /* MustBeFresh is the only supported Selector for now */
     if (opts->mustbefresh) {
         size_t sel_offset = *offset;
-        if (ccnl_ndntlv_prependTL(NDN_TLV_MustBeFresh, 0U, offset, buf) < 0) {
+        if (ccn_iribu_ndntlv_prependTL(NDN_TLV_MustBeFresh, 0U, offset, buf) < 0) {
             return -1;
         }
 
-        if (ccnl_ndntlv_prependTL(NDN_TLV_Selectors, sel_offset - *offset, offset, buf) < 0) {
+        if (ccn_iribu_ndntlv_prependTL(NDN_TLV_Selectors, sel_offset - *offset, offset, buf) < 0) {
             return -1;
         }
     }
 
-    if (ccnl_ndntlv_prependName(name, offset, buf)) {
+    if (ccn_iribu_ndntlv_prependName(name, offset, buf)) {
         return -1;
     }
 
-    if (ccnl_ndntlv_prependTL(NDN_TLV_Interest, oldoffset - *offset,
+    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_Interest, oldoffset - *offset,
                               offset, buf) < 0) {
         return -1;
     }
@@ -581,9 +581,9 @@ ccnl_ndntlv_prependInterest(struct ccnl_prefix_s *name, int scope, struct ccnl_n
 }
 
 int8_t
-ccnl_ndntlv_prependContent(struct ccnl_prefix_s *name,
+ccn_iribu_ndntlv_prependContent(struct ccn_iribu_prefix_s *name,
                            uint8_t *payload, size_t paylen,
-                           size_t *contentpos, struct ccnl_ndntlv_data_opts_s *opts,
+                           size_t *contentpos, struct ccn_iribu_ndntlv_data_opts_s *opts,
                            size_t *offset, uint8_t *buf, size_t *reslen)
 {
     size_t oldoffset = *offset, oldoffset2;
@@ -596,7 +596,7 @@ ccnl_ndntlv_prependContent(struct ccnl_prefix_s *name,
     // fill in backwards
 
     // mandatory (empty for now)
-    if (ccnl_ndntlv_prependTL(NDN_TLV_SignatureValue, 0, offset, buf) < 0) {
+    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_SignatureValue, 0, offset, buf) < 0) {
         return -1;
     }
 
@@ -605,24 +605,24 @@ ccnl_ndntlv_prependContent(struct ccnl_prefix_s *name,
 
     // KeyLocator is not required for DIGESTSHA256
     if (signatureType != NDN_VAL_SIGTYPE_DIGESTSHA256) {
-        if (ccnl_ndntlv_prependTL(NDN_TLV_KeyLocator, 0, offset, buf) < 0) {
+        if (ccn_iribu_ndntlv_prependTL(NDN_TLV_KeyLocator, 0, offset, buf) < 0) {
             return -1;
         }
     }
 
     // use NDN_SigTypeVal_SignatureSha256WithRsa because this is default in ndn client libs
-    if (ccnl_ndntlv_prependBlob(NDN_TLV_SignatureType, &signatureType, 1,
+    if (ccn_iribu_ndntlv_prependBlob(NDN_TLV_SignatureType, &signatureType, 1,
                 offset, buf) < 0) {
         return 1;
     }
 
     // Groups KeyLocator and Signature Type with stored len
-    if (ccnl_ndntlv_prependTL(NDN_TLV_SignatureInfo, oldoffset2 - *offset, offset, buf) < 0) {
+    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_SignatureInfo, oldoffset2 - *offset, offset, buf) < 0) {
         return -1;
     }
 
     // mandatory
-    if (ccnl_ndntlv_prependBlob(NDN_TLV_Content, payload, paylen,
+    if (ccn_iribu_ndntlv_prependBlob(NDN_TLV_Content, payload, paylen,
                                 offset, buf) < 0) {
         return -1;
     }
@@ -631,7 +631,7 @@ ccnl_ndntlv_prependContent(struct ccnl_prefix_s *name,
     oldoffset2 = *offset;
     if (opts) {
         if (opts->finalblockid != UINT32_MAX) {
-            if (ccnl_ndntlv_prependIncludedNonNegInt(NDN_TLV_NameComponent,
+            if (ccn_iribu_ndntlv_prependIncludedNonNegInt(NDN_TLV_NameComponent,
                                                      opts->finalblockid,
                                                      NDN_Marker_SegmentNumber,
                                                      offset, buf) < 0) {
@@ -639,14 +639,14 @@ ccnl_ndntlv_prependContent(struct ccnl_prefix_s *name,
             }
 
             // optional
-            if (ccnl_ndntlv_prependTL(NDN_TLV_FinalBlockId, oldoffset2 - *offset,
+            if (ccn_iribu_ndntlv_prependTL(NDN_TLV_FinalBlockId, oldoffset2 - *offset,
                                       offset, buf) < 0) {
                 return -1;
             }
         }
 
         if (opts->freshnessperiod) {
-            if (ccnl_ndntlv_prependNonNegInt(NDN_TLV_FreshnessPeriod,
+            if (ccn_iribu_ndntlv_prependNonNegInt(NDN_TLV_FreshnessPeriod,
                                              opts->freshnessperiod, offset, buf) < 0) {
                 return -1;
             }
@@ -654,18 +654,18 @@ ccnl_ndntlv_prependContent(struct ccnl_prefix_s *name,
     }
 
     // mandatory (empty for now)
-    if (ccnl_ndntlv_prependTL(NDN_TLV_MetaInfo, oldoffset2 - *offset,
+    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_MetaInfo, oldoffset2 - *offset,
                               offset, buf) < 0) {
         return -1;
     }
 
     // mandatory
-    if (ccnl_ndntlv_prependName(name, offset, buf)) {
+    if (ccn_iribu_ndntlv_prependName(name, offset, buf)) {
         return -1;
     }
 
     // mandatory
-    if (ccnl_ndntlv_prependTL(NDN_TLV_Data, oldoffset - *offset,
+    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_Data, oldoffset - *offset,
                               offset, buf) < 0) {
            return -1;
     }
@@ -681,16 +681,16 @@ ccnl_ndntlv_prependContent(struct ccnl_prefix_s *name,
 #ifdef USE_FRAG
 
 // produces a full FRAG packet. It does not write, just read the fields in *fr
-struct ccnl_buf_s*
-ccnl_ndntlv_mkFrag(struct ccnl_frag_s *fr, unsigned int *consumed)
+struct ccn_iribu_buf_s*
+ccn_iribu_ndntlv_mkFrag(struct ccn_iribu_frag_s *fr, unsigned int *consumed)
 {
     unsigned char test[20];
     size_t offset, hdrlen;
     long datalen;
-    struct ccnl_buf_s *buf;
+    struct ccn_iribu_buf_s *buf;
     uint16_t tmp = 0;
 
-    DEBUGMSG(TRACE, "ccnl_ndntlv_mkFrag seqno=%d\n", fr->sendseq);
+    DEBUGMSG(TRACE, "ccn_iribu_ndntlv_mkFrag seqno=%d\n", fr->sendseq);
 
     // pre-compute overhead, first
     datalen = fr->bigpkt->datalen - fr->sendoffs;
@@ -698,11 +698,11 @@ ccnl_ndntlv_mkFrag(struct ccnl_frag_s *fr, unsigned int *consumed)
         datalen = fr->mtu;
     }
     offset = sizeof(test);
-    hdrlen = ccnl_ndntlv_prependTL(NDN_TLV_NdnlpFragment, datalen,
+    hdrlen = ccn_iribu_ndntlv_prependTL(NDN_TLV_NdnlpFragment, datalen,
                                    &offset, test);
-    hdrlen += ccnl_ndntlv_prependTL(NDN_TLV_Frag_BeginEndFields, 2,
+    hdrlen += ccn_iribu_ndntlv_prependTL(NDN_TLV_Frag_BeginEndFields, 2,
                                     &offset, test) + 2;
-    hdrlen += ccnl_ndntlv_prependTL(NDN_TLV_Fragment, hdrlen + datalen,
+    hdrlen += ccn_iribu_ndntlv_prependTL(NDN_TLV_Fragment, hdrlen + datalen,
                                     &offset, test);
 
     // with real values:
@@ -711,30 +711,30 @@ ccnl_ndntlv_mkFrag(struct ccnl_frag_s *fr, unsigned int *consumed)
         datalen = fr->mtu - hdrlen;
     }
 
-    buf = ccnl_buf_new(NULL, datalen + hdrlen);
+    buf = ccn_iribu_buf_new(NULL, datalen + hdrlen);
     if (!buf) {
         return 0;
     }
     offset = buf->datalen - datalen;
     memcpy(buf->data + offset,
            fr->bigpkt->data + fr->sendoffs, datalen);
-    ccnl_ndntlv_prependTL(NDN_TLV_NdnlpFragment, datalen,
+    ccn_iribu_ndntlv_prependTL(NDN_TLV_NdnlpFragment, datalen,
                           &offset, buf->data);
 
     tmp = fr->sendseq & 0x03fff;
     if (datalen >= fr->bigpkt->datalen) {            // single
-        tmp |= CCNL_DTAG_FRAG_FLAG_SINGLE << 14;
+        tmp |= CCN_IRIBU_DTAG_FRAG_FLAG_SINGLE << 14;
     } else if (fr->sendoffs == 0) {                  // start
-        tmp |= CCNL_DTAG_FRAG_FLAG_FIRST << 14;
+        tmp |= CCN_IRIBU_DTAG_FRAG_FLAG_FIRST << 14;
     } else if((unsigned) datalen >= (fr->bigpkt->datalen - fr->sendoffs)) { // end
-        tmp |= CCNL_DTAG_FRAG_FLAG_LAST << 14;
+        tmp |= CCN_IRIBU_DTAG_FRAG_FLAG_LAST << 14;
     } else
-        tmp |= CCNL_DTAG_FRAG_FLAG_MID << 14;        // middle
+        tmp |= CCN_IRIBU_DTAG_FRAG_FLAG_MID << 14;        // middle
     offset -= 2;
     *(uint16_t*) (buf->data + offset) = htons(tmp);
-    tmp = ccnl_ndntlv_prependTL(NDN_TLV_Frag_BeginEndFields, 2,
+    tmp = ccn_iribu_ndntlv_prependTL(NDN_TLV_Frag_BeginEndFields, 2,
                           &offset, buf->data);
-    tmp = ccnl_ndntlv_prependTL(NDN_TLV_Fragment, buf->datalen - offset,
+    tmp = ccn_iribu_ndntlv_prependTL(NDN_TLV_Fragment, buf->datalen - offset,
                           &offset, buf->data);
 
     if (offset > 0) {

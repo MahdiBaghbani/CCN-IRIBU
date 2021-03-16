@@ -1,5 +1,5 @@
 /*
- * @f ccnl-os-time.h
+ * @f ccn-iribu-os-time.h
  * @b CCN lite (CCNL), core header file (internal data structures)
  *
  * Copyright (C) 2011-17, University of Basel
@@ -20,21 +20,21 @@
  * 2017-06-16 created
  */
 
- #ifndef CCNL_OS_TIME_H
- #define CCNL_OS_TIME_H
+ #ifndef CCN_IRIBU_OS_TIME_H
+ #define CCN_IRIBU_OS_TIME_H
 
-#ifndef CCNL_LINUXKERNEL
+#ifndef CCN_IRIBU_LINUXKERNEL
 #include <stdint.h>
 #else
 #include <linux/types.h>
 #endif
 
- #ifdef CCNL_ARDUINO
+ #ifdef CCN_IRIBU_ARDUINO
 
  // typedef int time_t;
 #define Hz 1000
 
-double CCNL_NOW(void);
+double CCN_IRIBU_NOW(void);
 
  struct timeval {
     uint32_t tv_sec;
@@ -47,12 +47,12 @@ gettimeofday(struct timeval *tv, void *dummy);
 char*
 timestamp(void);
 
-#else // !CCNL_ARDUINO
-#ifndef CCNL_LINUXKERNEL
+#else // !CCN_IRIBU_ARDUINO
+#ifndef CCN_IRIBU_LINUXKERNEL
  #include <sys/time.h>
 #endif
 
-#ifndef CCNL_LINUXKERNEL
+#ifndef CCN_IRIBU_LINUXKERNEL
 double
 current_time(void);
 
@@ -61,23 +61,23 @@ timestamp(void);
 
 #endif
 
-#endif // !CCNL_ARDUINO
+#endif // !CCN_IRIBU_ARDUINO
 
 // ----------------------------------------------------------------------
-#ifdef CCNL_UNIX
+#ifdef CCN_IRIBU_UNIX
 
-#ifndef CCNL_OMNET
-#  define CCNL_NOW()                    current_time()
-#endif //CCNL_OMNET
+#ifndef CCN_IRIBU_OMNET
+#  define CCN_IRIBU_NOW()                    current_time()
+#endif //CCN_IRIBU_OMNET
 
-#endif // CCNL_UNIX
+#endif // CCN_IRIBU_UNIX
 
-#if defined(CCNL_UNIX) || defined (CCNL_RIOT) || defined (CCNL_ARDUINO)
+#if defined(CCN_IRIBU_UNIX) || defined (CCN_IRIBU_RIOT) || defined (CCN_IRIBU_ARDUINO)
 
 // ----------------------------------------------------------------------
 
-struct ccnl_timer_s {
-    struct ccnl_timer_s *next;
+struct ccn_iribu_timer_s {
+    struct ccn_iribu_timer_s *next;
     struct timeval timeout;
     void (*fct)(char,int);
     void (*fct2)(void*,void*);
@@ -89,22 +89,22 @@ struct ccnl_timer_s {
 };
 
 void
-ccnl_get_timeval(struct timeval *tv);
+ccn_iribu_get_timeval(struct timeval *tv);
 
 long
 timevaldelta(struct timeval *a, struct timeval *b);
 
 void*
-ccnl_set_timer(uint64_t usec, void (*fct)(void *aux1, void *aux2),
+ccn_iribu_set_timer(uint64_t usec, void (*fct)(void *aux1, void *aux2),
                  void *aux1, void *aux2);
 
 void
-ccnl_rem_timer(void *h);
+ccn_iribu_rem_timer(void *h);
 
 #endif
 
-#ifdef CCNL_LINUXKERNEL
-struct ccnl_timerlist_s {
+#ifdef CCN_IRIBU_LINUXKERNEL
+struct ccn_iribu_timerlist_s {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,15,0))
         struct legacy_timer_emu {
             struct timer_list t;
@@ -126,10 +126,10 @@ static void legacy_timer_emu_func(struct timer_list *t)
 }
 #endif
 
-static struct ccnl_timerlist_s *spare_timer;
+static struct ccn_iribu_timerlist_s *spare_timer;
 
 inline void
-ccnl_get_timeval(struct timeval *tv);
+ccn_iribu_get_timeval(struct timeval *tv);
 
 int
 current_time2(void);
@@ -137,30 +137,30 @@ current_time2(void);
 long
 timevaldelta(struct timeval *a, struct timeval *b);
 
-#  define CCNL_NOW()                    current_time2()
+#  define CCN_IRIBU_NOW()                    current_time2()
 
 static void
-ccnl_timer_callback(unsigned long data);
+ccn_iribu_timer_callback(unsigned long data);
 
 static void*
-ccnl_set_timer(int usec, void(*fct)(void*,void*), void *ptr, void *aux);
+ccn_iribu_set_timer(int usec, void(*fct)(void*,void*), void *ptr, void *aux);
 
 static void
-ccnl_rem_timer(void *p);
+ccn_iribu_rem_timer(void *p);
 
 #else
 
 int
-ccnl_run_events(void);
+ccn_iribu_run_events(void);
 
-#endif // CCNL_LINUXKERNEL
+#endif // CCN_IRIBU_LINUXKERNEL
 
 #ifdef USE_SCHEDULER
 
 void*
-ccnl_set_absolute_timer(struct timeval abstime, void (*fct)(void *aux1, void *aux2),
+ccn_iribu_set_absolute_timer(struct timeval abstime, void (*fct)(void *aux1, void *aux2),
          void *aux1, void *aux2)
 
 #endif
 
-#endif // CCNL_OS_TIME_H
+#endif // CCN_IRIBU_OS_TIME_H

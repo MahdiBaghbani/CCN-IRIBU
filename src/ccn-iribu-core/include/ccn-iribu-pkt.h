@@ -2,7 +2,7 @@
  * @addtogroup CCNL-core
  * @{
  *
- * @file ccnl-pkt.h
+ * @file ccn-iribu-pkt.h
  * @brief CCN lite, core CCN PKT data structure
  *
  * @author Christopher Scherb <christopher.scherb@unibas.ch>
@@ -21,81 +21,81 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef CCNL_PKT_H
-#define CCNL_PKT_H
+#ifndef CCN_IRIBU_PKT_H
+#define CCN_IRIBU_PKT_H
 
 #include <stddef.h>
-#ifndef CCNL_LINUXKERNEL
+#ifndef CCN_IRIBU_LINUXKERNEL
 #include <stdint.h>
 #else
 #include <linux/types.h>
 #endif
 
-#include "ccnl-buf.h"
-#include "ccnl-prefix.h"
+#include "ccn-iribu-buf.h"
+#include "ccn-iribu-prefix.h"
 
 #ifdef USE_SUITE_NDNTLV
-#ifndef CCNL_LINUXKERNEL
-#include "ccnl-pkt-ndntlv.h"
+#ifndef CCN_IRIBU_LINUXKERNEL
+#include "ccn-iribu-pkt-ndntlv.h"
 #else
-#include "../../ccnl-pkt/include/ccnl-pkt-ndntlv.h"
+#include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ndntlv.h"
 #endif
 #endif
 
 // packet flags:  0000ebtt
-#define CCNL_PKT_REQUEST    0x01 // "Interest"
-#define CCNL_PKT_REPLY      0x02 // "Object", "Data"
-#define CCNL_PKT_FRAGMENT   0x03 // "Fragment"
-#define CCNL_PKT_FRAG_BEGIN 0x04 // see also CCNL_DATA_FRAG_FLAG_FIRST etc
-#define CCNL_PKT_FRAG_END   0x08
+#define CCN_IRIBU_PKT_REQUEST    0x01 // "Interest"
+#define CCN_IRIBU_PKT_REPLY      0x02 // "Object", "Data"
+#define CCN_IRIBU_PKT_FRAGMENT   0x03 // "Fragment"
+#define CCN_IRIBU_PKT_FRAG_BEGIN 0x04 // see also CCN_IRIBU_DATA_FRAG_FLAG_FIRST etc
+#define CCN_IRIBU_PKT_FRAG_END   0x08
 
 /**
  * @brief Options for Interest messages of all TLV formats
  */
 typedef union {
 #ifdef USE_SUITE_NDNTLV
-    struct ccnl_ndntlv_interest_opts_s ndntlv;      /**< options for NDN Interest messages */
+    struct ccn_iribu_ndntlv_interest_opts_s ndntlv;      /**< options for NDN Interest messages */
 #endif
-} ccnl_interest_opts_u;
+} ccn_iribu_interest_opts_u;
 
 /**
  * @brief Options for Data messages of all TLV formats
  */
 typedef union {
 #ifdef USE_SUITE_NDNTLV
-    struct ccnl_ndntlv_data_opts_s ndntlv;      /**< options for NDN Data messages */
+    struct ccn_iribu_ndntlv_data_opts_s ndntlv;      /**< options for NDN Data messages */
 #endif
-} ccnl_data_opts_u;
+} ccn_iribu_data_opts_u;
 
-struct ccnl_pktdetail_ccnb_s {
+struct ccn_iribu_pktdetail_ccnb_s {
     uint32_t minsuffix, maxsuffix;
     uint16_t aok;
     int scope;
-    struct ccnl_buf_s *nonce;
-    struct ccnl_buf_s *ppkd;        /**< publisher public key digest */
+    struct ccn_iribu_buf_s *nonce;
+    struct ccn_iribu_buf_s *ppkd;        /**< publisher public key digest */
 };
 
-struct ccnl_pktdetail_ccntlv_s {
-    struct ccnl_buf_s *keyid;       /**< publisher keyID */
+struct ccn_iribu_pktdetail_ccntlv_s {
+    struct ccn_iribu_buf_s *keyid;       /**< publisher keyID */
 };
 
 /**
  * @brief Packet details for the NDN TLV format
  */
-struct ccnl_pktdetail_ndntlv_s {
+struct ccn_iribu_pktdetail_ndntlv_s {
     /* Interest */
     uint64_t minsuffix, maxsuffix, scope;
     uint8_t mbf;
-    struct ccnl_buf_s *nonce;      /**< nonce */
-    struct ccnl_buf_s *ppkl;       /**< publisher public key locator */
+    struct ccn_iribu_buf_s *nonce;      /**< nonce */
+    struct ccn_iribu_buf_s *ppkl;       /**< publisher public key locator */
     uint64_t interestlifetime;     /**< interest lifetime */
     /* Data */
     uint64_t freshnessperiod;      /**< defines how long a node has to wait (after the arrival of this data before) marking it “non-fresh” */
 };
 
-struct ccnl_pkt_s {
-    struct ccnl_buf_s *buf;        /**< the packet's bytes */
-    struct ccnl_prefix_s *pfx;     /**< prefix/name */
+struct ccn_iribu_pkt_s {
+    struct ccn_iribu_buf_s *buf;        /**< the packet's bytes */
+    struct ccn_iribu_prefix_s *pfx;     /**< prefix/name */
     uint8_t *content;              /**< pointer into the data buffer */
     size_t contlen;
     uint64_t type;                 /**< suite-specific value (outermost type) */
@@ -104,9 +104,9 @@ struct ccnl_pkt_s {
         uint64_t seqno;
     } val;
     union {
-        struct ccnl_pktdetail_ccnb_s   ccnb;
-        struct ccnl_pktdetail_ccntlv_s ccntlv;
-        struct ccnl_pktdetail_ndntlv_s ndntlv;
+        struct ccn_iribu_pktdetail_ccnb_s   ccnb;
+        struct ccn_iribu_pktdetail_ccntlv_s ccntlv;
+        struct ccn_iribu_pktdetail_ndntlv_s ndntlv;
     } s;                           /**< suite specific packet details */
 #ifdef USE_HMAC256
     uint8_t *hmacStart;
@@ -123,7 +123,7 @@ struct ccnl_pkt_s {
  * @param[in] pkt       pkt datastructure to be freed
 */
 void
-ccnl_pkt_free(struct ccnl_pkt_s *pkt);
+ccn_iribu_pkt_free(struct ccn_iribu_pkt_s *pkt);
 
 /**
  * @brief Duplicates a pkt data structure
@@ -132,8 +132,8 @@ ccnl_pkt_free(struct ccnl_pkt_s *pkt);
  *
  * @return  returns a copy of @p pkt, NULL if failed
 */
-struct ccnl_pkt_s *
-ccnl_pkt_dup(struct ccnl_pkt_s *pkt);
+struct ccn_iribu_pkt_s *
+ccn_iribu_pkt_dup(struct ccn_iribu_pkt_s *pkt);
 
 /**
  * @brief Create a component for a pkt data structure (CCNTLV and CISTLV need special component start)
@@ -146,7 +146,7 @@ ccnl_pkt_dup(struct ccnl_pkt_s *pkt);
  * @return              length of the created component
 */
 size_t
-ccnl_pkt_mkComponent(int suite, uint8_t *dst, char *src, size_t srclen);
+ccn_iribu_pkt_mkComponent(int suite, uint8_t *dst, char *src, size_t srclen);
 
 /**
  * @brief prepend a component to buf
@@ -159,7 +159,7 @@ ccnl_pkt_mkComponent(int suite, uint8_t *dst, char *src, size_t srclen);
  * @return              length of the entire component
 */
 int
-ccnl_pkt_prependComponent(int suite, char *src, int *offset, unsigned char *buf);
+ccn_iribu_pkt_prependComponent(int suite, char *src, int *offset, unsigned char *buf);
 
 #endif // EOF
 /** @} */

@@ -2,7 +2,7 @@
  * @addtogroup CCNL-utils
  * @{
  *
- * @file ccnl-overflow.h
+ * @file ccn-iribu-overflow.h
  * @brief Provides macros for detecting integer overflows
  *
  * Copyright (C) 2018 Michael Frey, MSA Safety
@@ -19,8 +19,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifndef CCNL_OVERFLOW_H
-#define CCNL_OVERFLOW_H
+#ifndef CCN_IRIBU_OVERFLOW_H
+#define CCN_IRIBU_OVERFLOW_H
 
 /**
  * @brief Checks if a __builtin* feature is availbale or not

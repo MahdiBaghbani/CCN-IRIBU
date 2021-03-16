@@ -1,5 +1,5 @@
 /*
- * @f util/ccnl-socket.c
+ * @f util/ccn-iribu-socket.c
  * @b request content: send an interest open socket etc
  *
  * Copyright (C) 2013, Christian Tschudin, University of Basel
@@ -36,8 +36,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "ccnl-defs.h"
-#include "ccnl-socket.h"
+#include "ccn-iribu-defs.h"
+#include "ccn-iribu-socket.h"
 
 char *unix_path;
 
@@ -110,7 +110,7 @@ ux_open()
         exit(1);
     }
 
-    bufsize = 4 * CCNL_MAX_PACKET_SIZE;
+    bufsize = 4 * CCN_IRIBU_MAX_PACKET_SIZE;
     setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof(bufsize));
     setsockopt(sock, SOL_SOCKET, SO_SNDBUF, &bufsize, sizeof(bufsize));
 

@@ -23,17 +23,17 @@
 
 #ifdef USE_SUITE_CCNTLV
 
-#ifndef CCNL_LINUXKERNEL
-#include "ccnl-pkt-ccntlv.h"
-#include "ccnl-core.h"
+#ifndef CCN_IRIBU_LINUXKERNEL
+#include "ccn-iribu-pkt-ccntlv.h"
+#include "ccn-iribu-core.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <arpa/inet.h>
 #include <assert.h>
 #else
-#include "../include/ccnl-pkt-ccntlv.h"
-#include "../../ccnl-core/include/ccnl-core.h"
+#include "../include/ccn-iribu-pkt-ccntlv.h"
+#include "../../ccn-iribu-core/include/ccn-iribu-core.h"
 #endif
 
 
@@ -56,7 +56,7 @@ Note:
 
 // convert network order byte array into local unsigned integer value
 int8_t
-ccnl_ccnltv_extractNetworkVarInt(uint8_t *buf, size_t len,
+ccn_iribu_ccnltv_extractNetworkVarInt(uint8_t *buf, size_t len,
                                  uint32_t *intval)
 {
     uint32_t val = 0;
@@ -78,7 +78,7 @@ ccnl_ccnltv_extractNetworkVarInt(uint8_t *buf, size_t len,
 // this value depends on the type (interest/data/nack) and opt headers
 // but should be available in the fixed header
 int8_t
-ccnl_ccntlv_getHdrLen(uint8_t *data, size_t datalen, size_t *hdrlen)
+ccn_iribu_ccntlv_getHdrLen(uint8_t *data, size_t datalen, size_t *hdrlen)
 {
     struct ccnx_tlvhdr_ccnx2015_s *hp;
 
@@ -91,7 +91,7 @@ ccnl_ccntlv_getHdrLen(uint8_t *data, size_t datalen, size_t *hdrlen)
 }
 
 int8_t
-ccnl_ccntlv_dehead(uint8_t **buf, size_t *len,
+ccn_iribu_ccntlv_dehead(uint8_t **buf, size_t *len,
                    uint16_t *typ, size_t *vallen)
 {
     size_t maxlen = *len;
@@ -111,11 +111,11 @@ ccnl_ccntlv_dehead(uint8_t **buf, size_t *len,
 
 // We use one extraction procedure for both interest and data pkts.
 // This proc assumes that the packet header was already processed and consumed
-struct ccnl_pkt_s*
-ccnl_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
+struct ccn_iribu_pkt_s*
+ccn_iribu_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
 {
-    struct ccnl_pkt_s *pkt;
-    struct ccnl_prefix_s *p;
+    struct ccn_iribu_pkt_s *pkt;
+    struct ccn_iribu_prefix_s *p;
     uint32_t i;
     size_t len;
     size_t oldpos;
@@ -124,16 +124,16 @@ ccnl_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
     uint8_t validAlgoIsHmac256 = 0;
 #endif
 
-    DEBUGMSG_PCNX(TRACE, "ccnl_ccntlv_bytes2pkt len=%zu\n", *datalen);
+    DEBUGMSG_PCNX(TRACE, "ccn_iribu_ccntlv_bytes2pkt len=%zu\n", *datalen);
 
-    pkt = (struct ccnl_pkt_s*) ccnl_calloc(1, sizeof(*pkt));
+    pkt = (struct ccn_iribu_pkt_s*) ccn_iribu_calloc(1, sizeof(*pkt));
     if (!pkt) {
         return NULL;
     }
 
-    pkt->pfx = p = ccnl_prefix_new(CCNL_SUITE_CCNTLV, CCNL_MAX_NAME_COMP);
+    pkt->pfx = p = ccn_iribu_prefix_new(CCN_IRIBU_SUITE_CCNTLV, CCN_IRIBU_MAX_NAME_COMP);
     if (!p) {
-        ccnl_free(pkt);
+        ccn_iribu_free(pkt);
         return NULL;
     }
     p->compcnt = 0;
@@ -144,18 +144,18 @@ ccnl_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
     // We ignore the TL types of the message for now:
     // content and interests are filled in both cases (and only one exists).
     // Validation info is now collected
-    if (ccnl_ccntlv_dehead(data, datalen, &typ, &len) || len > *datalen) {
+    if (ccn_iribu_ccntlv_dehead(data, datalen, &typ, &len) || len > *datalen) {
         goto Bail;
     }
 
     pkt->type = typ;
-    pkt->suite = CCNL_SUITE_CCNTLV;
+    pkt->suite = CCN_IRIBU_SUITE_CCNTLV;
     pkt->val.final_block_id = -1;
 
     // XXX this parsing is not safe for all input data - needs more bound
     // checks, as some packets with wrong L values can bring this to crash
     oldpos = *data - start;
-    while (ccnl_ccntlv_dehead(data, datalen, &typ, &len) == 0) {
+    while (ccn_iribu_ccntlv_dehead(data, datalen, &typ, &len) == 0) {
         uint8_t *cp = *data, *cp2;
         size_t len2 = len;
         size_t len3;
@@ -168,7 +168,7 @@ ccnl_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
             p->nameptr = start + oldpos;
             while (len2 > 0) {
                 cp2 = cp;
-                if (ccnl_ccntlv_dehead(&cp, &len2, &typ, &len3) || len>*datalen) {
+                if (ccn_iribu_ccntlv_dehead(&cp, &len2, &typ, &len3) || len>*datalen) {
                     goto Bail;
                 }
 
@@ -179,27 +179,27 @@ ccnl_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
                     // possibly want to remove the chunk segment from the
                     // name components and rely on the chunknum field in
                     // the prefix.
-                  p->chunknum = (uint32_t *) ccnl_malloc(sizeof(uint32_t));
+                  p->chunknum = (uint32_t *) ccn_iribu_malloc(sizeof(uint32_t));
 
-                    if (ccnl_ccnltv_extractNetworkVarInt(cp, len3, p->chunknum) < 0) {
+                    if (ccn_iribu_ccnltv_extractNetworkVarInt(cp, len3, p->chunknum) < 0) {
                         DEBUGMSG_PCNX(WARNING, "Error in NetworkVarInt for chunk\n");
                         goto Bail;
                     }
-                    if (p->compcnt < CCNL_MAX_NAME_COMP) {
+                    if (p->compcnt < CCN_IRIBU_MAX_NAME_COMP) {
                         p->comp[p->compcnt] = cp2;
                         p->complen[p->compcnt] = cp - cp2 + len3;
                         p->compcnt++;
                     } // else out of name component memory: skip
                     break;
                 case CCNX_TLV_N_NameSegment:
-                    if (p->compcnt < CCNL_MAX_NAME_COMP) {
+                    if (p->compcnt < CCN_IRIBU_MAX_NAME_COMP) {
                         p->comp[p->compcnt] = cp2;
                         p->complen[p->compcnt] = cp - cp2 + len3;
                         p->compcnt++;
                     } // else out of name component memory: skip
                     break;
                 case CCNX_TLV_N_Meta:
-                    if (ccnl_ccntlv_dehead(&cp, &len2, &typ, &len3) || len > *datalen) {
+                    if (ccn_iribu_ccntlv_dehead(&cp, &len2, &typ, &len3) || len > *datalen) {
                         DEBUGMSG_PCNX(WARNING, "error when extracting CCNX_TLV_M_MetaData\n");
                         goto Bail;
                     }
@@ -214,7 +214,7 @@ ccnl_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
             break;
         case CCNX_TLV_M_ENDChunk: {
             uint32_t final_block_id;
-            if (ccnl_ccnltv_extractNetworkVarInt(cp, len, &final_block_id) < 0) {
+            if (ccn_iribu_ccnltv_extractNetworkVarInt(cp, len, &final_block_id) < 0) {
                 DEBUGMSG_PCNX(WARNING, "error when extracting CCNX_TLV_M_ENDChunk\n");
                 goto Bail;
             }
@@ -229,7 +229,7 @@ ccnl_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
         case CCNX_TLV_TL_ValidationAlgo:
             cp = *data;
             len2 = len;
-            if (ccnl_ccntlv_dehead(&cp, &len2, &typ, &len3) || len > *datalen) {
+            if (ccn_iribu_ccntlv_dehead(&cp, &len2, &typ, &len3) || len > *datalen) {
                 goto Bail;
             }
             if (typ == CCNX_VALIDALGO_HMAC_SHA256) {
@@ -256,7 +256,7 @@ ccnl_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
     }
 
     pkt->pfx = p;
-    pkt->buf = ccnl_buf_new(start, *data - start);
+    pkt->buf = ccn_iribu_buf_new(start, *data - start);
     if (!pkt->buf) {
         goto Bail;
     }
@@ -277,7 +277,7 @@ ccnl_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
 
     return pkt;
 Bail:
-    ccnl_pkt_free(pkt);
+    ccn_iribu_pkt_free(pkt);
     return NULL;
 }
 
@@ -287,13 +287,13 @@ Bail:
 
 // returns: 0=match, -1=otherwise
 int8_t
-ccnl_ccntlv_cMatch(struct ccnl_pkt_s *p, struct ccnl_content_s *c)
+ccn_iribu_ccntlv_cMatch(struct ccn_iribu_pkt_s *p, struct ccn_iribu_content_s *c)
 {
-#ifndef CCNL_LINUXKERNEL
+#ifndef CCN_IRIBU_LINUXKERNEL
     assert(p);
-    assert(p->suite == CCNL_SUITE_CCNTLV);
+    assert(p->suite == CCN_IRIBU_SUITE_CCNTLV);
 #endif
-    if (ccnl_prefix_cmp(c->pkt->pfx, NULL, p->pfx, CMP_EXACT)) {
+    if (ccn_iribu_prefix_cmp(c->pkt->pfx, NULL, p->pfx, CMP_EXACT)) {
         return -1;
     }
     // TODO: check keyid
@@ -310,7 +310,7 @@ ccnl_ccntlv_cMatch(struct ccnl_pkt_s *p, struct ccnl_content_s *c)
 
 // write given TL *before* position buf+offset, adjust offset and return len
 int8_t
-ccnl_ccntlv_prependTL(uint16_t type, size_t len,
+ccn_iribu_ccntlv_prependTL(uint16_t type, size_t len,
                       size_t *offset, uint8_t *buf)
 {
     if (*offset < 4 || len > UINT16_MAX) {
@@ -331,7 +331,7 @@ ccnl_ccntlv_prependTL(uint16_t type, size_t len,
 
 // write len bytes *before* position buf[offset], adjust offset
 int8_t
-ccnl_ccntlv_prependBlob(uint16_t type, uint8_t *blob,
+ccn_iribu_ccntlv_prependBlob(uint16_t type, uint8_t *blob,
                         size_t len, size_t *offset, uint8_t *buf)
 {
     if (*offset < (len + 4)) {
@@ -340,7 +340,7 @@ ccnl_ccntlv_prependBlob(uint16_t type, uint8_t *blob,
     *offset -= len;
     memcpy(buf + *offset, blob, len);
 
-    if (ccnl_ccntlv_prependTL(type, len, offset, buf)) {
+    if (ccn_iribu_ccntlv_prependTL(type, len, offset, buf)) {
         return -1;
     }
     return 0;
@@ -350,7 +350,7 @@ ccnl_ccntlv_prependBlob(uint16_t type, uint8_t *blob,
 // the given unsigned integer val *before* position buf[offset], adjust offset
 // and return number of bytes prepended. 0 is represented as %x00
 int8_t
-ccnl_ccntlv_prependNetworkVarUInt(uint16_t type, uint32_t intval,
+ccn_iribu_ccntlv_prependNetworkVarUInt(uint16_t type, uint32_t intval,
                                   size_t *offset, uint8_t *buf)
 {
     size_t offs = *offset;
@@ -366,7 +366,7 @@ ccnl_ccntlv_prependNetworkVarUInt(uint16_t type, uint32_t intval,
     }
     *offset = offs;
 
-    if (ccnl_ccntlv_prependTL(type, len, offset, buf)) {
+    if (ccn_iribu_ccntlv_prependTL(type, len, offset, buf)) {
         return -1;
     }
     return 0;
@@ -377,7 +377,7 @@ ccnl_ccntlv_prependNetworkVarUInt(uint16_t type, uint32_t intval,
 // the given signed integer val *before* position buf[offset], adjust offset
 // and return number of bytes prepended. 0 is represented as %x00
 int
-ccnl_ccntlv_prependNetworkVarSInt(unsigned short type, int intval,
+ccn_iribu_ccntlv_prependNetworkVarSInt(unsigned short type, int intval,
                                   int *offset, unsigned char *buf)
 {
  ...
@@ -387,7 +387,7 @@ ccnl_ccntlv_prependNetworkVarSInt(unsigned short type, int intval,
 // write *before* position buf[offset] the CCNx1.0 fixed header,
 // returns 0 on success, non-zero on failure.
 int8_t
-ccnl_ccntlv_prependFixedHdr(uint8_t ver,
+ccn_iribu_ccntlv_prependFixedHdr(uint8_t ver,
                             uint8_t packettype,
                             size_t payloadlen,
                             uint8_t hoplimit,
@@ -421,7 +421,7 @@ ccnl_ccntlv_prependFixedHdr(uint8_t ver,
 // write given prefix and chunknum *before* buf[offs], adjust offset.
 // Returns 0 on success, non-zero on failure.
 int8_t
-ccnl_ccntlv_prependName(struct ccnl_prefix_s *name,
+ccn_iribu_ccntlv_prependName(struct ccn_iribu_prefix_s *name,
                         size_t *offset, uint8_t *buf,
                         const uint32_t *lastchunknum) {
 
@@ -429,7 +429,7 @@ ccnl_ccntlv_prependName(struct ccnl_prefix_s *name,
     size_t nameend;
 
     if (lastchunknum) {
-        if (ccnl_ccntlv_prependNetworkVarUInt(CCNX_TLV_M_ENDChunk,
+        if (ccn_iribu_ccntlv_prependNetworkVarUInt(CCNX_TLV_M_ENDChunk,
                                               *lastchunknum, offset, buf)) {
             return -1;
         }
@@ -438,7 +438,7 @@ ccnl_ccntlv_prependName(struct ccnl_prefix_s *name,
     nameend = *offset;
 
     if (name->chunknum &&
-        ccnl_ccntlv_prependNetworkVarUInt(CCNX_TLV_N_Chunk,
+        ccn_iribu_ccntlv_prependNetworkVarUInt(CCNX_TLV_N_Chunk,
                                           *name->chunknum, offset, buf)) {
         return -1;
     }
@@ -453,7 +453,7 @@ ccnl_ccntlv_prependName(struct ccnl_prefix_s *name,
         *offset -= name->complen[cnt-1];
         memcpy(buf + *offset, name->comp[cnt-1], name->complen[cnt-1]);
     }
-    if (ccnl_ccntlv_prependTL(CCNX_TLV_M_Name, nameend - *offset,
+    if (ccn_iribu_ccntlv_prependTL(CCNX_TLV_M_Name, nameend - *offset,
                               offset, buf)) {
         return -1;
     }
@@ -463,15 +463,15 @@ ccnl_ccntlv_prependName(struct ccnl_prefix_s *name,
 
 // write Interest payload *before* buf[offs], adjust offs and return bytes used
 int8_t
-ccnl_ccntlv_prependInterest(struct ccnl_prefix_s *name,
+ccn_iribu_ccntlv_prependInterest(struct ccn_iribu_prefix_s *name,
                             size_t *offset, uint8_t *buf, size_t *len)
 {
     size_t oldoffset = *offset;
 
-    if (ccnl_ccntlv_prependName(name, offset, buf, NULL)) {
+    if (ccn_iribu_ccntlv_prependName(name, offset, buf, NULL)) {
         return -1;
     }
-    if (ccnl_ccntlv_prependTL(CCNX_TLV_TL_Interest,
+    if (ccn_iribu_ccntlv_prependTL(CCNX_TLV_TL_Interest,
                                         oldoffset - *offset, offset, buf)) {
         return -1;
     }
@@ -482,21 +482,21 @@ ccnl_ccntlv_prependInterest(struct ccnl_prefix_s *name,
 
 // write Interest packet *before* buf[offs], adjust offs and return bytes used
 int8_t
-ccnl_ccntlv_prependChunkInterestWithHdr(struct ccnl_prefix_s *name,
+ccn_iribu_ccntlv_prependChunkInterestWithHdr(struct ccn_iribu_prefix_s *name,
                                         size_t *offset, uint8_t *buf, size_t *reslen)
 {
     size_t len, oldoffset;
     uint8_t hoplimit = 64; // setting hoplimit to max valid value?
 
     oldoffset = *offset;
-    if (ccnl_ccntlv_prependInterest(name, offset, buf, &len)) {
+    if (ccn_iribu_ccntlv_prependInterest(name, offset, buf, &len)) {
         return -1;
     }
     if (len > (UINT16_MAX - sizeof(struct ccnx_tlvhdr_ccnx2015_s))) {
         return -1;
     }
 
-    if (ccnl_ccntlv_prependFixedHdr(CCNX_TLV_V1, CCNX_PT_Interest,
+    if (ccn_iribu_ccntlv_prependFixedHdr(CCNX_TLV_V1, CCNX_PT_Interest,
                                     len, hoplimit, offset, buf)) {
         return -1;
     }
@@ -507,15 +507,15 @@ ccnl_ccntlv_prependChunkInterestWithHdr(struct ccnl_prefix_s *name,
 
 // write Interest packet *before* buf[offs], adjust offs and return bytes used
 int8_t
-ccnl_ccntlv_prependInterestWithHdr(struct ccnl_prefix_s *name,
+ccn_iribu_ccntlv_prependInterestWithHdr(struct ccn_iribu_prefix_s *name,
                                    size_t *offset, uint8_t *buf, size_t *len)
 {
-    return ccnl_ccntlv_prependChunkInterestWithHdr(name, offset, buf, len);
+    return ccn_iribu_ccntlv_prependChunkInterestWithHdr(name, offset, buf, len);
 }
 
 // write Content payload *before* buf[offs], adjust offs and return bytes used
 int8_t
-ccnl_ccntlv_prependContent(struct ccnl_prefix_s *name,
+ccn_iribu_ccntlv_prependContent(struct ccn_iribu_prefix_s *name,
                            uint8_t *payload, size_t paylen,
                            uint32_t *lastchunknum, size_t *contentpos,
                            size_t *offset, uint8_t *buf, size_t *reslen)
@@ -527,15 +527,15 @@ ccnl_ccntlv_prependContent(struct ccnl_prefix_s *name,
     }
 
     // fill in backwards
-    if (ccnl_ccntlv_prependBlob(CCNX_TLV_M_Payload, payload, paylen, offset, buf)) {
+    if (ccn_iribu_ccntlv_prependBlob(CCNX_TLV_M_Payload, payload, paylen, offset, buf)) {
         return -1;
     }
 
-    if (ccnl_ccntlv_prependName(name, offset, buf, lastchunknum)) {
+    if (ccn_iribu_ccntlv_prependName(name, offset, buf, lastchunknum)) {
         return -1;
     }
 
-    if (ccnl_ccntlv_prependTL(CCNX_TLV_TL_Object, tloffset - *offset, offset, buf)) {
+    if (ccn_iribu_ccntlv_prependTL(CCNX_TLV_TL_Object, tloffset - *offset, offset, buf)) {
         return -1;
     }
 
@@ -545,7 +545,7 @@ ccnl_ccntlv_prependContent(struct ccnl_prefix_s *name,
 
 // write Content packet *before* buf[offs], adjust offs and return bytes used
 int8_t
-ccnl_ccntlv_prependContentWithHdr(struct ccnl_prefix_s *name,
+ccn_iribu_ccntlv_prependContentWithHdr(struct ccn_iribu_prefix_s *name,
                                   uint8_t *payload, size_t paylen,
                                   uint32_t *lastchunknum, size_t *contentpos,
                                   size_t *offset, uint8_t *buf, size_t *reslen)
@@ -555,7 +555,7 @@ ccnl_ccntlv_prependContentWithHdr(struct ccnl_prefix_s *name,
 
     oldoffset = *offset;
 
-    if (ccnl_ccntlv_prependContent(name, payload, paylen, lastchunknum,
+    if (ccn_iribu_ccntlv_prependContent(name, payload, paylen, lastchunknum,
                                    contentpos, offset, buf, &len)) {
         return -1;
     }
@@ -564,7 +564,7 @@ ccnl_ccntlv_prependContentWithHdr(struct ccnl_prefix_s *name,
         return -1;
     }
 
-    if (ccnl_ccntlv_prependFixedHdr(CCNX_TLV_V1, CCNX_PT_Data,
+    if (ccn_iribu_ccntlv_prependFixedHdr(CCNX_TLV_V1, CCNX_PT_Data,
                                     len, hoplimit, offset, buf)) {
         return -1;
     }
@@ -576,15 +576,15 @@ ccnl_ccntlv_prependContentWithHdr(struct ccnl_prefix_s *name,
 #ifdef USE_FRAG
 
 // produces a full FRAG packet. It does not write, just read the fields in *fr
-struct ccnl_buf_s*
-ccnl_ccntlv_mkFrag(struct ccnl_frag_s *fr, unsigned int *consumed)
+struct ccn_iribu_buf_s*
+ccn_iribu_ccntlv_mkFrag(struct ccn_iribu_frag_s *fr, unsigned int *consumed)
 {
     size_t datalen;
-    struct ccnl_buf_s *buf;
+    struct ccn_iribu_buf_s *buf;
     struct ccnx_tlvhdr_ccnx2015_s *fp;
     uint16_t tmp;
 
-    DEBUGMSG_PCNX(TRACE, "ccnl_ccntlv_mkFrag seqno=%u\n", fr->sendseq);
+    DEBUGMSG_PCNX(TRACE, "ccn_iribu_ccntlv_mkFrag seqno=%u\n", fr->sendseq);
 
     datalen = fr->mtu - sizeof(*fp) - 4;
     if (datalen > (fr->bigpkt->datalen - fr->sendoffs)) {
@@ -594,7 +594,7 @@ ccnl_ccntlv_mkFrag(struct ccnl_frag_s *fr, unsigned int *consumed)
         return NULL;
     }
 
-    buf = ccnl_buf_new(NULL, sizeof(*fp) + 4 + datalen);
+    buf = ccn_iribu_buf_new(NULL, sizeof(*fp) + 4 + datalen);
     if (!buf) {
         return NULL;
     }
@@ -613,13 +613,13 @@ ccnl_ccntlv_mkFrag(struct ccnl_frag_s *fr, unsigned int *consumed)
 
     tmp = fr->sendseq & 0x03fff;
     if (datalen >= fr->bigpkt->datalen) {   // single
-        tmp |= CCNL_BEFRAG_FLAG_SINGLE << 14;
+        tmp |= CCN_IRIBU_BEFRAG_FLAG_SINGLE << 14;
     } else if (fr->sendoffs == 0) {          // start
-        tmp |= CCNL_BEFRAG_FLAG_FIRST  << 14;
+        tmp |= CCN_IRIBU_BEFRAG_FLAG_FIRST  << 14;
     } else if(datalen >= (fr->bigpkt->datalen - fr->sendoffs)) { // end
-        tmp |= CCNL_BEFRAG_FLAG_LAST   << 14;
+        tmp |= CCN_IRIBU_BEFRAG_FLAG_LAST   << 14;
     } else {                                  // middle
-        tmp |= CCNL_BEFRAG_FLAG_MID    << 14;
+        tmp |= CCN_IRIBU_BEFRAG_FLAG_MID    << 14;
     }
     tmp = htons(tmp);
     memcpy(fp->fill, &tmp, 2);

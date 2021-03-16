@@ -1,5 +1,5 @@
 /*
- * @f ccnl-sched.h
+ * @f ccn-iribu-sched.h
  * @b CCN lite, core CCNx protocol logic
  *
  * Copyright (C) 2011-18 University of Basel
@@ -20,21 +20,21 @@
  * 2017-06-16 created
  */
 
-#ifndef CCNL_SCHED_H
-#define CCNL_SCHED_H
+#ifndef CCN_IRIBU_SCHED_H
+#define CCN_IRIBU_SCHED_H
 
-#ifndef CCNL_LINUXKERNEL
+#ifndef CCN_IRIBU_LINUXKERNEL
 #include <sys/time.h>
 #endif
 
-struct ccnl_relay_s;
+struct ccn_iribu_relay_s;
 
-struct ccnl_sched_s {
+struct ccn_iribu_sched_s {
     char mode; // 0=dummy, 1=pktrate
-    void (*rts)(struct ccnl_sched_s* s, int cnt, int len, void *aux1, void *aux2);
+    void (*rts)(struct ccn_iribu_sched_s* s, int cnt, int len, void *aux1, void *aux2);
     // private:
     void (*cts)(void *aux1, void *aux2);
-    struct ccnl_relay_s *ccnl;
+    struct ccn_iribu_relay_s *ccnl;
     void *aux1, *aux2;
     int cnt;
 #ifdef USE_CHEMFLOW
@@ -49,36 +49,36 @@ struct ccnl_sched_s {
 };
 
 int 
-ccnl_sched_init(void);
+ccn_iribu_sched_init(void);
 
 void 
-ccnl_sched_cleanup(void);
+ccn_iribu_sched_cleanup(void);
 
-struct ccnl_sched_s*
-ccnl_sched_dummy_new(void (cts)(void *aux1, void *aux2),struct ccnl_relay_s *ccnl);
+struct ccn_iribu_sched_s*
+ccn_iribu_sched_dummy_new(void (cts)(void *aux1, void *aux2),struct ccn_iribu_relay_s *ccnl);
 
-struct ccnl_sched_s*
-ccnl_sched_pktrate_new(void (cts)(void *aux1, void *aux2),
-        struct ccnl_relay_s *ccnl, int inter_packet_interval);
-
-void
-ccnl_sched_destroy(struct ccnl_sched_s *s);
+struct ccn_iribu_sched_s*
+ccn_iribu_sched_pktrate_new(void (cts)(void *aux1, void *aux2),
+        struct ccn_iribu_relay_s *ccnl, int inter_packet_interval);
 
 void
-ccnl_sched_RTS(struct ccnl_sched_s *s, int cnt, int len,
+ccn_iribu_sched_destroy(struct ccn_iribu_sched_s *s);
+
+void
+ccn_iribu_sched_RTS(struct ccn_iribu_sched_s *s, int cnt, int len,
         void *aux1, void *aux2);
 
 void
-ccnl_sched_CTS_done(struct ccnl_sched_s *s, int cnt, int len);
+ccn_iribu_sched_CTS_done(struct ccn_iribu_sched_s *s, int cnt, int len);
 
 void
-ccnl_sched_RX_ok(struct ccnl_relay_s *ccnl, int ifndx, int cnt);
+ccn_iribu_sched_RX_ok(struct ccn_iribu_relay_s *ccnl, int ifndx, int cnt);
 
 void
-ccnl_sched_RX_loss(struct ccnl_relay_s *ccnl, int ifndx, int cnt);
+ccn_iribu_sched_RX_loss(struct ccn_iribu_relay_s *ccnl, int ifndx, int cnt);
 
-struct ccnl_sched_s*
-ccnl_sched_packetratelimiter_new(int inter_packet_interval,
+struct ccn_iribu_sched_s*
+ccn_iribu_sched_packetratelimiter_new(int inter_packet_interval,
                                  void (*cts)(void *aux1, void *aux2),
                                  void *aux1, void *aux2);
 

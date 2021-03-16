@@ -1,5 +1,5 @@
 /*
- * @f ccnl-interest.h
+ * @f ccn-iribu-interest.h
  * @b CCN lite (CCNL), core header file (internal data structures)
  *
  * Copyright (C) 2011-17  University of Basel
@@ -22,38 +22,38 @@
  * 2017-06-16 created
  */
 
-#ifndef CCNL_INTEREST_H
-#define CCNL_INTEREST_H
+#ifndef CCN_IRIBU_INTEREST_H
+#define CCN_IRIBU_INTEREST_H
 
-#include "ccnl-pkt.h"
-#include "ccnl-face.h"
+#include "ccn-iribu-pkt.h"
+#include "ccn-iribu-face.h"
 
-#ifdef CCNL_RIOT
+#ifdef CCN_IRIBU_RIOT
 #include "evtimer_msg.h"
 #endif
 
 /**
  * @brief A pending interest linked list element
  */
-struct ccnl_pendint_s { 
-    struct ccnl_pendint_s *next; /**< pointer to the next list element */
-    struct ccnl_face_s *face;    /**< pointer to incoming face  */
+struct ccn_iribu_pendint_s { 
+    struct ccn_iribu_pendint_s *next; /**< pointer to the next list element */
+    struct ccn_iribu_face_s *face;    /**< pointer to incoming face  */
     uint32_t last_used;          /** */
 };
 
 /**
  * @brief A interest linked list element 
  */
-struct ccnl_interest_s {
-    struct ccnl_interest_s *next;       /**< pointer to the next list element */
-    struct ccnl_interest_s *prev;       /**< pointer to the previous list element */
-    struct ccnl_pkt_s *pkt;             /**< the packet the interests originates from (?) */
-    struct ccnl_face_s *from;           /**< the face the interest was received from */
-    struct ccnl_pendint_s *pending;     /**< linked list of faces wanting that content */
+struct ccn_iribu_interest_s {
+    struct ccn_iribu_interest_s *next;       /**< pointer to the next list element */
+    struct ccn_iribu_interest_s *prev;       /**< pointer to the previous list element */
+    struct ccn_iribu_pkt_s *pkt;             /**< the packet the interests originates from (?) */
+    struct ccn_iribu_face_s *from;           /**< the face the interest was received from */
+    struct ccn_iribu_pendint_s *pending;     /**< linked list of faces wanting that content */
     uint32_t lifetime;                  /**< interest lifetime */
     uint32_t last_used;                 /**< last time the entry was used */
     int retries;                        /**< current number of executed retransmits. */
-#ifdef CCNL_RIOT
+#ifdef CCN_IRIBU_RIOT
     evtimer_msg_event_t evtmsg_retrans; /**< retransmission timer */
     evtimer_msg_event_t evtmsg_timeout; /**< timeout timer for (?) */
 #endif
@@ -61,17 +61,17 @@ struct ccnl_interest_s {
 
 
 /**
- * Creates a new interest of type \ref ccnl_interest_s 
+ * Creates a new interest of type \ref ccn_iribu_interest_s 
  * 
  * @param[in] ccnl
  * @param[in] from
  * @param[in] pkt
  *
- * @return Upon success a new interest of type \ref ccnl_interest_s, otherwise NULL
+ * @return Upon success a new interest of type \ref ccn_iribu_interest_s, otherwise NULL
  */
-struct ccnl_interest_s*
-ccnl_interest_new(struct ccnl_relay_s *ccnl, struct ccnl_face_s *from,
-                  struct ccnl_pkt_s **pkt);
+struct ccn_iribu_interest_s*
+ccn_iribu_interest_new(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *from,
+                  struct ccn_iribu_pkt_s **pkt);
 
 /**
  * Checks if two interests are the same
@@ -85,7 +85,7 @@ ccnl_interest_new(struct ccnl_relay_s *ccnl, struct ccnl_face_s *from,
  * @return -2 if \ref pkt was NULL
  */
 int
-ccnl_interest_isSame(struct ccnl_interest_s *i, struct ccnl_pkt_s *pkt);
+ccn_iribu_interest_isSame(struct ccn_iribu_interest_s *i, struct ccn_iribu_pkt_s *pkt);
 
 /**
  * Adds a pending interest
@@ -99,7 +99,7 @@ ccnl_interest_isSame(struct ccnl_interest_s *i, struct ccnl_pkt_s *pkt);
  * @return -2 if \ref face was NULL
  */
 int
-ccnl_interest_append_pending(struct ccnl_interest_s *i, struct ccnl_face_s *from);
+ccn_iribu_interest_append_pending(struct ccn_iribu_interest_s *i, struct ccn_iribu_face_s *from);
 
 /**
  * Removes a pending interest 
@@ -113,6 +113,6 @@ ccnl_interest_append_pending(struct ccnl_interest_s *i, struct ccnl_face_s *from
  * @return -2 if \ref face was NULL
  */
 int
-ccnl_interest_remove_pending(struct ccnl_interest_s *i, struct ccnl_face_s *face);
+ccn_iribu_interest_remove_pending(struct ccn_iribu_interest_s *i, struct ccn_iribu_face_s *face);
 
-#endif //CCNL_INTEREST_H
+#endif //CCN_IRIBU_INTEREST_H

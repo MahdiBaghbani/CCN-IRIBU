@@ -21,10 +21,10 @@
  */
 
 
-#define CCNL_MAX_CHUNK_SIZE 4048
+#define CCN_IRIBU_MAX_CHUNK_SIZE 4048
 
-#include "ccnl-common.h"
-#include "ccnl-crypto.h"
+#include "ccn-iribu-common.h"
+#include "ccn-iribu-crypto.h"
 
 int
 main(int argc, char *argv[])
@@ -36,19 +36,19 @@ main(int argc, char *argv[])
     char *infname = 0, *outdirname = 0, *outfname = 0;
     size_t contentlen = 0, plen;
     int f, fout, opt;
-    //    int suite = CCNL_SUITE_DEFAULT;
-    int suite = CCNL_SUITE_CCNTLV;
-    size_t chunk_size = CCNL_MAX_CHUNK_SIZE;
-    struct ccnl_prefix_s *name;
-    ccnl_data_opts_u data_opts;
+    //    int suite = CCN_IRIBU_SUITE_DEFAULT;
+    int suite = CCN_IRIBU_SUITE_CCNTLV;
+    size_t chunk_size = CCN_IRIBU_MAX_CHUNK_SIZE;
+    struct ccn_iribu_prefix_s *name;
+    ccn_iribu_data_opts_u data_opts;
 
     while ((opt = getopt(argc, argv, "hc:f:i:o:p:k:w:s:v:")) != -1) {
         switch (opt) {
         case 'c':
             chunk_size = (size_t) strtol(optarg, (char **) NULL, 10);
-            if (chunk_size > CCNL_MAX_CHUNK_SIZE) {
-                DEBUGMSG(WARNING, "max chunk size is %d (%zu is to large), using max chunk size\n", CCNL_MAX_CHUNK_SIZE, chunk_size);
-                chunk_size = CCNL_MAX_CHUNK_SIZE;
+            if (chunk_size > CCN_IRIBU_MAX_CHUNK_SIZE) {
+                DEBUGMSG(WARNING, "max chunk size is %d (%zu is to large), using max chunk size\n", CCN_IRIBU_MAX_CHUNK_SIZE, chunk_size);
+                chunk_size = CCN_IRIBU_MAX_CHUNK_SIZE;
             }
             break;
         case 'f':
@@ -78,14 +78,14 @@ main(int argc, char *argv[])
             }
             break;
         case 's':
-            suite = ccnl_str2suite(optarg);
+            suite = ccn_iribu_str2suite(optarg);
             break;
         case 'v':
 #ifdef USE_LOGGING
             if (isdigit(optarg[0]))
                 debug_level =  (int)strtol(optarg, (char **)NULL, 10);
             else
-                debug_level = ccnl_debug_str2level(optarg);
+                debug_level = ccn_iribu_debug_str2level(optarg);
 #endif
             break;
         case 'h':
@@ -105,12 +105,12 @@ Usage:
 #endif
         ,
         argv[0],
-        CCNL_MAX_CHUNK_SIZE);
+        CCN_IRIBU_MAX_CHUNK_SIZE);
         exit(1);
         }
     }
 
-    if (!ccnl_isSuite(suite)) {
+    if (!ccn_iribu_isSuite(suite)) {
         goto Usage;
     }
 
@@ -168,7 +168,7 @@ Usage:
     }
 
     uint8_t *chunk_buf;
-    chunk_buf = ccnl_malloc(chunk_size * sizeof(uint8_t));
+    chunk_buf = ccn_iribu_malloc(chunk_size * sizeof(uint8_t));
     if (!chunk_buf) {
         DEBUGMSG(ERROR, "Error: Failed to allocate memory\n");
         exit(1);
@@ -182,13 +182,13 @@ Usage:
     char outpathname[255];
     char fileext[10];
     switch (suite) {
-        case CCNL_SUITE_CCNB:
+        case CCN_IRIBU_SUITE_CCNB:
             strcpy(fileext, "ccnb");
             break;
-        case CCNL_SUITE_CCNTLV:
+        case CCN_IRIBU_SUITE_CCNTLV:
             strcpy(fileext, "ccntlv");
             break;
-        case CCNL_SUITE_NDNTLV:
+        case CCN_IRIBU_SUITE_NDNTLV:
             strcpy(fileext, "ndntlv");
             break;
         default:
@@ -235,21 +235,21 @@ Usage:
         }
 
         strncpy(url, url_orig, strlen(url_orig));
-        offs = CCNL_MAX_PACKET_SIZE;
-        name = ccnl_URItoPrefix(url, suite, &chunknum);
+        offs = CCN_IRIBU_MAX_PACKET_SIZE;
+        name = ccn_iribu_URItoPrefix(url, suite, &chunknum);
 
         switch (suite) {
-        case CCNL_SUITE_CCNTLV:
-            if (ccnl_ccntlv_prependContentWithHdr(name, chunk_buf, chunk_len, &lastchunknum,
+        case CCN_IRIBU_SUITE_CCNTLV:
+            if (ccn_iribu_ccntlv_prependContentWithHdr(name, chunk_buf, chunk_len, &lastchunknum,
                                                   //is_last ? &chunknum : NULL,
                                                   NULL, // int *contentpos
                                                   &offs, out, &contentlen)) {
                 goto Error;
             }
             break;
-        case CCNL_SUITE_NDNTLV:
+        case CCN_IRIBU_SUITE_NDNTLV:
             data_opts.ndntlv.finalblockid = lastchunknum;
-            if (ccnl_ndntlv_prependContent(name, chunk_buf, chunk_len, NULL,
+            if (ccn_iribu_ndntlv_prependContent(name, chunk_buf, chunk_len, NULL,
                                            &(data_opts.ndntlv),// is_last ? &chunknum : NULL,
                                            &offs, out, &contentlen)) {
                 goto Error;
@@ -286,12 +286,12 @@ Usage:
     }
 
     close(f);
-    ccnl_free(chunk_buf);
+    ccn_iribu_free(chunk_buf);
     return 0;
 
 Error:
     close(f);
-    ccnl_free(chunk_buf);
+    ccn_iribu_free(chunk_buf);
     return -1;
 }
 

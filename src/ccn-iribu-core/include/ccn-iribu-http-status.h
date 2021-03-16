@@ -16,47 +16,47 @@
  *
  */
 
-#ifndef CCN_LITE_CCNL_HTTP_STATUS_H
-#define CCN_LITE_CCNL_HTTP_STATUS_H
+#ifndef CCN_LITE_CCN_IRIBU_HTTP_STATUS_H
+#define CCN_LITE_CCN_IRIBU_HTTP_STATUS_H
 
 #ifdef USE_HTTP_STATUS
 
-#include "ccnl-core.h"
-#include "ccnl-sockunion.h"
+#include "ccn-iribu-core.h"
+#include "ccn-iribu-sockunion.h"
 #include <time.h>
 
-struct ccnl_http_s {
+struct ccn_iribu_http_s {
     int server, client; // socket
     unsigned char in[512], *out; // ring buffers
     int inoffs, outoffs, inlen, outlen;
 };
 
 
-struct ccnl_http_s*
-ccnl_http_new(struct ccnl_relay_s *ccnl, int serverport);
+struct ccn_iribu_http_s*
+ccn_iribu_http_new(struct ccn_iribu_relay_s *ccnl, int serverport);
 
-int ccnl_http_status(struct ccnl_relay_s *ccnl, struct ccnl_http_s *http);
+int ccn_iribu_http_status(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_http_s *http);
 
-struct ccnl_http_s*
-ccnl_http_cleanup(struct ccnl_http_s *http);
+struct ccn_iribu_http_s*
+ccn_iribu_http_cleanup(struct ccn_iribu_http_s *http);
 
 int
-ccnl_http_anteselect(struct ccnl_relay_s *ccnl, struct ccnl_http_s *http,
+ccn_iribu_http_anteselect(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_http_s *http,
                      fd_set *readfs, fd_set *writefs, int *maxfd);
 
 int
-ccnl_http_postselect(struct ccnl_relay_s *ccnl, struct ccnl_http_s *http,
+ccn_iribu_http_postselect(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_http_s *http,
                      fd_set *readfs, fd_set *writefs);
 
 int
-ccnl_cmpfaceid(const void *a, const void *b);
+ccn_iribu_cmpfaceid(const void *a, const void *b);
 
 int
-ccnl_cmpfib(const void *a, const void *b);
+ccn_iribu_cmpfib(const void *a, const void *b);
 
 int
-ccnl_http_status(struct ccnl_relay_s *ccnl, struct ccnl_http_s *http);
+ccn_iribu_http_status(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_http_s *http);
 
 #endif //USE_HTTP_STATUS
 
-#endif //CCN_LITE_CCNL_HTTP_STATUS_H
+#endif //CCN_LITE_CCN_IRIBU_HTTP_STATUS_H

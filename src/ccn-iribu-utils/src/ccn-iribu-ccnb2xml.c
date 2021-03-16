@@ -20,8 +20,8 @@
  * 2012-07-01  created
  */
 
-#include "ccnl-common.h"
-#include "ccnl-crypto.h"
+#include "ccn-iribu-common.h"
+#include "ccn-iribu-crypto.h"
 
 // ----------------------------------------------------------------------
 
@@ -32,7 +32,7 @@ dtag2str(uint64_t dtag)
 {
     switch (dtag) {
 
-    // Try DTAGs defined in ccnl-pkt-ccnb.h
+    // Try DTAGs defined in ccn-iribu-pkt-ccnb.h
     case CCN_DTAG_ANY:            return "ANY";
     case CCN_DTAG_NAME:           return "NAME";
     case CCN_DTAG_COMPONENT:      return "COMPONENT";
@@ -77,47 +77,47 @@ dtag2str(uint64_t dtag)
     case CCN_DTAG_FragP:          return "FragP";
     case CCN_DTAG_CCNPDU:         return "CCNPDU";
 
-    // Try DTAGs defined in ccnl-defs.h
-    case CCNL_DTAG_MACSRC:        return "MACSRC";
-    case CCNL_DTAG_IP4SRC:        return "IP4SRC";
-    case CCNL_DTAG_IP6SRC:        return "IP6SRC";
-    case CCNL_DTAG_UNIXSRC:       return "UNIXSRC";
-    case CCNL_DTAG_FRAG:          return "FRAG";
-    case CCNL_DTAG_FACEFLAGS:     return "FACEFLAGS";
-    case CCNL_DTAG_DEVINSTANCE:   return "DEVINSTANCE";
-    case CCNL_DTAG_DEVNAME:       return "DEVNAME";
-    case CCNL_DTAG_DEVFLAGS:      return "DEVFLAGS";
-    case CCNL_DTAG_MTU:           return "MTU";
-    case CCNL_DTAG_DEBUGREQUEST:  return "DEBUGREQUEST";
-    case CCNL_DTAG_DEBUGACTION:   return "DEBUGACTION";
-    case CCNL_DTAG_DEBUGREPLY:    return "DEBUGREPLY";
-    case CCNL_DTAG_INTERFACE:     return "INTERFACE";
-    case CCNL_DTAG_NEXT:          return "NEXT";
-    case CCNL_DTAG_PREV:          return "PREV";
-    case CCNL_DTAG_IFNDX:         return "IFNDX";
-    case CCNL_DTAG_IP:            return "IP";
-    case CCNL_DTAG_ETH:           return "ETH";
-    case CCNL_DTAG_UNIX:          return "UNIX";
-    case CCNL_DTAG_PEER:          return "PEER";
-    case CCNL_DTAG_FWD:           return "FWD";
-    case CCNL_DTAG_FACE:          return "FACE";
-    case CCNL_DTAG_ADDRESS:       return "ADDRESS";
-    case CCNL_DTAG_SOCK:          return "SOCK";
-    case CCNL_DTAG_REFLECT:       return "REFLECT";
-    case CCNL_DTAG_PREFIX:        return "PREFIX";
-    case CCNL_DTAG_INTERESTPTR:   return "INTERESTPTR";
-    case CCNL_DTAG_LAST:          return "LAST";
-    case CCNL_DTAG_MIN:           return "MIN";
-    case CCNL_DTAG_MAX:           return "MAX";
-    case CCNL_DTAG_RETRIES:       return "RETRIES";
-    case CCNL_DTAG_PUBLISHER:     return "PUBLISHER";
-    case CCNL_DTAG_CONTENTPTR:    return "CONTENTPTR";
-    case CCNL_DTAG_LASTUSE:       return "LASTUSE";
-    case CCNL_DTAG_SERVEDCTN:     return "SERVEDCTN";
-    case CCNL_DTAG_VERIFIED:      return "VERIFIED";
-    case CCNL_DTAG_CALLBACK:      return "CALLBACK";
-    case CCNL_DTAG_SUITE:         return "SUITE";
-    case CCNL_DTAG_COMPLENGTH:    return "COMPLENGTH";
+    // Try DTAGs defined in ccn-iribu-defs.h
+    case CCN_IRIBU_DTAG_MACSRC:        return "MACSRC";
+    case CCN_IRIBU_DTAG_IP4SRC:        return "IP4SRC";
+    case CCN_IRIBU_DTAG_IP6SRC:        return "IP6SRC";
+    case CCN_IRIBU_DTAG_UNIXSRC:       return "UNIXSRC";
+    case CCN_IRIBU_DTAG_FRAG:          return "FRAG";
+    case CCN_IRIBU_DTAG_FACEFLAGS:     return "FACEFLAGS";
+    case CCN_IRIBU_DTAG_DEVINSTANCE:   return "DEVINSTANCE";
+    case CCN_IRIBU_DTAG_DEVNAME:       return "DEVNAME";
+    case CCN_IRIBU_DTAG_DEVFLAGS:      return "DEVFLAGS";
+    case CCN_IRIBU_DTAG_MTU:           return "MTU";
+    case CCN_IRIBU_DTAG_DEBUGREQUEST:  return "DEBUGREQUEST";
+    case CCN_IRIBU_DTAG_DEBUGACTION:   return "DEBUGACTION";
+    case CCN_IRIBU_DTAG_DEBUGREPLY:    return "DEBUGREPLY";
+    case CCN_IRIBU_DTAG_INTERFACE:     return "INTERFACE";
+    case CCN_IRIBU_DTAG_NEXT:          return "NEXT";
+    case CCN_IRIBU_DTAG_PREV:          return "PREV";
+    case CCN_IRIBU_DTAG_IFNDX:         return "IFNDX";
+    case CCN_IRIBU_DTAG_IP:            return "IP";
+    case CCN_IRIBU_DTAG_ETH:           return "ETH";
+    case CCN_IRIBU_DTAG_UNIX:          return "UNIX";
+    case CCN_IRIBU_DTAG_PEER:          return "PEER";
+    case CCN_IRIBU_DTAG_FWD:           return "FWD";
+    case CCN_IRIBU_DTAG_FACE:          return "FACE";
+    case CCN_IRIBU_DTAG_ADDRESS:       return "ADDRESS";
+    case CCN_IRIBU_DTAG_SOCK:          return "SOCK";
+    case CCN_IRIBU_DTAG_REFLECT:       return "REFLECT";
+    case CCN_IRIBU_DTAG_PREFIX:        return "PREFIX";
+    case CCN_IRIBU_DTAG_INTERESTPTR:   return "INTERESTPTR";
+    case CCN_IRIBU_DTAG_LAST:          return "LAST";
+    case CCN_IRIBU_DTAG_MIN:           return "MIN";
+    case CCN_IRIBU_DTAG_MAX:           return "MAX";
+    case CCN_IRIBU_DTAG_RETRIES:       return "RETRIES";
+    case CCN_IRIBU_DTAG_PUBLISHER:     return "PUBLISHER";
+    case CCN_IRIBU_DTAG_CONTENTPTR:    return "CONTENTPTR";
+    case CCN_IRIBU_DTAG_LASTUSE:       return "LASTUSE";
+    case CCN_IRIBU_DTAG_SERVEDCTN:     return "SERVEDCTN";
+    case CCN_IRIBU_DTAG_VERIFIED:      return "VERIFIED";
+    case CCN_IRIBU_DTAG_CALLBACK:      return "CALLBACK";
+    case CCN_IRIBU_DTAG_SUITE:         return "SUITE";
+    case CCN_IRIBU_DTAG_COMPLENGTH:    return "COMPLENGTH";
     }
 
     // DEBUGMSG(WARNING, "DTAG '%d' is missing in %s of %s:%d\n", dtag, __func__, __FILE__, __LINE__);
@@ -165,9 +165,9 @@ lookahead(uint8_t **buf, size_t *len, uint64_t *num, uint8_t *typ, uint8_t ignor
         return 0;
     }
 
-    rc = ccnl_ccnb_dehead(buf, len, num, typ);
+    rc = ccn_iribu_ccnb_dehead(buf, len, num, typ);
     if (ignoreBlobTag && rc == 0 && is_ccn_blob(*typ)) {
-        rc2 = ccnl_ccnb_dehead(buf, len, &look_num, &look_typ);
+        rc2 = ccn_iribu_ccnb_dehead(buf, len, &look_num, &look_typ);
         if (rc2 == 0 && is_ccn_tt(look_typ, look_num)) {
             *num = look_num;
             *typ = look_typ;
@@ -191,7 +191,7 @@ dehead(uint8_t **buf, size_t *len, uint64_t *num, uint8_t *typ, uint8_t ignoreBl
         return 0;
     }
 
-    rc_dehead = ccnl_ccnb_dehead(buf, len, num, typ);
+    rc_dehead = ccn_iribu_ccnb_dehead(buf, len, num, typ);
     if (ignoreBlobTag && rc_dehead == 0 && is_ccn_blob(*typ)) {
         rc_lookahead = lookahead(buf, len, &look_num, &look_typ, ignoreBlobTag, depth+1);
         if (rc_lookahead == 0 && is_ccn_tt(look_typ, look_num)) {
@@ -220,7 +220,7 @@ print_value(size_t offset, uint8_t *valptr, size_t vallen, int depth)
     }
     size_t i;
     (void)offset;
-    if (vallen == 1 && ccnl_isSuite(valptr[0])) {
+    if (vallen == 1 && ccn_iribu_isSuite(valptr[0])) {
         printf("%u", valptr[0]);
     } else {
         for (i = 0; i < vallen; ++i) {
@@ -263,7 +263,7 @@ print_blob(uint8_t **buf, size_t *len, uint8_t typ, uint64_t num, size_t offset,
     if (!ignoreBlobTag) {
         print_tag(offset, typ, num, true, false, depth+1);
     }
-    ccnl_ccnb_consume(typ, num, buf, len, &valptr, &vallen);
+    ccn_iribu_ccnb_consume(typ, num, buf, len, &valptr, &vallen);
     if (vallen > *len) {
         return;
     }
@@ -324,7 +324,7 @@ main(int argc, char *argv[])
         case 'h':
         default:
             fprintf(stderr, "usage: %s [option]\n"
-                            "Parses ccn-lite-ctrl/ccnl-ext-mgmt messages (CCNB) and shows them in XML format.\n"
+                            "Parses ccn-lite-ctrl/ccn-iribu-ext-mgmt messages (CCNB) and shows them in XML format.\n"
                             "  -b include blob tags in the XML tree\n"
                             "  -h print this message\n"
                           , argv[0]);

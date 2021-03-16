@@ -20,20 +20,20 @@
  * 2014-03-05 created
  */
 
-#ifndef CCNL_PKT_NDNTLV_H
-#define CCNL_PKT_NDNTLV_H
+#ifndef CCN_IRIBU_PKT_NDNTLV_H
+#define CCN_IRIBU_PKT_NDNTLV_H
 
-#ifndef CCNL_LINUXKERNEL
+#ifndef CCN_IRIBU_LINUXKERNEL
 #include <stdint.h>
 #else
 #include <linux/types.h>
 # define UINT8_MAX		(255)
 #endif
 #include <stddef.h>
-#ifndef CCNL_LINUXKERNEL
-#include "ccnl-content.h"
+#ifndef CCN_IRIBU_LINUXKERNEL
+#include "ccn-iribu-content.h"
 #else
-#include "../../ccnl-core/include/ccnl-content.h"
+#include "../../ccn-iribu-core/include/ccn-iribu-content.h"
 #endif
 
 
@@ -131,7 +131,7 @@ Values          Designation
 /**
  * @brief NDN Interest options
  */
-struct ccnl_ndntlv_interest_opts_s {
+struct ccn_iribu_ndntlv_interest_opts_s {
     int32_t nonce;              /**< Nonce value */
     /* Selectors */
     uint8_t mustbefresh;           /**< MustBeFresh Selector */
@@ -142,7 +142,7 @@ struct ccnl_ndntlv_interest_opts_s {
 /**
  * @brief NDN Data options
  */
-struct ccnl_ndntlv_data_opts_s {
+struct ccn_iribu_ndntlv_data_opts_s {
     /* MetaInfo */
     uint32_t freshnessperiod;       /**< freshness period */
     /* FinalBlockID is actually from type NameComponent.
@@ -152,10 +152,10 @@ struct ccnl_ndntlv_data_opts_s {
 
 #ifdef USE_SUITE_NDNTLV
 int8_t
-ccnl_ndntlv_varlenint(uint8_t **buf, size_t *len, uint64_t *val);
+ccn_iribu_ndntlv_varlenint(uint8_t **buf, size_t *len, uint64_t *val);
 
 uint64_t
-ccnl_ndntlv_nonNegInt(uint8_t *cp, size_t len);
+ccn_iribu_ndntlv_nonNegInt(uint8_t *cp, size_t len);
 #endif // USE_SUITE_NDNTLV
 
 /**
@@ -167,44 +167,44 @@ ccnl_ndntlv_nonNegInt(uint8_t *cp, size_t len);
  * @return 0 on success, -1 on failure.
  */
 int8_t
-ccnl_ndntlv_dehead(uint8_t **buf, size_t *len,
+ccn_iribu_ndntlv_dehead(uint8_t **buf, size_t *len,
                    uint64_t *typ, size_t *vallen);
 
-struct ccnl_pkt_s*
-ccnl_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
+struct ccn_iribu_pkt_s*
+ccn_iribu_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
                       uint8_t **data, size_t *datalen);
 
 int8_t
-ccnl_ndntlv_cMatch(struct ccnl_pkt_s *p, struct ccnl_content_s *c);
+ccn_iribu_ndntlv_cMatch(struct ccn_iribu_pkt_s *p, struct ccn_iribu_content_s *c);
 
 int8_t
-ccnl_ndntlv_prependInterest(struct ccnl_prefix_s *name, int scope, struct ccnl_ndntlv_interest_opts_s *opts,
+ccn_iribu_ndntlv_prependInterest(struct ccn_iribu_prefix_s *name, int scope, struct ccn_iribu_ndntlv_interest_opts_s *opts,
                             size_t *offset, uint8_t *buf, size_t *reslen);
 
 int8_t
-ccnl_ndntlv_prependContent(struct ccnl_prefix_s *name,
+ccn_iribu_ndntlv_prependContent(struct ccn_iribu_prefix_s *name,
                            uint8_t *payload, size_t paylen,
-                           size_t *contentpos, struct ccnl_ndntlv_data_opts_s *opts,
+                           size_t *contentpos, struct ccn_iribu_ndntlv_data_opts_s *opts,
                            size_t *offset, uint8_t *buf, size_t *reslen);
 
 int8_t
-ccnl_ndntlv_prependTL(uint64_t type, uint64_t len,
+ccn_iribu_ndntlv_prependTL(uint64_t type, uint64_t len,
                       size_t *offset, uint8_t *buf);
 
 int8_t
-ccnl_ndntlv_prependTLval(uint64_t val, size_t *offset, uint8_t *buf);
+ccn_iribu_ndntlv_prependTLval(uint64_t val, size_t *offset, uint8_t *buf);
 
 int8_t
-ccnl_ndntlv_prependBlob(uint64_t type, uint8_t *blob, size_t len,
+ccn_iribu_ndntlv_prependBlob(uint64_t type, uint8_t *blob, size_t len,
                         size_t *offset, uint8_t *buf);
 
 int8_t
-ccnl_ndntlv_prependIncludedNonNegInt(uint64_t type, uint64_t val,
+ccn_iribu_ndntlv_prependIncludedNonNegInt(uint64_t type, uint64_t val,
                                      uint8_t marker,
                                      size_t *offset, uint8_t *buf);
 
 int8_t
-ccnl_ndntlv_prependName(struct ccnl_prefix_s *name,
+ccn_iribu_ndntlv_prependName(struct ccn_iribu_prefix_s *name,
                         size_t *offset, uint8_t *buf);
 
 #endif // EOF

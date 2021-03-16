@@ -1,5 +1,5 @@
 /*
- * @f ccnl-unix.h
+ * @f ccn-iribu-unix.h
  * @b CCN lite, core CCNx protocol logic
  *
  * Copyright (C) 2011-18 University of Basel
@@ -20,8 +20,8 @@
  * 2017-06-16 created
  */
 
-#ifndef CCNL_UNIX_H
-#define CCNL_UNIX_H
+#ifndef CCN_IRIBU_UNIX_H
+#define CCN_IRIBU_UNIX_H
 
 #include <dirent.h>
 #include <fnmatch.h>
@@ -31,83 +31,83 @@
 #include <inttypes.h>
 
 #include <netinet/in.h>
-#include "ccnl-sockunion.h"
+#include "ccn-iribu-sockunion.h"
 
-#include "ccnl-relay.h"
-#include "ccnl-if.h"
-#include "ccnl-buf.h"
+#include "ccn-iribu-relay.h"
+#include "ccn-iribu-if.h"
+#include "ccn-iribu-buf.h"
 
 #ifdef USE_LINKLAYER
 #if !(defined(__FreeBSD__) || defined(__APPLE__))
 int
-ccnl_open_ethdev(char *devname, struct sockaddr_ll *sll, uint16_t ethtype);
+ccn_iribu_open_ethdev(char *devname, struct sockaddr_ll *sll, uint16_t ethtype);
 #endif
 #endif
 
 #ifdef USE_WPAN
 int
-ccnl_open_wpandev(char *devname, struct sockaddr_ieee802154 *swpan);
+ccn_iribu_open_wpandev(char *devname, struct sockaddr_ieee802154 *swpan);
 #endif
 
 #ifdef USE_UNIXSOCKET
 int
-ccnl_open_unixpath(char *path, struct sockaddr_un *ux);
+ccn_iribu_open_unixpath(char *path, struct sockaddr_un *ux);
 #endif
 
 #ifdef USE_IPV4
 int
-ccnl_open_udpdev(uint16_t port, struct sockaddr_in *si);
+ccn_iribu_open_udpdev(uint16_t port, struct sockaddr_in *si);
 #endif
 
 #ifdef USE_IPV6
 int
-ccnl_open_udp6dev(uint16_t port, struct sockaddr_in6 *sin);
+ccn_iribu_open_udp6dev(uint16_t port, struct sockaddr_in6 *sin);
 #endif
 
 #ifdef USE_LINKLAYER
 ssize_t
-ccnl_eth_sendto(int sock, uint8_t *dst, uint8_t *src,
+ccn_iribu_eth_sendto(int sock, uint8_t *dst, uint8_t *src,
 				uint8_t *data, size_t datalen);
 #endif
 
 #ifdef USE_WPAN
 int
-ccnl_wpan_sendto(int sock, unsigned char *data, int datalen,
+ccn_iribu_wpan_sendto(int sock, unsigned char *data, int datalen,
                  struct sockaddr_ieee802154 *dst);
 #endif
 
 #ifdef USE_SCHEDULER
-struct ccnl_sched_s*
-ccnl_relay_defaultFaceScheduler(struct ccnl_relay_s *ccnl,
+struct ccn_iribu_sched_s*
+ccn_iribu_relay_defaultFaceScheduler(struct ccn_iribu_relay_s *ccnl,
                                 void(*cb)(void*,void*));
-struct ccnl_sched_s*
-ccnl_relay_defaultInterfaceScheduler(struct ccnl_relay_s *ccnl,
+struct ccn_iribu_sched_s*
+ccn_iribu_relay_defaultInterfaceScheduler(struct ccn_iribu_relay_s *ccnl,
                                      void(*cb)(void*,void*));
 #endif // USE_SCHEDULER
 
 void 
-ccnl_ageing(void *relay, void *aux);
+ccn_iribu_ageing(void *relay, void *aux);
 
 #if defined(USE_IPV4) || defined(USE_IPV6)
 void
-ccnl_relay_udp(struct ccnl_relay_s *relay, int32_t port, int af, int suite);
+ccn_iribu_relay_udp(struct ccn_iribu_relay_s *relay, int32_t port, int af, int suite);
 #endif
 
 void
-ccnl_ll_TX(struct ccnl_relay_s *ccnl, struct ccnl_if_s *ifc,
-           sockunion *dest, struct ccnl_buf_s *buf);
+ccn_iribu_ll_TX(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_if_s *ifc,
+           sockunion *dest, struct ccn_iribu_buf_s *buf);
 
 void
-ccnl_relay_config(struct ccnl_relay_s *relay, char *ethdev, char *wpandev,
+ccn_iribu_relay_config(struct ccn_iribu_relay_s *relay, char *ethdev, char *wpandev,
                   int32_t udpport1, int32_t udpport2,
                   int32_t udp6port1, int32_t udp6port2, int32_t httpport,
                   char *uxpath, int suite, int max_cache_entries,
                   char *crypto_face_path);
 
 int
-ccnl_io_loop(struct ccnl_relay_s *ccnl);
+ccn_iribu_io_loop(struct ccn_iribu_relay_s *ccnl);
 
 void
-ccnl_populate_cache(struct ccnl_relay_s *ccnl, char *path);
+ccn_iribu_populate_cache(struct ccn_iribu_relay_s *ccnl, char *path);
 
-#endif // CCNL_UNIX_H
+#endif // CCN_IRIBU_UNIX_H

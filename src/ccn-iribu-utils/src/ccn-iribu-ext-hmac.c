@@ -1,51 +1,51 @@
-#include "ccnl-ext-hmac.h"
+#include "ccn-iribu-ext-hmac.h"
 
 #ifdef USE_HMAC256
 
 // RFC2104 keyval generation
 void
-ccnl_hmac256_keyval(uint8_t *key, size_t klen,
+ccn_iribu_hmac256_keyval(uint8_t *key, size_t klen,
                     uint8_t *keyval) // MUST have 64 bytes (BLOCK_LENGTH)
 {
-    DEBUGMSG(TRACE, "ccnl_hmac256_keyval %zu bytes\n", klen);
+    DEBUGMSG(TRACE, "ccn_iribu_hmac256_keyval %zu bytes\n", klen);
 
     if (klen <= SHA256_BLOCK_LENGTH) {
         memcpy(keyval, key, klen);
     } else {
         SHA256_CTX_t ctx;
 
-        ccnl_SHA256_Init(&ctx);
-        ccnl_SHA256_Update(&ctx, key, klen);
-        ccnl_SHA256_Final(keyval, &ctx);
+        ccn_iribu_SHA256_Init(&ctx);
+        ccn_iribu_SHA256_Update(&ctx, key, klen);
+        ccn_iribu_SHA256_Final(keyval, &ctx);
         klen = SHA256_DIGEST_LENGTH;
     }
     memset(keyval + klen, 0, SHA256_BLOCK_LENGTH - klen);
 }
 
 void
-ccnl_hmac256_keyid(uint8_t *key, size_t klen,
+ccn_iribu_hmac256_keyid(uint8_t *key, size_t klen,
                    uint8_t *keyid) // MUST have 32 bytes (DIGEST_LENGTH)
 {
     SHA256_CTX_t ctx;
 
-    DEBUGMSG(TRACE, "ccnl_hmac256_keyid %zu bytes\n", klen);
+    DEBUGMSG(TRACE, "ccn_iribu_hmac256_keyid %zu bytes\n", klen);
 
-    ccnl_SHA256_Init(&ctx);
-    ccnl_SHA256_Update(&ctx, key, klen);
+    ccn_iribu_SHA256_Init(&ctx);
+    ccn_iribu_SHA256_Update(&ctx, key, klen);
 
     if (klen > SHA256_BLOCK_LENGTH) {
         uint8_t md[32];
-        ccnl_SHA256_Final(md, &ctx);
-        ccnl_SHA256_Init(&ctx);
-        ccnl_SHA256_Update(&ctx, md, sizeof(md));
+        ccn_iribu_SHA256_Final(md, &ctx);
+        ccn_iribu_SHA256_Init(&ctx);
+        ccn_iribu_SHA256_Update(&ctx, md, sizeof(md));
     }
 
-    ccnl_SHA256_Final(keyid, &ctx);
+    ccn_iribu_SHA256_Final(keyid, &ctx);
 }
 
 // internal
 void
-ccnl_hmac256_keysetup(SHA256_CTX_t *ctx, uint8_t *keyval, size_t kvlen,
+ccn_iribu_hmac256_keysetup(SHA256_CTX_t *ctx, uint8_t *keyval, size_t kvlen,
                       uint8_t pad)
 {
     uint8_t buf[64];
@@ -61,28 +61,28 @@ ccnl_hmac256_keysetup(SHA256_CTX_t *ctx, uint8_t *keyval, size_t kvlen,
         buf[i++] = (uint8_t) (0 ^ pad); //TODO: WTF?
     }
 
-    ccnl_SHA256_Init(ctx);
-    ccnl_SHA256_Update(ctx, buf, sizeof(buf));
+    ccn_iribu_SHA256_Init(ctx);
+    ccn_iribu_SHA256_Update(ctx, buf, sizeof(buf));
 }
 
 // RFC2104 signature generation
 void
-ccnl_hmac256_sign(uint8_t *keyval, size_t kvlen,
+ccn_iribu_hmac256_sign(uint8_t *keyval, size_t kvlen,
                   uint8_t *data, size_t dlen,
                   uint8_t *md, size_t *mlen)
 {
     uint8_t tmp[SHA256_DIGEST_LENGTH];
     SHA256_CTX_t ctx;
 
-    DEBUGMSG(TRACE, "ccnl_hmac_sign %zu bytes\n", dlen);
+    DEBUGMSG(TRACE, "ccn_iribu_hmac_sign %zu bytes\n", dlen);
 
-    ccnl_hmac256_keysetup(&ctx, keyval, kvlen, 0x36); // inner hash
-    ccnl_SHA256_Update(&ctx, data, dlen);
-    ccnl_SHA256_Final(tmp, &ctx);
+    ccn_iribu_hmac256_keysetup(&ctx, keyval, kvlen, 0x36); // inner hash
+    ccn_iribu_SHA256_Update(&ctx, data, dlen);
+    ccn_iribu_SHA256_Final(tmp, &ctx);
 
-    ccnl_hmac256_keysetup(&ctx, keyval, kvlen, 0x5c); // outer hash
-    ccnl_SHA256_Update(&ctx, tmp, sizeof(tmp));
-    ccnl_SHA256_Final(tmp, &ctx);
+    ccn_iribu_hmac256_keysetup(&ctx, keyval, kvlen, 0x5c); // outer hash
+    ccn_iribu_SHA256_Update(&ctx, tmp, sizeof(tmp));
+    ccn_iribu_SHA256_Final(tmp, &ctx);
 
     if (*mlen > SHA256_DIGEST_LENGTH) {
         *mlen = SHA256_DIGEST_LENGTH;
@@ -96,7 +96,7 @@ ccnl_hmac256_sign(uint8_t *keyval, size_t kvlen,
 
 // write Content packet *before* buf[offs], adjust offs and return bytes used
 int8_t
-ccnl_ccntlv_prependSignedContentWithHdr(struct ccnl_prefix_s *name,
+ccn_iribu_ccntlv_prependSignedContentWithHdr(struct ccn_iribu_prefix_s *name,
                                         uint8_t *payload, size_t paylen,
                                         uint32_t *lastchunknum,
                                         size_t *contentpos,
@@ -116,32 +116,32 @@ ccnl_ccntlv_prependSignedContentWithHdr(struct ccnl_prefix_s *name,
 
     *offset -= mdlength; // reserve space for the digest
     mdoffset = *offset;
-    if (ccnl_ccntlv_prependTL(CCNX_TLV_TL_ValidationPayload, mdlength, offset, buf)) {
+    if (ccn_iribu_ccntlv_prependTL(CCNX_TLV_TL_ValidationPayload, mdlength, offset, buf)) {
         return -1;
     }
     endofsign = *offset;
 #ifdef XXX // we skip this
     *offset -= 32;
     memcpy(buf + *offset, keydigest, 32);
-    if (ccnl_ccntlv_prependTL(CCNX_VALIDALGO_KEYID, 32, offset, buf)) {
+    if (ccn_iribu_ccntlv_prependTL(CCNX_VALIDALGO_KEYID, 32, offset, buf)) {
         return -1;
     }
-    if (ccnl_ccntlv_prependTL(CCNX_VALIDALGO_HMAC_SHA256, 4+32, offset, buf)) {
+    if (ccn_iribu_ccntlv_prependTL(CCNX_VALIDALGO_HMAC_SHA256, 4+32, offset, buf)) {
         return -1;
     }
-    if (ccnl_ccntlv_prependTL(CCNX_TLV_TL_ValidationAlgo, 4+4+32, offset, buf)) {
+    if (ccn_iribu_ccntlv_prependTL(CCNX_TLV_TL_ValidationAlgo, 4+4+32, offset, buf)) {
         return -1;
     }
 #endif
-    if (ccnl_ccntlv_prependTL(CCNX_VALIDALGO_HMAC_SHA256, 0, offset, buf)) {
+    if (ccn_iribu_ccntlv_prependTL(CCNX_VALIDALGO_HMAC_SHA256, 0, offset, buf)) {
         return -1;
     }
-    if (ccnl_ccntlv_prependTL(CCNX_TLV_TL_ValidationAlgo, 4, offset, buf)) {
+    if (ccn_iribu_ccntlv_prependTL(CCNX_TLV_TL_ValidationAlgo, 4, offset, buf)) {
         return -1;
     }
 
     len = oldoffset - *offset;
-    if (ccnl_ccntlv_prependContent(name, payload, paylen, lastchunknum,
+    if (ccn_iribu_ccntlv_prependContent(name, payload, paylen, lastchunknum,
                                    contentpos, offset, buf, &len)) {
         return -1;
     }
@@ -150,9 +150,9 @@ ccnl_ccntlv_prependSignedContentWithHdr(struct ccnl_prefix_s *name,
         return -1;
     }
 
-    ccnl_hmac256_sign(keyval, 64, buf + *offset, endofsign - *offset,
+    ccn_iribu_hmac256_sign(keyval, 64, buf + *offset, endofsign - *offset,
                       buf + mdoffset, &mdlength);
-    if (ccnl_ccntlv_prependFixedHdr(CCNX_TLV_V1, CCNX_PT_Data,
+    if (ccn_iribu_ccntlv_prependFixedHdr(CCNX_TLV_V1, CCNX_PT_Data,
                                     len, hoplimit, offset, buf)) {
         return -1;
     }
@@ -165,7 +165,7 @@ ccnl_ccntlv_prependSignedContentWithHdr(struct ccnl_prefix_s *name,
 #ifdef USE_SUITE_NDNTLV
 
 int8_t
-ccnl_ndntlv_prependSignedContent(struct ccnl_prefix_s *name,
+ccn_iribu_ndntlv_prependSignedContent(struct ccn_iribu_prefix_s *name,
                                  uint8_t *payload, size_t paylen,
                                  uint32_t *final_block_id, size_t *contentpos,
                                  uint8_t *keyval, // 64B
@@ -184,7 +184,7 @@ ccnl_ndntlv_prependSignedContent(struct ccnl_prefix_s *name,
     *offset -= mdlength; // sha256 msg digest bits, filled out later
     mdoffset = *offset;
     // mandatory
-    if (ccnl_ndntlv_prependTL(NDN_TLV_SignatureValue, (uint64_t) mdlength, offset, buf)) {
+    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_SignatureValue, (uint64_t) mdlength, offset, buf)) {
         return -1;
     }
 
@@ -195,27 +195,27 @@ ccnl_ndntlv_prependSignedContent(struct ccnl_prefix_s *name,
     // keyid
     *offset -= 32;
     memcpy(buf + *offset, keydigest, 32);
-    if (ccnl_ndntlv_prependTL(NDN_TLV_KeyLocatorDigest, 32, offset, buf)) {
+    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_KeyLocatorDigest, 32, offset, buf)) {
         return -1;
     }
-    if (ccnl_ndntlv_prependTL(NDN_TLV_KeyLocator, 32+2, offset, buf)) {
+    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_KeyLocator, 32+2, offset, buf)) {
         return -1;
     }
 #endif
 
     // use NDN_SigTypeVal_SignatureHmacWithSha256
-    if (ccnl_ndntlv_prependBlob(NDN_TLV_SignatureType, signatureType, 1,
+    if (ccn_iribu_ndntlv_prependBlob(NDN_TLV_SignatureType, signatureType, 1,
                                 offset, buf)) {
         return 1;
     }
 
     // Groups KeyLocator and Signature Type with stored len
-    if (ccnl_ndntlv_prependTL(NDN_TLV_SignatureInfo, endofsign - *offset, offset, buf)) {
+    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_SignatureInfo, endofsign - *offset, offset, buf)) {
         return -1;
     }
 
     // mandatory payload/content
-    if (ccnl_ndntlv_prependBlob(NDN_TLV_Content, payload, paylen,
+    if (ccn_iribu_ndntlv_prependBlob(NDN_TLV_Content, payload, paylen,
                                 offset, buf)) {
         return -1;
     }
@@ -223,30 +223,30 @@ ccnl_ndntlv_prependSignedContent(struct ccnl_prefix_s *name,
     // to find length of optional MetaInfo fields
     oldoffset2 = *offset;
     if (final_block_id) {
-        if (ccnl_ndntlv_prependIncludedNonNegInt(NDN_TLV_NameComponent,
+        if (ccn_iribu_ndntlv_prependIncludedNonNegInt(NDN_TLV_NameComponent,
                                                  *final_block_id,
                                                  NDN_Marker_SegmentNumber,
                                                  offset, buf)) {
             return -1;
         }
         // optional
-        if (ccnl_ndntlv_prependTL(NDN_TLV_FinalBlockId, oldoffset2 - *offset, offset, buf)) {
+        if (ccn_iribu_ndntlv_prependTL(NDN_TLV_FinalBlockId, oldoffset2 - *offset, offset, buf)) {
             return -1;
         }
     }
 
     // mandatory (empty for now)
-    if (ccnl_ndntlv_prependTL(NDN_TLV_MetaInfo, oldoffset2 - *offset, offset, buf)) {
+    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_MetaInfo, oldoffset2 - *offset, offset, buf)) {
         return -1;
     }
 
     // mandatory
-    if (ccnl_ndntlv_prependName(name, offset, buf)) {
+    if (ccn_iribu_ndntlv_prependName(name, offset, buf)) {
         return -1;
     }
 
     // mandatory
-    if (ccnl_ndntlv_prependTL(NDN_TLV_Data, oldoffset - *offset,
+    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_Data, oldoffset - *offset,
                               offset, buf)) {
         return -1;
     }
@@ -255,7 +255,7 @@ ccnl_ndntlv_prependSignedContent(struct ccnl_prefix_s *name,
         *contentpos -= *offset;
     }
 
-    ccnl_hmac256_sign(keyval, 64, buf + *offset, (endofsign - *offset),
+    ccn_iribu_hmac256_sign(keyval, 64, buf + *offset, (endofsign - *offset),
                       buf + mdoffset, &mdlength);
 
     *reslen = oldoffset - *offset;

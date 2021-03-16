@@ -1,7 +1,7 @@
 /**
  * @addtogroup CCNL-fwd
  * @{
- * @file ccnl-dispatch.h
+ * @file ccn-iribu-dispatch.h
  * @brief Detect packet forward and call packet specific forwarder
  *
  * @author Christopher Scherb <christopher.scherb@unibas.ch>
@@ -20,18 +20,18 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef CCNL_DISPATCH_H
-#define CCNL_DISPATCH_H
+#ifndef CCN_IRIBU_DISPATCH_H
+#define CCN_IRIBU_DISPATCH_H
 
-#include "ccnl-fwd.h"
+#include "ccn-iribu-fwd.h"
 
-//struct ccnl_suite_s ccnl_core_suites[CCNL_SUITE_LAST];
+//struct ccn_iribu_suite_s ccn_iribu_core_suites[CCN_IRIBU_SUITE_LAST];
 
 /**
  * @brief       Initialize the dispatcher for handling different packet forwarders
  */
 void
-ccnl_core_init(void);
+ccn_iribu_core_init(void);
 
 
 /**
@@ -45,7 +45,7 @@ ccnl_core_init(void);
  * @param[in] addrlen   length of the socketaddress
  */
 void
-ccnl_core_RX(struct ccnl_relay_s *relay, int ifndx, uint8_t *data,
+ccn_iribu_core_RX(struct ccn_iribu_relay_s *relay, int ifndx, uint8_t *data,
              size_t datalen, struct sockaddr *sa, size_t addrlen);
 
 #endif

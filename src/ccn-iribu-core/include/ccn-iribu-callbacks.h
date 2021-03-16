@@ -1,5 +1,5 @@
 /*
- * @f ccnl-callbacks.h
+ * @f ccn-iribu-callbacks.h
  * @b CCN lite, core CCNx protocol logic
  *
  * Copyright (C) 2018 HAW Hamburg
@@ -17,19 +17,19 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * File history:
- * 2018-05-21 created (based on ccnl-producer.h)
+ * 2018-05-21 created (based on ccn-iribu-producer.h)
  */
-#ifndef CCNL_CALLBACKS_H
-#define CCNL_CALLBACKS_H
+#ifndef CCN_IRIBU_CALLBACKS_H
+#define CCN_IRIBU_CALLBACKS_H
 
-#include "ccnl-core.h"
+#include "ccn-iribu-core.h"
 
 /**
  * @brief Function pointer callback type for on-data events
  */
-typedef int (*ccnl_cb_on_data)(struct ccnl_relay_s *relay,
-                               struct ccnl_face_s *face,
-                               struct ccnl_pkt_s *pkt);
+typedef int (*ccn_iribu_cb_on_data)(struct ccn_iribu_relay_s *relay,
+                               struct ccn_iribu_face_s *face,
+                               struct ccn_iribu_pkt_s *pkt);
 
 /**
  * @brief Set an inbound on-data event callback function
@@ -39,7 +39,7 @@ typedef int (*ccnl_cb_on_data)(struct ccnl_relay_s *relay,
  *
  * @param[in] func  The callback function for inbound on-data events
  */
-void ccnl_set_cb_rx_on_data(ccnl_cb_on_data func);
+void ccn_iribu_set_cb_rx_on_data(ccn_iribu_cb_on_data func);
 
 /**
  * @brief Set an outbound on-data event callback function
@@ -49,7 +49,7 @@ void ccnl_set_cb_rx_on_data(ccnl_cb_on_data func);
  *
  * @param[in] func  The callback function for outbound on-data events
  */
-void ccnl_set_cb_tx_on_data(ccnl_cb_on_data func);
+void ccn_iribu_set_cb_tx_on_data(ccn_iribu_cb_on_data func);
 
 /**
  * @brief Callback for inbound on-data events
@@ -64,9 +64,9 @@ void ccnl_set_cb_tx_on_data(ccnl_cb_on_data func);
  * @return return value of the callback function
  * @return 0, if no function has been set
  */
-int ccnl_callback_rx_on_data(struct ccnl_relay_s *relay,
-                             struct ccnl_face_s *from,
-                             struct ccnl_pkt_s *pkt);
+int ccn_iribu_callback_rx_on_data(struct ccn_iribu_relay_s *relay,
+                             struct ccn_iribu_face_s *from,
+                             struct ccn_iribu_pkt_s *pkt);
 
 /**
  * @brief Callback for outbound on-data events
@@ -81,8 +81,8 @@ int ccnl_callback_rx_on_data(struct ccnl_relay_s *relay,
  * @return return value of the callback function
  * @return 0, if no function has been set
  */
-int ccnl_callback_tx_on_data(struct ccnl_relay_s *relay,
-                             struct ccnl_face_s *to,
-                             struct ccnl_pkt_s *pkt);
+int ccn_iribu_callback_tx_on_data(struct ccn_iribu_relay_s *relay,
+                             struct ccn_iribu_face_s *to,
+                             struct ccn_iribu_pkt_s *pkt);
 
-#endif  /* CCNL_CALLBACKS_H */
+#endif  /* CCN_IRIBU_CALLBACKS_H */

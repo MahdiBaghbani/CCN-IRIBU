@@ -1,5 +1,5 @@
 /*
- * @f ccnl-core.h
+ * @f ccn-iribu-core.h
  * @b Core Lib Header file
  *
  * Copyright (C) 2015, Christian Tschudin, University of Basel
@@ -20,29 +20,29 @@
  * 2015-04-25 created
  */
 
-#ifndef CCNL_CORE_H
-#define CCNL_CORE_H
+#ifndef CCN_IRIBU_CORE_H
+#define CCN_IRIBU_CORE_H
 
-#include "ccnl-array.h"
-#include "ccnl-content.h"
-#include "ccnl-defs.h"
-#include "ccnl-face.h"
-#include "ccnl-frag.h"
-#include "ccnl-interest.h"
-#include "ccnl-malloc.h"
-#include "ccnl-os-time.h"
-#include "ccnl-pkt.h"
-#include "ccnl-relay.h"
-#include "ccnl-sockunion.h"
-#include "ccnl-buf.h"
-#include "ccnl-crypto.h"
-#include "ccnl-dump.h"
-#include "ccnl-forward.h"
-#include "ccnl-if.h"
-#include "ccnl-logging.h"
-#include "ccnl-mgmt.h"
-#include "ccnl-pkt-util.h"
-#include "ccnl-prefix.h"
-#include "ccnl-sched.h"
+#include "ccn-iribu-array.h"
+#include "ccn-iribu-content.h"
+#include "ccn-iribu-defs.h"
+#include "ccn-iribu-face.h"
+#include "ccn-iribu-frag.h"
+#include "ccn-iribu-interest.h"
+#include "ccn-iribu-malloc.h"
+#include "ccn-iribu-os-time.h"
+#include "ccn-iribu-pkt.h"
+#include "ccn-iribu-relay.h"
+#include "ccn-iribu-sockunion.h"
+#include "ccn-iribu-buf.h"
+#include "ccn-iribu-crypto.h"
+#include "ccn-iribu-dump.h"
+#include "ccn-iribu-forward.h"
+#include "ccn-iribu-if.h"
+#include "ccn-iribu-logging.h"
+#include "ccn-iribu-mgmt.h"
+#include "ccn-iribu-pkt-util.h"
+#include "ccn-iribu-prefix.h"
+#include "ccn-iribu-sched.h"
 
-#endif // CCNL_CORE_H
+#endif // CCN_IRIBU_CORE_H

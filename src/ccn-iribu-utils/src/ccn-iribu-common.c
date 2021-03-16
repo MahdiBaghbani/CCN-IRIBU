@@ -1,5 +1,5 @@
 /*
- * @f util/ccnl-common.c
+ * @f util/ccn-iribu-common.c
  * @b common functions for the CCN-lite utilities
  *
  * Copyright (C) 2013-15, Christian Tschudin, University of Basel
@@ -22,7 +22,7 @@
  */
 
 
-#ifndef CCNL_UAPI_H_    // if CCNL_UAPI_H_ is defined then the following config is taken care elsewhere in the code composite
+#ifndef CCN_IRIBU_UAPI_H_    // if CCN_IRIBU_UAPI_H_ is defined then the following config is taken care elsewhere in the code composite
 
 
 #define _DEFAULT_SOURCE
@@ -58,75 +58,75 @@
 #include "base64.h"
 //#include "base64.c"
 
-#include "ccnl-os-includes.h"
-#include "ccnl-defs.h"
-#include "ccnl-core.h"
-#include "ccnl-pkt-builder.h"
-//#include "ccnl-ext.h"
-#include "ccnl-malloc.h"
-#include "ccnl-os-time.h"
-#include "ccnl-logging.h"
-#include "ccnl-pkt-builder.h"
+#include "ccn-iribu-os-includes.h"
+#include "ccn-iribu-defs.h"
+#include "ccn-iribu-core.h"
+#include "ccn-iribu-pkt-builder.h"
+//#include "ccn-iribu-ext.h"
+#include "ccn-iribu-malloc.h"
+#include "ccn-iribu-os-time.h"
+#include "ccn-iribu-logging.h"
+#include "ccn-iribu-pkt-builder.h"
 
 int debug_level = WARNING;
 #ifndef USE_DEBUG_MALLOC
-#define ccnl_malloc(s)                  malloc(s)
-#define ccnl_calloc(n,s)                calloc(n,s)
-#define ccnl_realloc(p,s)               realloc(p,s)
-#define ccnl_free(p)                    free(p)
+#define ccn_iribu_malloc(s)                  malloc(s)
+#define ccn_iribu_calloc(n,s)                calloc(n,s)
+#define ccn_iribu_realloc(p,s)               realloc(p,s)
+#define ccn_iribu_free(p)                    free(p)
 #endif //USE_DEBUG_MALLOC
-#define free_2ptr_list(a,b)     ccnl_free(a), ccnl_free(b)
+#define free_2ptr_list(a,b)     ccn_iribu_free(a), ccn_iribu_free(b)
 
-struct ccnl_prefix_s* ccnl_prefix_new(char suite, uint32_t cnt);
-int ccnl_pkt_prependComponent(int suite, char *src, int *offset, unsigned char *buf);
+struct ccn_iribu_prefix_s* ccn_iribu_prefix_new(char suite, uint32_t cnt);
+int ccn_iribu_pkt_prependComponent(int suite, char *src, int *offset, unsigned char *buf);
 
-//#include "../ccnl-pkt-switch.c"
-#include "ccnl-core.h"
-#include "ccnl-pkt-ccnb.h"
-#include "ccnl-pkt-ccntlv.h"
-#include "ccnl-pkt-localrpc.h"
-#include "ccnl-pkt-ndntlv.h"
-#include "ccnl-pkt-switch.h"
+//#include "../ccn-iribu-pkt-switch.c"
+#include "ccn-iribu-core.h"
+#include "ccn-iribu-pkt-ccnb.h"
+#include "ccn-iribu-pkt-ccntlv.h"
+#include "ccn-iribu-pkt-localrpc.h"
+#include "ccn-iribu-pkt-ndntlv.h"
+#include "ccn-iribu-pkt-switch.h"
 
-#include "ccnl-socket.c"
+#include "ccn-iribu-socket.c"
 
 // include only the utils, not the core routines:
 #ifdef USE_FRAG
-#include "../ccnl-frag.h"
+#include "../ccn-iribu-frag.h"
 #endif
 
-#else // CCNL_UAPI_H_ is defined
+#else // CCN_IRIBU_UAPI_H_ is defined
 
 #include "base64.c"
 #ifdef RIOT_VERSION
-#include "ccnl-defs.h"
+#include "ccn-iribu-defs.h"
 #include "net/packet.h"
 #include <unistd.h>
 #include "sys/socket.h"
 #include "ccn-lite-riot.h"
-#include "ccnl-headers.h"
-#include "ccnl-pkt-ndntlv.h"
-#include "ccnl-pkt-ccntlv.h"
-#include "ccnl-pkt-ccnb.h"
+#include "ccn-iribu-headers.h"
+#include "ccn-iribu-pkt-ndntlv.h"
+#include "ccn-iribu-pkt-ccntlv.h"
+#include "ccn-iribu-pkt-ccnb.h"
 
 int debug_level = WARNING;
 
-extern int ccnl_suite2defaultPort(int suite);
+extern int ccn_iribu_suite2defaultPort(int suite);
 #endif
 
-#endif // CCNL_UAPI_H_
+#endif // CCN_IRIBU_UAPI_H_
 
 
 // ----------------------------------------------------------------------
 
 const char*
-ccnl_enc2str(int enc)
+ccn_iribu_enc2str(int enc)
 {
     switch(enc) {
-    case CCNL_ENC_CCNB:      return CONSTSTR("ccnb");
-    case CCNL_ENC_NDN2013:   return CONSTSTR("ndn2013");
-    case CCNL_ENC_CCNX2014:  return CONSTSTR("ccnbx2014");
-    case CCNL_ENC_LOCALRPC:  return CONSTSTR("localrpc");
+    case CCN_IRIBU_ENC_CCNB:      return CONSTSTR("ccnb");
+    case CCN_IRIBU_ENC_NDN2013:   return CONSTSTR("ndn2013");
+    case CCN_IRIBU_ENC_CCNX2014:  return CONSTSTR("ccnbx2014");
+    case CCN_IRIBU_ENC_LOCALRPC:  return CONSTSTR("localrpc");
     default:
         break;
     }
@@ -139,11 +139,11 @@ ccnl_enc2str(int enc)
 #define extractStr(VAR,DTAG) \
     if (typ == CCN_TT_DTAG && num == DTAG) { \
         char *s; unsigned char *valptr; int vallen; \
-        if (ccnl_ccnb_consume(typ, num, &buf, &buflen, &valptr, &vallen) < 0) \
+        if (ccn_iribu_ccnb_consume(typ, num, &buf, &buflen, &valptr, &vallen) < 0) \
                 goto Bail; \
-        s = ccnl_malloc(vallen+1); if (!s) goto Bail; \
+        s = ccn_iribu_malloc(vallen+1); if (!s) goto Bail; \
         memcpy(s, valptr, vallen); s[vallen] = '\0'; \
-        ccnl_free(VAR); \
+        ccn_iribu_free(VAR); \
         VAR = (unsigned char*) s; \
         continue; \
     } do {} while(0)
@@ -151,11 +151,11 @@ ccnl_enc2str(int enc)
 #define extractStr2(VAR,DTAG) \
     if (typ == CCN_TT_DTAG && num == DTAG) { \
         char *s; unsigned char *valptr; int vallen; \
-        if (ccnl_ccnb_consume(typ, num, buf, buflen, &valptr, &vallen) < 0) \
+        if (ccn_iribu_ccnb_consume(typ, num, buf, buflen, &valptr, &vallen) < 0) \
                 goto Bail; \
-        s = ccnl_malloc(vallen+1); if (!s) goto Bail; \
+        s = ccn_iribu_malloc(vallen+1); if (!s) goto Bail; \
         memcpy(s, valptr, vallen); s[vallen] = '\0'; \
-        ccnl_free(VAR); \
+        ccn_iribu_free(VAR); \
     VAR = (unsigned char*) s; \
         continue; \
     } do {} while(0)
@@ -212,7 +212,7 @@ load_keys_from_file(char *path)
 // ----------------------------------------------------------------------
 
 int
-ccnl_parseUdp(char *udp, int suite, char **addr, int *port)
+ccn_iribu_parseUdp(char *udp, int suite, char **addr, int *port)
 {
     char *tmpAddr = NULL;
     char *tmpPortStr = NULL;
@@ -221,7 +221,7 @@ ccnl_parseUdp(char *udp, int suite, char **addr, int *port)
 
     if (!udp) {
         *addr = "127.0.0.1";
-        *port = ccnl_suite2defaultPort(suite);
+        *port = ccn_iribu_suite2defaultPort(suite);
         return 0;
     }
 

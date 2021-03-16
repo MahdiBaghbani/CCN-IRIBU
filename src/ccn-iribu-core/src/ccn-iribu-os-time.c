@@ -1,5 +1,5 @@
 /*
- * @f ccnl-os-time.c
+ * @f ccn-iribu-os-time.c
  * @b CCN lite (CCNL), core source file (internal data structures)
  *
  * Copyright (C) 2011-17, University of Basel
@@ -20,24 +20,24 @@
  * 2017-06-16 created
  */
 
-#ifndef CCNL_LINUXKERNEL
-#include "ccnl-os-time.h"
-#include "ccnl-malloc.h"
+#ifndef CCN_IRIBU_LINUXKERNEL
+#include "ccn-iribu-os-time.h"
+#include "ccn-iribu-malloc.h"
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 #else
-#include "../include/ccnl-os-time.h"
-#include "../include/ccnl-malloc.h"
+#include "../include/ccn-iribu-os-time.h"
+#include "../include/ccn-iribu-malloc.h"
 #endif
 
 
 
 
-struct ccnl_timer_s *eventqueue;
+struct ccn_iribu_timer_s *eventqueue;
 
 
-#if defined(CCNL_RIOT) && !(defined(__FreeBSD__) || defined(__APPLE__) || defined(__linux__))
+#if defined(CCN_IRIBU_RIOT) && !(defined(__FreeBSD__) || defined(__APPLE__) || defined(__linux__))
 #include <xtimer.h>
 
 int gettimeofday(struct timeval *__restrict __p, void *__restrict __tz)
@@ -51,9 +51,9 @@ int gettimeofday(struct timeval *__restrict __p, void *__restrict __tz)
 }
 #endif
 
-#ifdef CCNL_ARDUINO
+#ifdef CCN_IRIBU_ARDUINO
 
-double CCNL_NOW(void) { return (double) millis() / Hz; }
+double CCN_IRIBU_NOW(void) { return (double) millis() / Hz; }
 
 void
 gettimeofday(struct timeval *tv, void *dummy)
@@ -74,9 +74,9 @@ timestamp(void)
     return ts;
 }
 
-#else // !CCNL_ARDUINO
+#else // !CCN_IRIBU_ARDUINO
 
-#ifndef CCNL_LINUXKERNEL
+#ifndef CCN_IRIBU_LINUXKERNEL
 double
 current_time(void)
 {
@@ -100,7 +100,7 @@ timestamp(void)
 {
     static char ts[16], *cp;
 
-    snprintf(ts, sizeof(ts), "%.4g", CCNL_NOW());
+    snprintf(ts, sizeof(ts), "%.4g", CCN_IRIBU_NOW());
     cp = strchr(ts, '.');
     if (!cp)
         strcat(ts, ".0000");
@@ -114,29 +114,29 @@ timestamp(void)
 
 #endif
 
-#endif // !CCNL_ARDUINO
+#endif // !CCN_IRIBU_ARDUINO
 
 long
 timevaldelta(struct timeval *a, struct timeval *b) {
     return 1000000*(a->tv_sec - b->tv_sec) + a->tv_usec - b->tv_usec;
 }
 
-#if defined(CCNL_UNIX) || defined (CCNL_RIOT) || defined (CCNL_ARDUINO)
+#if defined(CCN_IRIBU_UNIX) || defined (CCN_IRIBU_RIOT) || defined (CCN_IRIBU_ARDUINO)
 
 void
-ccnl_get_timeval(struct timeval *tv)
+ccn_iribu_get_timeval(struct timeval *tv)
 {
     gettimeofday(tv, NULL);
 }
 
 void*
-ccnl_set_timer(uint64_t usec, void (*fct)(void *aux1, void *aux2),
+ccn_iribu_set_timer(uint64_t usec, void (*fct)(void *aux1, void *aux2),
                  void *aux1, void *aux2)
 {
-    struct ccnl_timer_s *t, **pp;
+    struct ccn_iribu_timer_s *t, **pp;
     //    static int handlercnt;
 
-    t = (struct ccnl_timer_s *) ccnl_calloc(1, sizeof(*t));
+    t = (struct ccn_iribu_timer_s *) ccn_iribu_calloc(1, sizeof(*t));
     if (!t)
         return 0;
     t->fct2 = fct;
@@ -161,15 +161,15 @@ ccnl_set_timer(uint64_t usec, void (*fct)(void *aux1, void *aux2),
 }
 
 void
-ccnl_rem_timer(void *h)
+ccn_iribu_rem_timer(void *h)
 {
-    struct ccnl_timer_s **pp;
+    struct ccn_iribu_timer_s **pp;
 
     for (pp = &eventqueue; *pp; pp = &((*pp)->next)) {
         if ((void*)*pp == h) {
-            struct ccnl_timer_s *e = *pp;
+            struct ccn_iribu_timer_s *e = *pp;
             *pp = e->next;
-            ccnl_free(e);
+            ccn_iribu_free(e);
             break;
         }
     }
@@ -177,10 +177,10 @@ ccnl_rem_timer(void *h)
 
 #endif
 
-#ifdef CCNL_LINUXKERNEL
+#ifdef CCN_IRIBU_LINUXKERNEL
 
 inline void
-ccnl_get_timeval(struct timeval *tv)
+ccn_iribu_get_timeval(struct timeval *tv)
 {
     jiffies_to_timeval(jiffies, tv);
 }
@@ -190,14 +190,14 @@ current_time2(void)
 {
     struct timeval tv;
 
-    ccnl_get_timeval(&tv);
+    ccn_iribu_get_timeval(&tv);
     return tv.tv_sec;
 }
 
 static void
-ccnl_timer_callback(unsigned long data)
+ccn_iribu_timer_callback(unsigned long data)
 {
-    struct ccnl_timerlist_s *t = (struct ccnl_timerlist_s*) data;
+    struct ccn_iribu_timerlist_s *t = (struct ccn_iribu_timerlist_s*) data;
     void (*fct)(void*,void*) = t->fct;
     void *ptr = t->ptr, *aux = t->aux;
 
@@ -209,15 +209,15 @@ ccnl_timer_callback(unsigned long data)
 }
 
 static void*
-ccnl_set_timer(int usec, void(*fct)(void*,void*), void *ptr, void *aux)
+ccn_iribu_set_timer(int usec, void(*fct)(void*,void*), void *ptr, void *aux)
 {
-    struct ccnl_timerlist_s *t;
+    struct ccn_iribu_timerlist_s *t;
 
     if (spare_timer) {
         t = spare_timer;
         spare_timer = NULL;
     } else {
-        t = kmalloc(sizeof(struct ccnl_timerlist_s), GFP_ATOMIC);
+        t = kmalloc(sizeof(struct ccn_iribu_timerlist_s), GFP_ATOMIC);
         if (!t)
             return NULL;
     }
@@ -226,7 +226,7 @@ ccnl_set_timer(int usec, void(*fct)(void*,void*), void *ptr, void *aux)
 #else
     init_timer(&t->tl);
 #endif
-    t->tl.function = ccnl_timer_callback;
+    t->tl.function = ccn_iribu_timer_callback;
     t->tl.data = (unsigned long) t;
     t->fct = fct;
     t->ptr = ptr;
@@ -245,9 +245,9 @@ ccnl_set_timer(int usec, void(*fct)(void*,void*), void *ptr, void *aux)
 }
 
 static void
-ccnl_rem_timer(void *p)
+ccn_iribu_rem_timer(void *p)
 {
-    struct ccnl_timerlist_s *t = (struct ccnl_timerlist_s*) p;
+    struct ccn_iribu_timerlist_s *t = (struct ccn_iribu_timerlist_s*) p;
 
     if (!p)
         return;
@@ -267,14 +267,14 @@ ccnl_rem_timer(void *p)
 // "looper": serves all pending events and returns the number of microseconds
 // when the next event should be triggered.
 int
-ccnl_run_events(void)
+ccn_iribu_run_events(void)
 {
     static struct timeval now;
     long usec;
 
     gettimeofday(&now, 0);
     while (eventqueue) {
-        struct ccnl_timer_s *t = eventqueue;
+        struct ccn_iribu_timer_s *t = eventqueue;
 
         usec = timevaldelta(&(t->timeout), &now);
         if (usec >= 0)
@@ -285,26 +285,26 @@ ccnl_run_events(void)
         else if (t->fct2)
             (t->fct2)(t->aux1, t->aux2);
         eventqueue = t->next;
-        ccnl_free(t);
+        ccn_iribu_free(t);
     }
 
     return -1;
 }
 
-#endif // CCNL_LINUXKERNEL
+#endif // CCN_IRIBU_LINUXKERNEL
 
 // ----------------------------------------------------------------------
 
 #ifdef USE_SCHEDULER
 
 void*
-ccnl_set_absolute_timer(struct timeval abstime, void (*fct)(void *aux1, void *aux2),
+ccn_iribu_set_absolute_timer(struct timeval abstime, void (*fct)(void *aux1, void *aux2),
          void *aux1, void *aux2)
 {
-    struct ccnl_timer_s *t, **pp;
+    struct ccn_iribu_timer_s *t, **pp;
     //    static int handlercnt;
 
-    t = (struct ccnl_timer_s *) ccnl_calloc(1, sizeof(*t));
+    t = (struct ccn_iribu_timer_s *) ccn_iribu_calloc(1, sizeof(*t));
     if (!t)
     return 0;
     t->fct2 = fct;

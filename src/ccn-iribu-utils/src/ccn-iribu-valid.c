@@ -21,46 +21,46 @@
  */
 
 #define assert(...) do {} while(0)
-#include "ccnl-common.h"
-#include "ccnl-ext-hmac.h"
+#include "ccn-iribu-common.h"
+#include "ccn-iribu-ext-hmac.h"
 
-struct ccnl_pkt_s*
-ccnl_parse(uint8_t *data, size_t datalen)
+struct ccn_iribu_pkt_s*
+ccn_iribu_parse(uint8_t *data, size_t datalen)
 {
     unsigned char *base = data;
     int suite = -1;
     int32_t enc;
     size_t skip = 0;
-    struct ccnl_pkt_s *pkt = 0;
+    struct ccn_iribu_pkt_s *pkt = 0;
 
     DEBUGMSG(DEBUG, "start parsing %zu bytes\n", datalen);
 
     // work through explicit code switching
-    while (!ccnl_switch_dehead(&data, &datalen, &enc))
-        suite = ccnl_enc2suite(enc);
+    while (!ccn_iribu_switch_dehead(&data, &datalen, &enc))
+        suite = ccn_iribu_enc2suite(enc);
     if (suite == -1)
-        suite = ccnl_pkt2suite(data, datalen, &skip);
+        suite = ccn_iribu_pkt2suite(data, datalen, &skip);
 
-    if (!ccnl_isSuite(suite)) {
+    if (!ccn_iribu_isSuite(suite)) {
         DEBUGMSG(WARNING, "?unknown packet format? %zu bytes starting with 0x%02x at offset %zd\n",
                      datalen, *data, data - base);
         return NULL;
     }
 
-    DEBUGMSG(DEBUG, "  suite=%s\n", ccnl_suite2str(suite));
+    DEBUGMSG(DEBUG, "  suite=%s\n", ccn_iribu_suite2str(suite));
 
     switch (suite) {
 #ifdef USE_SUITE_CCNTLV
-    case CCNL_SUITE_CCNTLV: {
+    case CCN_IRIBU_SUITE_CCNTLV: {
         size_t hdrlen;
 
-        if (ccnl_ccntlv_getHdrLen(data, datalen, &hdrlen)) {
+        if (ccn_iribu_ccntlv_getHdrLen(data, datalen, &hdrlen)) {
             return NULL;
         }
         data += hdrlen;
         datalen -= hdrlen;
 
-        pkt = ccnl_ccntlv_bytes2pkt(base, &data, &datalen);
+        pkt = ccn_iribu_ccntlv_bytes2pkt(base, &data, &datalen);
         if (!pkt) {
             DEBUGMSG(FATAL, "ccnx2015: parse error\n");
             return NULL;
@@ -74,15 +74,15 @@ ccnl_parse(uint8_t *data, size_t datalen)
     }
 #endif
 #ifdef USE_SUITE_NDNTLV
-    case CCNL_SUITE_NDNTLV: {
+    case CCN_IRIBU_SUITE_NDNTLV: {
         uint64_t typ;
         size_t len2;
 
-        if (ccnl_ndntlv_dehead(&data, &datalen, &typ, &len2)) {
+        if (ccn_iribu_ndntlv_dehead(&data, &datalen, &typ, &len2)) {
             DEBUGMSG(FATAL, "ndn2013: parse error\n");
             return NULL;
         }
-        pkt = ccnl_ndntlv_bytes2pkt(typ, base, &data, &datalen);
+        pkt = ccn_iribu_ndntlv_bytes2pkt(typ, base, &data, &datalen);
         if (!pkt) {
             DEBUGMSG(FATAL, "ndn2013: parse error\n");
             return NULL;
@@ -96,8 +96,8 @@ ccnl_parse(uint8_t *data, size_t datalen)
 #endif
     default:
         DEBUGMSG(INFO, "packet without HMAC\n");
-        pkt = ccnl_calloc(1, sizeof(struct ccnl_pkt_s));
-        pkt->buf = ccnl_buf_new(NULL, datalen);
+        pkt = ccn_iribu_calloc(1, sizeof(struct ccn_iribu_pkt_s));
+        pkt->buf = ccn_iribu_buf_new(NULL, datalen);
         return pkt;
     }
     return pkt;
@@ -112,7 +112,7 @@ main(int argc, char *argv[])
     size_t len = 0, signLen = 32;
     ssize_t rc;
     int opt, cnt, exitBehavior = 0;
-    struct ccnl_pkt_s *pkt;
+    struct ccn_iribu_pkt_s *pkt;
     unsigned char keyval[64], signature[32];
     char *keyfile = NULL;
     struct key_s *keys = NULL;
@@ -132,7 +132,7 @@ main(int argc, char *argv[])
             if (isdigit(optarg[0])) {
                 debug_level = (int) strtol(optarg, (char **) NULL, 10);
             } else {
-                debug_level = ccnl_debug_str2level(optarg);
+                debug_level = ccn_iribu_debug_str2level(optarg);
             }
 #endif
             break;
@@ -171,8 +171,8 @@ Usage:
         return 0;
     }
 
-    // parse packet pkt = ccnl_
-    pkt = ccnl_parse(incoming, len);
+    // parse packet pkt = ccn_iribu_
+    pkt = ccn_iribu_parse(incoming, len);
     if (!pkt) {
         DEBUGMSG(FATAL, "error parsing packet\n");
         return -1;
@@ -196,8 +196,8 @@ Usage:
                 DEBUGMSG(ERROR, "invalid key length, packet dropped: %d\n", keys->keylen);
                 return -1;
             }
-            ccnl_hmac256_keyval(keys->key, (size_t) keys->keylen, keyval);
-            ccnl_hmac256_sign(keyval, 64, pkt->hmacStart, pkt->hmacLen, signature, &signLen);
+            ccn_iribu_hmac256_keyval(keys->key, (size_t) keys->keylen, keyval);
+            ccn_iribu_hmac256_sign(keyval, 64, pkt->hmacStart, pkt->hmacLen, signature, &signLen);
             if (!memcmp(signature, pkt->hmacSignature, 32)) {
                 DEBUGMSG(INFO, "signature is valid (key #%d)\n", cnt);
                 break;

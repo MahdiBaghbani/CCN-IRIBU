@@ -1,5 +1,5 @@
 /*
- * @f ccnl-if.h
+ * @f ccn-iribu-if.h
  * @b CCN lite, core CCNx protocol logic
  *
  * Copyright (C) 2011-18 University of Basel
@@ -20,39 +20,39 @@
  * 2017-06-16 created
  */
 
-#ifndef CCNL_IF_H
-#define CCNL_IF_H
+#ifndef CCN_IRIBU_IF_H
+#define CCN_IRIBU_IF_H
 
-#if defined(CCNL_RIOT)
+#if defined(CCN_IRIBU_RIOT)
 #include "sched.h"
 #endif
 
-#include "ccnl-sched.h"
-#include "ccnl-face.h"
+#include "ccn-iribu-sched.h"
+#include "ccn-iribu-face.h"
 
 
 
-struct ccnl_txrequest_s {
-    struct ccnl_buf_s *buf;
+struct ccn_iribu_txrequest_s {
+    struct ccn_iribu_buf_s *buf;
     sockunion dst;
     void (*txdone)(void*, int, int);
-    struct ccnl_face_s* txdone_face;
+    struct ccn_iribu_face_s* txdone_face;
 };
 
-struct ccnl_if_s { // interface for packet IO
+struct ccn_iribu_if_s { // interface for packet IO
     sockunion addr;
-#ifdef CCNL_LINUXKERNEL
+#ifdef CCN_IRIBU_LINUXKERNEL
     struct socket *sock;
     struct workqueue_struct *wq;
     void (*old_data_ready)(struct sock *);
     struct net_device *netdev;
-    struct packet_type ccnl_packet;
-#elif defined(CCNL_ARDUINO)
+    struct packet_type ccn_iribu_packet;
+#elif defined(CCN_IRIBU_ARDUINO)
     EthernetUDP *sock;
-#elif defined(CCNL_RIOT)
+#elif defined(CCN_IRIBU_RIOT)
     kernel_pid_t if_pid;
     int sock;
-    uint8_t hwaddr[CCNL_MAX_ADDRESS_LEN];
+    uint8_t hwaddr[CCN_IRIBU_MAX_ADDRESS_LEN];
     uint16_t addr_len;
 #else
     int sock;
@@ -63,8 +63,8 @@ struct ccnl_if_s { // interface for packet IO
 
     size_t qlen;  // number of pending sends
     size_t qfront; // index of next packet to send
-    struct ccnl_txrequest_s queue[CCNL_MAX_IF_QLEN];
-    struct ccnl_sched_s *sched;
+    struct ccn_iribu_txrequest_s queue[CCN_IRIBU_MAX_IF_QLEN];
+    struct ccn_iribu_sched_s *sched;
 
 #ifdef USE_STATS
     uint32_t rx_cnt, tx_cnt;
@@ -72,11 +72,11 @@ struct ccnl_if_s { // interface for packet IO
 };
 
 void
-ccnl_interface_cleanup(struct ccnl_if_s *i);
+ccn_iribu_interface_cleanup(struct ccn_iribu_if_s *i);
 
-#if !defined(CCNL_LINUXKERNEL) && !defined(CCNL_ANDROID)
+#if !defined(CCN_IRIBU_LINUXKERNEL) && !defined(CCN_IRIBU_ANDROID)
 int
-ccnl_close_socket(int s);
+ccn_iribu_close_socket(int s);
 #endif
 
 #endif // EOF

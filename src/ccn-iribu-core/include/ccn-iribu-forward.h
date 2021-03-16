@@ -1,5 +1,5 @@
 /*
- * @f ccnl-forward.h
+ * @f ccn-iribu-forward.h
  * @b CCN lite (CCNL), core header file (internal data structures)
  *
  * Copyright (C) 2011-17, University of Basel
@@ -20,23 +20,23 @@
  * 2017-06-16 created
  */
 
-#ifndef CCNL_FORWARD_H
-#define CCNL_FORWARD_H
+#ifndef CCN_IRIBU_FORWARD_H
+#define CCN_IRIBU_FORWARD_H
 
-#include "ccnl-prefix.h"
-#include "ccnl-face.h"
-#include "ccnl-relay.h"
-#include "ccnl-buf.h"
+#include "ccn-iribu-prefix.h"
+#include "ccn-iribu-face.h"
+#include "ccn-iribu-relay.h"
+#include "ccn-iribu-buf.h"
  
-typedef void (*tapCallback)(struct ccnl_relay_s *, struct ccnl_face_s *,
-                            struct ccnl_prefix_s *, struct ccnl_buf_s *);
+typedef void (*tapCallback)(struct ccn_iribu_relay_s *, struct ccn_iribu_face_s *,
+                            struct ccn_iribu_prefix_s *, struct ccn_iribu_buf_s *);
 
-struct ccnl_forward_s {
-    struct ccnl_forward_s *next;
-    struct ccnl_prefix_s *prefix;
+struct ccn_iribu_forward_s {
+    struct ccn_iribu_forward_s *next;
+    struct ccn_iribu_prefix_s *prefix;
     tapCallback tap;
-    struct ccnl_face_s *face;
+    struct ccn_iribu_face_s *face;
     char suite;
 };
 
-#endif //CCNL_FORWARD_H
+#endif //CCN_IRIBU_FORWARD_H

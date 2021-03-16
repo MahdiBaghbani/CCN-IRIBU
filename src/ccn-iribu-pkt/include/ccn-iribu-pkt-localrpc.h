@@ -1,5 +1,5 @@
 /*
- * @f ccnl-pkt-localrpc.h
+ * @f ccn-iribu-pkt-localrpc.h
  * @b CCN lite - header file for local RPC support
  *
  * Copyright (C) 2014, Christian Tschudin, University of Basel
@@ -20,22 +20,22 @@
  * 2014-05-11 created
  */
 
-#ifndef CCNL_PKT_LOCALRPC_H
-#define CCNL_PKT_LOCALRPC_H
+#ifndef CCN_IRIBU_PKT_LOCALRPC_H
+#define CCN_IRIBU_PKT_LOCALRPC_H
 
-#ifndef CCNL_LINUXKERNEL
-#include "ccnl-relay.h"
-#include "ccnl-face.h"
+#ifndef CCN_IRIBU_LINUXKERNEL
+#include "ccn-iribu-relay.h"
+#include "ccn-iribu-face.h"
 #else
-#include "../../ccnl-core/include/ccnl-relay.h"
-#include "../../ccnl-core/include/ccnl-face.h"
+#include "../../ccn-iribu-core/include/ccn-iribu-relay.h"
+#include "../../ccn-iribu-core/include/ccn-iribu-face.h"
 #endif
 
 struct rpc_exec_s { // execution context
     struct rdr_ds_s *ostack; // operands
 };
 
-typedef int(rpcBuiltinFct)(struct ccnl_relay_s *, struct ccnl_face_s *,
+typedef int(rpcBuiltinFct)(struct ccn_iribu_relay_s *, struct ccn_iribu_face_s *,
                            struct rdr_ds_s *, struct rpc_exec_s *,
                            struct rdr_ds_s *);
 
@@ -107,38 +107,38 @@ struct rdr_ds_s { // RPC Data Representation (RDR) data structure
 
 
 int 
-ccnl_rdr_getType(struct rdr_ds_s *ds);
+ccn_iribu_rdr_getType(struct rdr_ds_s *ds);
 
 void 
-ccnl_rdr_free(struct rdr_ds_s *x);
+ccn_iribu_rdr_free(struct rdr_ds_s *x);
 
 struct rdr_ds_s* 
-ccnl_rdr_mkSeq(void);
+ccn_iribu_rdr_mkSeq(void);
 
 struct rdr_ds_s* 
-ccnl_rdr_seqAppend(struct rdr_ds_s *seq, struct rdr_ds_s *el);
+ccn_iribu_rdr_seqAppend(struct rdr_ds_s *seq, struct rdr_ds_s *el);
 
 struct rdr_ds_s*
-ccnl_rdr_mkNonNegInt(uint64_t val);
+ccn_iribu_rdr_mkNonNegInt(uint64_t val);
 
 int8_t
-ccnl_rdr_serialize(struct rdr_ds_s *ds, uint8_t *buf, size_t buflen, size_t *res);
+ccn_iribu_rdr_serialize(struct rdr_ds_s *ds, uint8_t *buf, size_t buflen, size_t *res);
 
 struct rdr_ds_s*
-ccnl_rdr_unserialize(uint8_t *buf, size_t buflen);
+ccn_iribu_rdr_unserialize(uint8_t *buf, size_t buflen);
 
 int8_t
-ccnl_rdr_getFlatLen(struct rdr_ds_s *ds, size_t *flatlen);
+ccn_iribu_rdr_getFlatLen(struct rdr_ds_s *ds, size_t *flatlen);
 
 struct rdr_ds_s*
-ccnl_rdr_mkNonce(uint8_t *data, size_t len);
+ccn_iribu_rdr_mkNonce(uint8_t *data, size_t len);
 
 struct rdr_ds_s* 
-ccnl_rdr_mkStr(char *s);
+ccn_iribu_rdr_mkStr(char *s);
 
 int8_t
-ccnl_lrpc_dehead(uint8_t **buf, size_t *len,
+ccn_iribu_lrpc_dehead(uint8_t **buf, size_t *len,
                  uint64_t *typ, size_t *vallen);
 
-#endif // CCNL_PKT_LOCALRPC_H
+#endif // CCN_IRIBU_PKT_LOCALRPC_H
 // eof

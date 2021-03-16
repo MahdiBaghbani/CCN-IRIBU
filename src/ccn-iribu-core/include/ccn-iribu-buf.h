@@ -1,5 +1,5 @@
 /**
- * @file ccnl-buf.h
+ * @file ccn-iribu-buf.h
  * @brief CCN lite (CCNL), core header file (internal data structures)
  *
  * @copyright Copyright (C) 2011-17, University of Basel
@@ -16,20 +16,20 @@
  *
  */
 
-#ifndef CCNL_BUF_H
-#define CCNL_BUF_H
+#ifndef CCN_IRIBU_BUF_H
+#define CCN_IRIBU_BUF_H
 
-#ifndef CCNL_LINUXKERNEL
+#ifndef CCN_IRIBU_LINUXKERNEL
 #include <unistd.h> //FIXME: SWITCH HERE
 #include <string.h>
 #endif
 #include <stddef.h>
 
 
-struct ccnl_relay_s;
+struct ccn_iribu_relay_s;
 
-struct ccnl_buf_s {
-    struct ccnl_buf_s *next;
+struct ccn_iribu_buf_s {
+    struct ccn_iribu_buf_s *next;
     size_t datalen;
     unsigned char data[1];
 };
@@ -37,14 +37,14 @@ struct ccnl_buf_s {
 /**
  * 
  */
-struct ccnl_buf_s*
-ccnl_buf_new(void *data, size_t len);
+struct ccn_iribu_buf_s*
+ccn_iribu_buf_new(void *data, size_t len);
 
-#define buf_dup(B)      (B) ? ccnl_buf_new(B->data, B->datalen) : NULL
+#define buf_dup(B)      (B) ? ccn_iribu_buf_new(B->data, B->datalen) : NULL
 #define buf_equal(X,Y)  ((X) && (Y) && (X->datalen==Y->datalen) &&\
                          !memcmp(X->data,Y->data,X->datalen))
 
 void
-ccnl_core_cleanup(struct ccnl_relay_s *ccnl);
+ccn_iribu_core_cleanup(struct ccn_iribu_relay_s *ccnl);
     
-#endif //CCNL_BUF_H
+#endif //CCN_IRIBU_BUF_H

@@ -1,5 +1,5 @@
 /*
- * @f ccnl-if.c
+ * @f ccn-iribu-if.c
  * @b CCN lite, core CCNx protocol logic
  *
  * Copyright (C) 2011-18 University of Basel
@@ -21,44 +21,44 @@
  */
 
 
-#ifndef CCNL_LINUXKERNEL
-#include "ccnl-if.h"
-#include "ccnl-os-time.h"
-#include "ccnl-malloc.h"
-#include "ccnl-logging.h"
+#ifndef CCN_IRIBU_LINUXKERNEL
+#include "ccn-iribu-if.h"
+#include "ccn-iribu-os-time.h"
+#include "ccn-iribu-malloc.h"
+#include "ccn-iribu-logging.h"
 #include <sys/socket.h>
-#ifndef CCNL_RIOT
+#ifndef CCN_IRIBU_RIOT
 #include <sys/un.h>
 #else
 #include "net/packet.h"
 #endif
 #include <unistd.h>
 #else
-#include "../include/ccnl-if.h"
-#include "../include/ccnl-os-time.h"
-#include "../include/ccnl-malloc.h"
-#include "../include/ccnl-logging.h"
+#include "../include/ccn-iribu-if.h"
+#include "../include/ccn-iribu-os-time.h"
+#include "../include/ccn-iribu-malloc.h"
+#include "../include/ccn-iribu-logging.h"
 #endif
 
 void
-ccnl_interface_cleanup(struct ccnl_if_s *i)
+ccn_iribu_interface_cleanup(struct ccn_iribu_if_s *i)
 {
     size_t j;
-    DEBUGMSG_CORE(TRACE, "ccnl_interface_cleanup\n");
+    DEBUGMSG_CORE(TRACE, "ccn_iribu_interface_cleanup\n");
 
-    ccnl_sched_destroy(i->sched);
+    ccn_iribu_sched_destroy(i->sched);
     for (j = 0; j < i->qlen; j++) {
-        struct ccnl_txrequest_s *r = i->queue + (i->qfront+j)%CCNL_MAX_IF_QLEN;
-        ccnl_free(r->buf);
+        struct ccn_iribu_txrequest_s *r = i->queue + (i->qfront+j)%CCN_IRIBU_MAX_IF_QLEN;
+        ccn_iribu_free(r->buf);
     }
-#if !defined(CCNL_RIOT) && !defined(CCNL_ANDROID) && !defined(CCNL_LINUXKERNEL)
-    ccnl_close_socket(i->sock);
+#if !defined(CCN_IRIBU_RIOT) && !defined(CCN_IRIBU_ANDROID) && !defined(CCN_IRIBU_LINUXKERNEL)
+    ccn_iribu_close_socket(i->sock);
 #endif
 }
 
-#if !defined(CCNL_RIOT) && !defined(CCNL_ANDROID) && !defined(CCNL_LINUXKERNEL)
+#if !defined(CCN_IRIBU_RIOT) && !defined(CCN_IRIBU_ANDROID) && !defined(CCN_IRIBU_LINUXKERNEL)
 int
-ccnl_close_socket(int s)
+ccn_iribu_close_socket(int s)
 {
     struct sockaddr_un su;
     socklen_t len = sizeof(su);

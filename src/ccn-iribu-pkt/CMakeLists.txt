@@ -21,7 +21,7 @@ set(
         "src/ccn-iribu-pkt-switch.c"
 )
 
-if (CCNL_PACKETFORMAT_NDN)
+if (CCN_IRIBU_PACKETFORMAT_NDN)
   set(
           SOURCES
           "${SOURCES}"
@@ -29,7 +29,7 @@ if (CCNL_PACKETFORMAT_NDN)
   )
 endif ()
 
-if (CCNL_PACKETFORMAT_CCNTLV)
+if (CCN_IRIBU_PACKETFORMAT_CCNTLV)
   set(
           SOURCES
           "${SOURCES}"
@@ -37,7 +37,7 @@ if (CCNL_PACKETFORMAT_CCNTLV)
   )
 endif ()
 
-if (CCNL_PACKETFORMAT_CCNB)
+if (CCN_IRIBU_PACKETFORMAT_CCNB)
   set(
           SOURCES
           "${SOURCES}"
@@ -45,7 +45,7 @@ if (CCNL_PACKETFORMAT_CCNB)
   )
 endif ()
 
-if (CCNL_PACKETFORMAT_LOCALRPC)
+if (CCN_IRIBU_PACKETFORMAT_LOCALRPC)
   set(
           SOURCES
           "${SOURCES}"

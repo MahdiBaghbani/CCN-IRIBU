@@ -1,5 +1,5 @@
 /*
- * @f ccnl-ext-echo.c
+ * @f ccn-iribu-ext-echo.c
  * @b CCN lite extension: echo/ping service - send back run-time generated data
  *
  * Copyright (C) 2015, Christian Tschudin, University of Basel
@@ -25,76 +25,76 @@ void null_func(void);
 #ifdef USE_ECHO
 
 void
-ccnl_echo_request(struct ccnl_relay_s *relay, struct ccnl_face_s *inface,
-                  struct ccnl_prefix_s *pfx, struct ccnl_buf_s *buf)
+ccn_iribu_echo_request(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *inface,
+                  struct ccn_iribu_prefix_s *pfx, struct ccn_iribu_buf_s *buf)
 {
     time_t t;
     char *s, *cp;
-    struct ccnl_buf_s *reply;
+    struct ccn_iribu_buf_s *reply;
     unsigned char *ucp;
     int len, enc;
-    struct ccnl_prefix_s *pfx2 = NULL;
-    char s[CCNL_MAX_PREFIX_SIZE];
+    struct ccn_iribu_prefix_s *pfx2 = NULL;
+    char s[CCN_IRIBU_MAX_PREFIX_SIZE];
     (void) s;
 
-    DEBUGMSG(DEBUG, "echo request for <%s>\n", ccnl_prefix_to_str(pfx,s,CCNL_MAX_PREFIX_SIZE));
+    DEBUGMSG(DEBUG, "echo request for <%s>\n", ccn_iribu_prefix_to_str(pfx,s,CCN_IRIBU_MAX_PREFIX_SIZE));
 
 //    if (pfx->chunknum) {
         // mkSimpleContent adds the chunk number, so remove it here
       /*
-        ccnl_free(pfx->chunknum);
+        ccn_iribu_free(pfx->chunknum);
         pfx->chunknum = NULL;
       */
 #ifdef USE_SUITE_CCNTLV
     if (pfx->complen[pfx->compcnt-1] > 1 &&
         pfx->comp[pfx->compcnt-1][1] == CCNX_TLV_N_Chunk) {
-        struct ccnl_prefix_s *pfx2 = ccnl_prefix_dup(pfx);
+        struct ccn_iribu_prefix_s *pfx2 = ccn_iribu_prefix_dup(pfx);
         pfx2->compcnt--;
-        pfx2->chunknum = (int*) ccnl_malloc(sizeof(unsigned int));
+        pfx2->chunknum = (int*) ccn_iribu_malloc(sizeof(unsigned int));
         *(pfx2->chunknum) = 0;
         pfx = pfx2;
     }
 #endif
 
     t = time(NULL);
-    ccnl_prefix_to_str(pfx,s,CCNL_MAX_PREFIX_SIZE);
+    ccn_iribu_prefix_to_str(pfx,s,CCN_IRIBU_MAX_PREFIX_SIZE);
 
-    cp = ccnl_malloc(strlen(s) + 60);
+    cp = ccn_iribu_malloc(strlen(s) + 60);
     snprintf(cp, strlen(s) + 60, "%s\n%suptime %s\n", s, ctime(&t), timestamp());
 
-    reply = ccnl_mkSimpleContent(pfx, (unsigned char*) cp, strlen(cp), 0, NULL);
-    ccnl_free(cp);
+    reply = ccn_iribu_mkSimpleContent(pfx, (unsigned char*) cp, strlen(cp), 0, NULL);
+    ccn_iribu_free(cp);
     if (pfx2) {
-        ccnl_prefix_free(pfx2);
+        ccn_iribu_prefix_free(pfx2);
     }
 
     ucp = reply->data;
     len = reply->datalen;
 
-    ccnl_core_suites[(int)pfx->suite].RX(relay, NULL, &ucp, &len);
-    ccnl_free(reply);
+    ccn_iribu_core_suites[(int)pfx->suite].RX(relay, NULL, &ucp, &len);
+    ccn_iribu_free(reply);
 }
 
 // insert forwarding entry with a tap - the prefix arg is consumed
 int
-ccnl_echo_add(struct ccnl_relay_s *relay, struct ccnl_prefix_s *pfx)
+ccn_iribu_echo_add(struct ccn_iribu_relay_s *relay, struct ccn_iribu_prefix_s *pfx)
 {
-    return ccnl_set_tap(relay, pfx, ccnl_echo_request);
+    return ccn_iribu_set_tap(relay, pfx, ccn_iribu_echo_request);
 }
 
 void
-ccnl_echo_cleanup(struct ccnl_relay_s *relay)
+ccn_iribu_echo_cleanup(struct ccn_iribu_relay_s *relay)
 {
-    struct ccnl_forward_s *fwd;
+    struct ccn_iribu_forward_s *fwd;
 
     DEBUGMSG(DEBUG, "removing all echo servers\n");
 
     for (fwd = relay->fib; fwd; fwd = fwd->next) {
-        if (fwd->tap == ccnl_echo_request) {
+        if (fwd->tap == ccn_iribu_echo_request) {
             fwd->tap = NULL;
 /*
             if (fwd->face == NULL) { // remove this entry
-                ccnl_prefix_free(fwd->prefix);
+                ccn_iribu_prefix_free(fwd->prefix);
                 fwd->prefix = 0;
             }
 */

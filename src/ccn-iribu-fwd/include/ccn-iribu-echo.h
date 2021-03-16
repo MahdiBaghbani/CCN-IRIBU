@@ -1,5 +1,5 @@
 /*
- * @f ccnl-ext-echo.h
+ * @f ccn-iribu-ext-echo.h
  * @b CCN lite extension: echo/ping service - send back run-time generated data
  *
  * Copyright (C) 2015, Christian Tschudin, University of Basel
@@ -20,19 +20,19 @@
  * 2015-01-12 created
  */
 
-#ifndef CCN_LITE_CCNL_ECHO_H
-#define CCN_LITE_CCNL_ECHO_H
+#ifndef CCN_LITE_CCN_IRIBU_ECHO_H
+#define CCN_LITE_CCN_IRIBU_ECHO_H
 
-#include "ccnl-core.h"
+#include "ccn-iribu-core.h"
 
 void
-ccnl_echo_request(struct ccnl_relay_s *relay, struct ccnl_face_s *inface,
-                  struct ccnl_prefix_s *pfx, struct ccnl_buf_s *buf);
+ccn_iribu_echo_request(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *inface,
+                  struct ccn_iribu_prefix_s *pfx, struct ccn_iribu_buf_s *buf);
 
 int
-ccnl_echo_add(struct ccnl_relay_s *relay, struct ccnl_prefix_s *pfx);
+ccn_iribu_echo_add(struct ccn_iribu_relay_s *relay, struct ccn_iribu_prefix_s *pfx);
 
 void
-ccnl_echo_cleanup(struct ccnl_relay_s *relay);
+ccn_iribu_echo_cleanup(struct ccn_iribu_relay_s *relay);
 
-#endif //CCN_LITE_CCNL_ECHO_H
+#endif //CCN_LITE_CCN_IRIBU_ECHO_H

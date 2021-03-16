@@ -1,7 +1,7 @@
 /**
  * @addtogroup CCNL-fwd
  * @{
- * @file ccnl-localrpc.h
+ * @file ccn-iribu-localrpc.h
  * @brief CCN-lite - local RPC processing logic
  *
  * @author Christian Tschudin <christian.tschudin@unibas.ch>
@@ -19,15 +19,15 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef CCNL_LOCALRPC_H
-#define CCNL_LOCALRPC_H
+#ifndef CCN_IRIBU_LOCALRPC_H
+#define CCN_IRIBU_LOCALRPC_H
 
-#ifndef CCNL_LINUXKERNEL
-#include "ccnl-relay.h"
-#include "ccnl-face.h"
+#ifndef CCN_IRIBU_LINUXKERNEL
+#include "ccn-iribu-relay.h"
+#include "ccn-iribu-face.h"
 #else
-#include "../../ccnl-core/include/ccnl-relay.h"
-#include "../../ccnl-core/include/ccnl-face.h"
+#include "../../ccn-iribu-core/include/ccn-iribu-relay.h"
+#include "../../ccn-iribu-core/include/ccn-iribu-face.h"
 #endif
 
 
@@ -43,7 +43,7 @@
  * @return      < 0 if no bytes consumed or error
  */
 int8_t
-ccnl_localrpc_exec(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
+ccn_iribu_localrpc_exec(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
                    uint8_t **buf, size_t *buflen);
 
 #endif

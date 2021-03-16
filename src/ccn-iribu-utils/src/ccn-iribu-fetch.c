@@ -23,16 +23,16 @@
 
 //#define NEEDS_PACKET_CRAFTING
 
-#include "ccnl-common.h"
+#include "ccn-iribu-common.h"
 
 #include <stdlib.h>
 
-//#include "ccnl-socket.c"
+//#include "ccn-iribu-socket.c"
 
 // ----------------------------------------------------------------------
 
 int
-ccnl_fetchContentForChunkName(struct ccnl_prefix_s *prefix,
+ccn_iribu_fetchContentForChunkName(struct ccn_iribu_prefix_s *prefix,
                               uint32_t *chunknum,
                               int suite,
                               uint8_t *out, size_t out_len,
@@ -40,18 +40,18 @@ ccnl_fetchContentForChunkName(struct ccnl_prefix_s *prefix,
                               float wait, int sock, struct sockaddr sa) {
     (void) chunknum;
 #ifdef USE_SUITE_CCNB
-    if (suite == CCNL_SUITE_CCNB) {
+    if (suite == CCN_IRIBU_SUITE_CCNB) {
         DEBUGMSG(ERROR, "CCNB not implemented\n");
         exit(-1);
     }
 #endif
 
     int nonce = random();
-    ccnl_interest_opts_u int_opts;
+    ccn_iribu_interest_opts_u int_opts;
 #ifdef USE_SUITE_NDNTLV
     int_opts.ndntlv.nonce = nonce;
 #endif
-    struct ccnl_buf_s * buf = ccnl_mkSimpleInterest(prefix, &int_opts);
+    struct ccn_iribu_buf_s * buf = ccn_iribu_mkSimpleInterest(prefix, &int_opts);
 
     if(buf->datalen <= 0){
         fprintf(stderr, "Could not create interest message\n");
@@ -77,16 +77,16 @@ ccnl_fetchContentForChunkName(struct ccnl_prefix_s *prefix,
 }
 
 int
-ccnl_extractDataAndChunkInfo(uint8_t **data, size_t *datalen,
-                             int suite, struct ccnl_prefix_s **prefix,
+ccn_iribu_extractDataAndChunkInfo(uint8_t **data, size_t *datalen,
+                             int suite, struct ccn_iribu_prefix_s **prefix,
                              int64_t *lastchunknum,
                              uint8_t **content, size_t *contentlen)
 {
-    struct ccnl_pkt_s *pkt = NULL;
+    struct ccn_iribu_pkt_s *pkt = NULL;
 
     switch (suite) {
 #ifdef USE_SUITE_CCNTLV
-    case CCNL_SUITE_CCNTLV: {
+    case CCN_IRIBU_SUITE_CCNTLV: {
         size_t hdrlen;
         uint8_t *start = *data;
 
@@ -94,24 +94,24 @@ ccnl_extractDataAndChunkInfo(uint8_t **data, size_t *datalen,
             DEBUGMSG(WARNING, "Received non-content-object\n");
             return -1;
         }
-        if (ccnl_ccntlv_getHdrLen(*data, *datalen, &hdrlen)) {
+        if (ccn_iribu_ccntlv_getHdrLen(*data, *datalen, &hdrlen)) {
             return -1;
         }
 
         *data += hdrlen;
         *datalen -= hdrlen;
 
-        pkt = ccnl_ccntlv_bytes2pkt(start, data, datalen);
+        pkt = ccn_iribu_ccntlv_bytes2pkt(start, data, datalen);
         break;
     }
 #endif
 #ifdef USE_SUITE_NDNTLV
-    case CCNL_SUITE_NDNTLV: {
+    case CCN_IRIBU_SUITE_NDNTLV: {
         uint64_t typ;
         size_t len;
         uint8_t *start = *data;
 
-        if (ccnl_ndntlv_dehead(data, datalen, &typ, &len)) {
+        if (ccn_iribu_ndntlv_dehead(data, datalen, &typ, &len)) {
             DEBUGMSG(WARNING, "could not dehead\n");
             return -1;
         }
@@ -120,7 +120,7 @@ ccnl_extractDataAndChunkInfo(uint8_t **data, size_t *datalen,
             return -1;
         }
 
-        pkt = ccnl_ndntlv_bytes2pkt(typ, start, data, datalen);
+        pkt = ccn_iribu_ndntlv_bytes2pkt(typ, start, data, datalen);
         break;
     }
 #endif
@@ -131,24 +131,24 @@ ccnl_extractDataAndChunkInfo(uint8_t **data, size_t *datalen,
    }
     if (!pkt) {
         DEBUGMSG(WARNING, "extract(%s): parsing error or no prefix\n",
-                 ccnl_suite2str(suite));
+                 ccn_iribu_suite2str(suite));
         return -1;
     }
-    *prefix = ccnl_prefix_dup(pkt->pfx);
+    *prefix = ccn_iribu_prefix_dup(pkt->pfx);
     *lastchunknum = pkt->val.final_block_id;
     *content = pkt->content;
     *contentlen = pkt->contlen;
-    ccnl_pkt_free(pkt);
+    ccn_iribu_pkt_free(pkt);
 
     return 0;
 }
 
 int
-ccnl_prefix_removeChunkNumComponent(int suite,
-                           struct ccnl_prefix_s *prefix) {
+ccn_iribu_prefix_removeChunkNumComponent(int suite,
+                           struct ccn_iribu_prefix_s *prefix) {
     switch (suite) {
 #ifdef USE_SUITE_CCNTLV
-    case CCNL_SUITE_CCNTLV:
+    case CCN_IRIBU_SUITE_CCNTLV:
         // TODO: asumes that chunk is at the end!
         if(prefix->comp[prefix->compcnt-1][1] == CCNX_TLV_N_Chunk) {
             prefix->compcnt--;
@@ -160,7 +160,7 @@ ccnl_prefix_removeChunkNumComponent(int suite,
         break;
 #endif
 #ifdef USE_SUITE_NDNTLV
-    case CCNL_SUITE_NDNTLV:
+    case CCN_IRIBU_SUITE_NDNTLV:
         if(prefix->comp[prefix->compcnt-1][0] == NDN_Marker_SegmentNumber) {
             prefix->compcnt--;
         }
@@ -182,7 +182,7 @@ main(int argc, char *argv[])
 {
     unsigned char out[64*1024];
     size_t len;
-    int opt, port, sock = 0, suite = CCNL_SUITE_DEFAULT;
+    int opt, port, sock = 0, suite = CCN_IRIBU_SUITE_DEFAULT;
     char *addr = NULL, *udp = NULL, *ux = NULL;
     struct sockaddr sa;
     float wait = 3.0;
@@ -190,8 +190,8 @@ main(int argc, char *argv[])
     while ((opt = getopt(argc, argv, "hs:u:v:w:x:")) != -1) {
         switch (opt) {
         case 's':
-            suite = ccnl_str2suite(optarg);
-            if (!ccnl_isSuite(suite)) {
+            suite = ccn_iribu_str2suite(optarg);
+            if (!ccn_iribu_isSuite(suite)) {
                 DEBUGMSG(ERROR, "Unsupported suite %s\n", optarg);
                 goto usage;
             }
@@ -207,7 +207,7 @@ main(int argc, char *argv[])
             if (isdigit(optarg[0]))
                 debug_level = (int)strtol(optarg, (char**)NULL, 10);
             else
-                debug_level = ccnl_debug_str2level(optarg);
+                debug_level = ccn_iribu_debug_str2level(optarg);
 #endif
             break;
 
@@ -242,11 +242,11 @@ usage:
 
     srandom(time(NULL));
 
-    if (ccnl_parseUdp(udp, suite, &addr, &port) != 0) {
+    if (ccn_iribu_parseUdp(udp, suite, &addr, &port) != 0) {
         exit(-1);
     }
 
-    DEBUGMSG(TRACE, "using suite %d:%s\n", suite, ccnl_suite2str(suite));
+    DEBUGMSG(TRACE, "using suite %d:%s\n", suite, ccn_iribu_suite2str(suite));
     DEBUGMSG(TRACE, "using udp address %s/%d\n", addr, port);
 
     if (ux) { // use UNIX socket
@@ -271,8 +271,8 @@ usage:
 
     // For CCNTLV always start with the first chunk because of exact content match
     // This means it can only fetch chunked data and not single content-object data
-    if (suite == CCNL_SUITE_CCNTLV) { 
-        curchunknum = ccnl_malloc(sizeof(uint32_t));
+    if (suite == CCN_IRIBU_SUITE_CCNTLV) { 
+        curchunknum = ccn_iribu_malloc(sizeof(uint32_t));
         if (!curchunknum) {
             DEBUGMSG(ERROR, "Failed to allocate memory: %d", errno);
             exit(1);
@@ -280,7 +280,7 @@ usage:
         *curchunknum = 0;
     }
 
-    struct ccnl_prefix_s *prefix = ccnl_URItoPrefix(url, suite, curchunknum);
+    struct ccn_iribu_prefix_s *prefix = ccn_iribu_URItoPrefix(url, suite, curchunknum);
 
 
     const int maxretry = 3;
@@ -290,21 +290,21 @@ usage:
 
         if (curchunknum) {
             if (!prefix->chunknum) {
-                prefix->chunknum = ccnl_malloc(sizeof(uint32_t));
+                prefix->chunknum = ccn_iribu_malloc(sizeof(uint32_t));
                 if (!prefix->chunknum) {
                     DEBUGMSG(ERROR, "Failed to allocate memory: %d", errno);
                     exit(1);
                 }
             }
             *(prefix->chunknum) = *curchunknum;
-            DEBUGMSG(INFO, "fetching chunk %d for prefix '%s'\n", *curchunknum, ccnl_prefix_to_path(prefix));
+            DEBUGMSG(INFO, "fetching chunk %d for prefix '%s'\n", *curchunknum, ccn_iribu_prefix_to_path(prefix));
         } else {
             DEBUGMSG(DEBUG, "fetching first chunk...\n");
-            DEBUGMSG(INFO, "fetching first chunk for prefix '%s'\n", ccnl_prefix_to_path(prefix));
+            DEBUGMSG(INFO, "fetching first chunk for prefix '%s'\n", ccn_iribu_prefix_to_path(prefix));
         }
 
         // Fetch chunk
-        if (ccnl_fetchContentForChunkName(prefix,
+        if (ccn_iribu_fetchContentForChunkName(prefix,
                                           curchunknum,
                                           suite,
                                           out, sizeof(out),
@@ -316,10 +316,10 @@ usage:
 
             int64_t lastchunknum;
             uint8_t *t = &out[0];
-            struct ccnl_prefix_s *nextprefix = 0;
+            struct ccn_iribu_prefix_s *nextprefix = 0;
 
             // Parse response
-            if (ccnl_extractDataAndChunkInfo(&t, &len, suite,
+            if (ccn_iribu_extractDataAndChunkInfo(&t, &len, suite,
                                              &nextprefix,
                                              &lastchunknum,
                                              &content, &contlen)) {
@@ -339,7 +339,7 @@ usage:
 
                     // allocate curchunknum because it is the first fetched chunk
                     if (!curchunknum) {
-                        curchunknum = ccnl_malloc(sizeof(uint32_t));
+                        curchunknum = ccn_iribu_malloc(sizeof(uint32_t));
                         if (!curchunknum) {
                             DEBUGMSG(ERROR, "Failed to allocate memory: %d", errno);
                             exit(1);
@@ -347,7 +347,7 @@ usage:
                         *curchunknum = 0;
                     }
                     // Remove chunk component from name
-                    if (ccnl_prefix_removeChunkNumComponent(suite, prefix) < 0) {
+                    if (ccn_iribu_prefix_removeChunkNumComponent(suite, prefix) < 0) {
                         retry++;
                         DEBUGMSG(WARNING, "Could not remove chunknum\n");
                     }

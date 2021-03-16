@@ -1,5 +1,5 @@
 /*
- * @file ccnl-riot-logging.h
+ * @file ccn-iribu-riot-logging.h
  *
  * @copyright Copyright (C) 2011-18, University of Basel
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -14,8 +14,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef CCNL_RIOT_LOGGING
-#define CCNL_RIOT_LOGGING
+#ifndef CCN_IRIBU_RIOT_LOGGING
+#define CCN_IRIBU_RIOT_LOGGING
 
 /**
  * Define the log level of the CCN-Lite stack
@@ -29,7 +29,7 @@
  /**
  * Closing an interface or socket from CCN-Lite
  */
-#define ccnl_close_socket(s)            close(s)
+#define ccn_iribu_close_socket(s)            close(s)
 
 /**
  * @name Log levels used by CCN-Lite debugging

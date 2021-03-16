@@ -1,5 +1,5 @@
-#ifndef CCNL_UNIT_H
-#define CCNL_UNIT_H
+#ifndef CCN_IRIBU_UNIT_H
+#define CCN_IRIBU_UNIT_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -62,4 +62,4 @@ int RUN_TEST(int testnum, char *description,
 	return 1;
 }
 
-#endif // CCNL_UNIT_H
+#endif // CCN_IRIBU_UNIT_H

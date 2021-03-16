@@ -1,5 +1,5 @@
 /*
- * @f ccnl-sockunion.c
+ * @f ccn-iribu-sockunion.c
  * @b CCN lite (CCNL), core source file (internal data structures)
  *
  * Copyright (C) 2011-17, University of Basel
@@ -20,19 +20,19 @@
  * 2017-06-16 created
  */
 
-#ifndef CCNL_LINUXKERNEL
-#include "ccnl-sockunion.h"
+#ifndef CCN_IRIBU_LINUXKERNEL
+#include "ccn-iribu-sockunion.h"
 #include <stdio.h>
 #include <arpa/inet.h>
 #include <string.h>
-#include "ccnl-logging.h"
+#include "ccn-iribu-logging.h"
 #else
-#include "../include/ccnl-logging.h"
-#include "../include/ccnl-sockunion.h"
+#include "../include/ccn-iribu-logging.h"
+#include "../include/ccn-iribu-sockunion.h"
 #endif
 
 int
-ccnl_is_local_addr(sockunion *su)
+ccn_iribu_is_local_addr(sockunion *su)
 {
     if (!su)
         return 0;
@@ -59,13 +59,13 @@ ccnl_is_local_addr(sockunion *su)
 }
 
 char*
-ccnl_addr2ascii(sockunion *su)
+ccn_iribu_addr2ascii(sockunion *su)
 {
 #ifdef USE_UNIXSOCKET
     static char result[256];
 #else
     /* each byte requires 2 chars + 1 for the colon/slash + 6 for the protocol + 1 for \0 */
-    static char result[(CCNL_MAX_ADDRESS_LEN * 3) + 7];
+    static char result[(CCN_IRIBU_MAX_ADDRESS_LEN * 3) + 7];
 #endif
 
     if (!su)
@@ -105,12 +105,12 @@ ccnl_addr2ascii(sockunion *su)
 #endif
 #ifdef USE_IPV4
     case AF_INET:{
-#if defined(__linux__) && !defined(CCNL_LINUXKERNEL)
+#if defined(__linux__) && !defined(CCN_IRIBU_LINUXKERNEL)
         char str[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, (const void *)&(su->ip4.sin_addr), str, INET_ADDRSTRLEN);
         sprintf(result, "%s/%u",  str,
             ntohs(su->ip4.sin_port));
-#elif !defined(CCNL_LINUXKERNEL)
+#elif !defined(CCN_IRIBU_LINUXKERNEL)
         sprintf(result, "%s/%u", inet_ntoa(su->ip4.sin_addr),
                 ntohs(su->ip4.sin_port));
 #endif
@@ -140,7 +140,7 @@ ccnl_addr2ascii(sockunion *su)
 }
 
 int
-ccnl_addr_cmp(sockunion *s1, sockunion *s2)
+ccn_iribu_addr_cmp(sockunion *s1, sockunion *s2)
 {
     if (s1->sa.sa_family != s2->sa.sa_family)
         return -1;
@@ -148,8 +148,8 @@ ccnl_addr_cmp(sockunion *s1, sockunion *s2)
 
 #if defined(USE_LINKLAYER) && \
     ((!defined(__FreeBSD__) && !defined(__APPLE__)) || \
-    (defined(CCNL_RIOT) && defined(__FreeBSD__)) ||  \
-    (defined(CCNL_RIOT) && defined(__APPLE__)) )
+    (defined(CCN_IRIBU_RIOT) && defined(__FreeBSD__)) ||  \
+    (defined(CCN_IRIBU_RIOT) && defined(__APPLE__)) )
         case AF_PACKET:
             return memcmp(s1->linklayer.sll_addr, s2->linklayer.sll_addr,
                           s1->linklayer.sll_halen);
@@ -195,9 +195,9 @@ ccnl_addr_cmp(sockunion *s1, sockunion *s2)
 char*
 ll2ascii(unsigned char *addr, size_t len)
 {
-    if ((len <= CCNL_LLADDR_STR_MAX_LEN) && (addr)) {
+    if ((len <= CCN_IRIBU_LLADDR_STR_MAX_LEN) && (addr)) {
         size_t i;
-        static char out[CCNL_LLADDR_STR_MAX_LEN + 1] = { 0 };
+        static char out[CCN_IRIBU_LLADDR_STR_MAX_LEN + 1] = { 0 };
 
         out[0] = '\0';
 

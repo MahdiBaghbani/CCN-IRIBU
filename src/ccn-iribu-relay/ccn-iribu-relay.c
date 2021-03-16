@@ -30,17 +30,17 @@
 #include <limits.h>
 
 #ifdef USE_HTTP_STATUS
-#include "ccnl-http-status.h"
+#include "ccn-iribu-http-status.h"
 #endif
-#include "ccnl-os-includes.h"
+#include "ccn-iribu-os-includes.h"
 
-#include "ccnl-core.h"
+#include "ccn-iribu-core.h"
 
-#include "ccnl-dispatch.h"
+#include "ccn-iribu-dispatch.h"
 
 /*
 
-#define CCNL_UNIX
+#define CCN_IRIBU_UNIX
 
 #define USE_CCNxDIGEST
 // #define USE_DEBUG                      // must select this for USE_MGMT
@@ -67,13 +67,13 @@
 */
 
 #include "ccn-lite-relay.h"
-#include "ccnl-unix.h"
+#include "ccn-iribu-unix.h"
 
 static int lasthour = -1;
 static int inter_ccn_interval = 0; // in usec
 static int inter_pkt_interval = 0; // in usec
 
-#ifdef CCNL_ARDUINO
+#ifdef CCN_IRIBU_ARDUINO
 const char compile_string[] PROGMEM = ""
 #else
 const char *compile_string = ""
@@ -150,10 +150,10 @@ main(int argc, char **argv)
     int udp6port1 = -1, udp6port2 = -1;
     char *datadir = NULL, *ethdev = NULL, *crypto_sock_path = NULL;
     char *wpandev = NULL;
-    int suite = CCNL_SUITE_DEFAULT;
-    struct ccnl_relay_s *theRelay = ccnl_calloc(1, sizeof(struct ccnl_relay_s));
+    int suite = CCN_IRIBU_SUITE_DEFAULT;
+    struct ccn_iribu_relay_s *theRelay = ccn_iribu_calloc(1, sizeof(struct ccn_iribu_relay_s));
 #ifdef USE_UNIXSOCKET
-    char *uxpath = CCNL_DEFAULT_UNIXSOCKNAME;
+    char *uxpath = CCN_IRIBU_DEFAULT_UNIXSOCKNAME;
 #else
     char *uxpath = NULL;
 #endif
@@ -216,8 +216,8 @@ main(int argc, char **argv)
             crypto_sock_path = optarg;
             break;
         case 's':
-            suite = ccnl_str2suite(optarg);
-            if (!ccnl_isSuite(suite))
+            suite = ccn_iribu_str2suite(optarg);
+            if (!ccn_iribu_isSuite(suite))
                 goto usage;
             break;
         case 't': {
@@ -279,7 +279,7 @@ main(int argc, char **argv)
                 }
                 debug_level = (int) debuglevel_l;
             } else {
-                debug_level = ccnl_debug_str2level(optarg);
+                debug_level = ccn_iribu_debug_str2level(optarg);
             }
 #endif
             break;
@@ -325,7 +325,7 @@ usage:
         }
     }
 
-    opt = ccnl_suite2defaultPort(suite);
+    opt = ccn_iribu_suite2defaultPort(suite);
     if (udpport1 < 0) {
         udpport1 = opt;
     }
@@ -333,54 +333,54 @@ usage:
         httpport = opt;
     }
 
-    ccnl_core_init();
+    ccn_iribu_core_init();
 
     DEBUGMSG(INFO, "This is ccn-lite-relay, starting at %s",
              ctime(&theRelay->startup_time) + 4);
-    DEBUGMSG(INFO, "  ccnl-core: %s\n", CCNL_VERSION);
+    DEBUGMSG(INFO, "  ccn-iribu-core: %s\n", CCN_IRIBU_VERSION);
     DEBUGMSG(INFO, "  compile time: %s %s\n", __DATE__, __TIME__);
     DEBUGMSG(INFO, "  compile options: %s\n", compile_string);
     DEBUGMSG(INFO, "  seed: %u\n", seed);
-//    DEBUGMSG(INFO, "using suite %s\n", ccnl_suite2str(suite));
+//    DEBUGMSG(INFO, "using suite %s\n", ccn_iribu_suite2str(suite));
 
-    ccnl_relay_config(theRelay, ethdev, wpandev, udpport1, udpport2,
+    ccn_iribu_relay_config(theRelay, ethdev, wpandev, udpport1, udpport2,
                       udp6port1, udp6port2, httpport,
                       uxpath, suite, max_cache_entries, crypto_sock_path);
     if (datadir) {
-        ccnl_populate_cache(theRelay, datadir);
+        ccn_iribu_populate_cache(theRelay, datadir);
     }
 
 #ifdef USE_ECHO
     if (echopfx) {
-        struct ccnl_prefix_s *pfx;
-        char *dup = ccnl_strdup(echopfx);
+        struct ccn_iribu_prefix_s *pfx;
+        char *dup = ccn_iribu_strdup(echopfx);
 
-        pfx = ccnl_URItoPrefix(dup, suite, NULL);
+        pfx = ccn_iribu_URItoPrefix(dup, suite, NULL);
         if (pfx)
-            ccnl_echo_add(theRelay, pfx);
-        ccnl_free(dup);
+            ccn_iribu_echo_add(theRelay, pfx);
+        ccn_iribu_free(dup);
     }
 #endif
 
-    ccnl_io_loop(theRelay);
+    ccn_iribu_io_loop(theRelay);
 
     while (eventqueue) {
-        ccnl_rem_timer(eventqueue);
+        ccn_iribu_rem_timer(eventqueue);
     }
 
-    ccnl_core_cleanup(theRelay);
+    ccn_iribu_core_cleanup(theRelay);
 #ifdef USE_HTTP_STATUS
-    theRelay->http = ccnl_http_cleanup(theRelay->http);
+    theRelay->http = ccn_iribu_http_cleanup(theRelay->http);
 #endif
 #ifdef USE_DEBUG_MALLOC
     debug_memdump();
 #endif
-    ccnl_free(theRelay);
+    ccn_iribu_free(theRelay);
     return 0;
 }
 
 int 
-ccnl_static_fields1(){
+ccn_iribu_static_fields1(){
     return lasthour + inter_ccn_interval + inter_pkt_interval;
 }
 

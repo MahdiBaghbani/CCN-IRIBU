@@ -76,11 +76,11 @@ static const sha2_word32 sha256_initial_hash_value[8] _MEMLOCATION_ = {
 
 /*** SHA-256: *********************************************************/
 
-void ccnl_SHA256_Init(SHA256_CTX_t* context) {
+void ccn_iribu_SHA256_Init(SHA256_CTX_t* context) {
 	if (context == (SHA256_CTX_t*)0) {
 		return;
 	}
-#ifdef CCNL_ARDUINO
+#ifdef CCN_IRIBU_ARDUINO
 	memcpy_P(context->state, sha256_initial_hash_value, SHA256_DIGEST_LENGTH);
 #else
 	MEMCPY_BCOPY(context->state, sha256_initial_hash_value, SHA256_DIGEST_LENGTH);
@@ -89,7 +89,7 @@ void ccnl_SHA256_Init(SHA256_CTX_t* context) {
 	context->bitcount = 0;
 }
 
-void ccnl_SHA256_Transform(SHA256_CTX_t* context, const sha2_word32* data) {
+void ccn_iribu_SHA256_Transform(SHA256_CTX_t* context, const sha2_word32* data) {
 	sha2_word32	a, b, c, d, e, f, g, h, s0, s1;
 	sha2_word32	T1, T2, *W256;
 	int		j;
@@ -168,7 +168,7 @@ void ccnl_SHA256_Transform(SHA256_CTX_t* context, const sha2_word32* data) {
 }
 
 
-void ccnl_SHA256_Update(SHA256_CTX_t* context, const sha2_byte *data, size_t len) {
+void ccn_iribu_SHA256_Update(SHA256_CTX_t* context, const sha2_byte *data, size_t len) {
 	unsigned int	freespace, usedspace;
 
 	if (len == 0) {
@@ -190,7 +190,7 @@ void ccnl_SHA256_Update(SHA256_CTX_t* context, const sha2_byte *data, size_t len
 			context->bitcount += freespace << 3;
 			len -= freespace;
 			data += freespace;
-			ccnl_SHA256_Transform(context, (sha2_word32*)context->buffer);
+			ccn_iribu_SHA256_Transform(context, (sha2_word32*)context->buffer);
 		} else {
 			/* The buffer is not yet full */
 			MEMCPY_BCOPY(&context->buffer[usedspace], data, len);
@@ -202,7 +202,7 @@ void ccnl_SHA256_Update(SHA256_CTX_t* context, const sha2_byte *data, size_t len
 	}
 	while (len >= SHA256_BLOCK_LENGTH) {
 		/* Process as many complete blocks as we can */
-		ccnl_SHA256_Transform(context, (sha2_word32*)data);
+		ccn_iribu_SHA256_Transform(context, (sha2_word32*)data);
 		context->bitcount += SHA256_BLOCK_LENGTH << 3;
 		len -= SHA256_BLOCK_LENGTH;
 		data += SHA256_BLOCK_LENGTH;
@@ -216,7 +216,7 @@ void ccnl_SHA256_Update(SHA256_CTX_t* context, const sha2_byte *data, size_t len
 	usedspace = freespace = 0;
 }
 
-void ccnl_SHA256_Final(sha2_byte digest[], SHA256_CTX_t* context) {
+void ccn_iribu_SHA256_Final(sha2_byte digest[], SHA256_CTX_t* context) {
 	sha2_word32	*d = (sha2_word32*)digest;
 	unsigned int	usedspace;
 
@@ -242,7 +242,7 @@ void ccnl_SHA256_Final(sha2_byte digest[], SHA256_CTX_t* context) {
 					MEMSET_BZERO(&context->buffer[usedspace], SHA256_BLOCK_LENGTH - usedspace);
 				}
 				/* Do second-to-last transform: */
-				ccnl_SHA256_Transform(context, (sha2_word32*)context->buffer);
+				ccn_iribu_SHA256_Transform(context, (sha2_word32*)context->buffer);
 
 				/* And set-up for the last transform: */
 				MEMSET_BZERO(context->buffer, SHA256_SHORT_BLOCK_LENGTH);
@@ -258,7 +258,7 @@ void ccnl_SHA256_Final(sha2_byte digest[], SHA256_CTX_t* context) {
 		*(sha2_word64*)&context->buffer[SHA256_SHORT_BLOCK_LENGTH] = context->bitcount;
 
 		/* Final transform: */
-		ccnl_SHA256_Transform(context, (sha2_word32*)context->buffer);
+		ccn_iribu_SHA256_Transform(context, (sha2_word32*)context->buffer);
 
 #if BYTE_ORDER == LITTLE_ENDIAN
 		{

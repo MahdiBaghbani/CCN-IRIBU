@@ -1,5 +1,5 @@
 /*
- * @f ccnl-callbacks.c
+ * @f ccn-iribu-callbacks.c
  * @b Callback functions
  *
  * Copyright (C) 2018 HAW Hamburg
@@ -17,37 +17,37 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * File history:
- * 2018-05-21 created (based on ccnl-producer.c)
+ * 2018-05-21 created (based on ccn-iribu-producer.c)
  */
 
-#include "ccnl-callbacks.h"
+#include "ccn-iribu-callbacks.h"
 
 /**
  * callback function for inbound on-data events
  */
-static ccnl_cb_on_data _cb_rx_on_data = NULL;
+static ccn_iribu_cb_on_data _cb_rx_on_data = NULL;
 
 /**
  * callback function for outbound on-data events
  */
-static ccnl_cb_on_data _cb_tx_on_data = NULL;
+static ccn_iribu_cb_on_data _cb_tx_on_data = NULL;
 
 void
-ccnl_set_cb_rx_on_data(ccnl_cb_on_data func)
+ccn_iribu_set_cb_rx_on_data(ccn_iribu_cb_on_data func)
 {
     _cb_rx_on_data = func;
 }
 
 void
-ccnl_set_cb_tx_on_data(ccnl_cb_on_data func)
+ccn_iribu_set_cb_tx_on_data(ccn_iribu_cb_on_data func)
 {
     _cb_tx_on_data = func;
 }
 
 int
-ccnl_callback_rx_on_data(struct ccnl_relay_s *relay,
-                         struct ccnl_face_s *from,
-                         struct ccnl_pkt_s *pkt)
+ccn_iribu_callback_rx_on_data(struct ccn_iribu_relay_s *relay,
+                         struct ccn_iribu_face_s *from,
+                         struct ccn_iribu_pkt_s *pkt)
 {
     if (_cb_rx_on_data) {
         return _cb_rx_on_data(relay, from, pkt);
@@ -57,9 +57,9 @@ ccnl_callback_rx_on_data(struct ccnl_relay_s *relay,
 }
 
 int
-ccnl_callback_tx_on_data(struct ccnl_relay_s *relay,
-                         struct ccnl_face_s *to,
-                         struct ccnl_pkt_s *pkt)
+ccn_iribu_callback_tx_on_data(struct ccn_iribu_relay_s *relay,
+                         struct ccn_iribu_face_s *to,
+                         struct ccn_iribu_pkt_s *pkt)
 {
     if (_cb_tx_on_data) {
         return _cb_tx_on_data(relay, to, pkt);

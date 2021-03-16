@@ -1,5 +1,5 @@
 /*
- * @f ccnl-pkt-ccnb.h
+ * @f ccn-iribu-pkt-ccnb.h
  * @b CCN lite - CCNb wire format constants
  *
  * Copyright (C) 2011-15, Christian Tschudin, University of Basel
@@ -21,13 +21,13 @@
  * 2014-03-17 renamed to prepare for a world with many wire formats
  */
 
-#ifndef CCNL_PKT_CCNB_H
-#define CCNL_PKT_CCNB_H
+#ifndef CCN_IRIBU_PKT_CCNB_H
+#define CCN_IRIBU_PKT_CCNB_H
 
-#ifndef CCNL_LINUXKERNEL
-#include "ccnl-core.h"
+#ifndef CCN_IRIBU_LINUXKERNEL
+#include "ccn-iribu-core.h"
 #else
-#include "../../ccnl-core/include/ccnl-core.h"
+#include "../../ccn-iribu-core/include/ccn-iribu-core.h"
 #endif
 
 // ----------------------------------------------------------------------
@@ -89,40 +89,40 @@
 #define CCN_DTAG_CCNPDU         17702112
 
 int8_t
-ccnl_ccnb_dehead(uint8_t **buf, size_t *len, uint64_t *num, uint8_t *typ);
+ccn_iribu_ccnb_dehead(uint8_t **buf, size_t *len, uint64_t *num, uint8_t *typ);
 
-struct ccnl_pkt_s*
-ccnl_ccnb_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen);
-
-int8_t
-ccnl_ccnb_cMatch(struct ccnl_pkt_s *p, struct ccnl_content_s *c);
+struct ccn_iribu_pkt_s*
+ccn_iribu_ccnb_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen);
 
 int8_t
-ccnl_ccnb_fillInterest(struct ccnl_prefix_s *name, uint32_t *nonce,
+ccn_iribu_ccnb_cMatch(struct ccn_iribu_pkt_s *p, struct ccn_iribu_content_s *c);
+
+int8_t
+ccn_iribu_ccnb_fillInterest(struct ccn_iribu_prefix_s *name, uint32_t *nonce,
                        uint8_t *out, const uint8_t *bufend, size_t outlen, size_t *retlen);
 
 int8_t
-ccnl_ccnb_fillContent(struct ccnl_prefix_s *name, uint8_t *data, size_t datalen,
+ccn_iribu_ccnb_fillContent(struct ccn_iribu_prefix_s *name, uint8_t *data, size_t datalen,
                       size_t *contentpos, uint8_t *out, const uint8_t *bufend, size_t *retlen);
 
 int8_t
-ccnl_ccnb_consume(int8_t typ, uint64_t num, uint8_t **buf, size_t *len,
+ccn_iribu_ccnb_consume(int8_t typ, uint64_t num, uint8_t **buf, size_t *len,
                   uint8_t **valptr, size_t *vallen);
 
 #ifdef NEEDS_PACKET_CRAFTING
 int8_t
-ccnl_ccnb_mkHeader(uint8_t *buf, const uint8_t *bufend, uint64_t num, uint8_t tt, size_t *retlen);
+ccn_iribu_ccnb_mkHeader(uint8_t *buf, const uint8_t *bufend, uint64_t num, uint8_t tt, size_t *retlen);
 
 int8_t
-ccnl_ccnb_mkStrBlob(uint8_t *out, const uint8_t *bufend, uint64_t num, uint8_t tt,
+ccn_iribu_ccnb_mkStrBlob(uint8_t *out, const uint8_t *bufend, uint64_t num, uint8_t tt,
                     char *str, size_t *retlen);
 
 int8_t
-ccnl_ccnb_mkBlob(uint8_t *out, const uint8_t *bufend, uint64_t num, uint8_t tt,
+ccn_iribu_ccnb_mkBlob(uint8_t *out, const uint8_t *bufend, uint64_t num, uint8_t tt,
                  char *cp, size_t cnt, size_t *retlen);
 
 int8_t
-ccnl_ccnb_mkField(uint8_t *out, const uint8_t *bufend, uint64_t num, uint8_t typ,
+ccn_iribu_ccnb_mkField(uint8_t *out, const uint8_t *bufend, uint64_t num, uint8_t typ,
                   uint8_t *data, size_t datalen, size_t *retlen);
 #endif // NEEDS_PACKET_CRAFTING
 

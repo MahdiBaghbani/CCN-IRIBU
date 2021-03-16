@@ -1,5 +1,5 @@
 /*
- * @f ccnl-pkt-switch.c
+ * @f ccn-iribu-pkt-switch.c
  * @b CCN lite - encoding for switching packet formats
  *
  * Copyright (C) 2014, Christian Tschudin, University of Basel
@@ -20,24 +20,24 @@
  * 2014-12-21 created
  */
 
-// see ccnl-defs.h for the ENC constants
+// see ccn-iribu-defs.h for the ENC constants
 
-#ifndef CCNL_LINUXKERNEL
-#include "ccnl-core.h"
-#include "ccnl-pkt-ccnb.h"
-#include "ccnl-pkt-ccntlv.h"
-#include "ccnl-pkt-ndntlv.h"
+#ifndef CCN_IRIBU_LINUXKERNEL
+#include "ccn-iribu-core.h"
+#include "ccn-iribu-pkt-ccnb.h"
+#include "ccn-iribu-pkt-ccntlv.h"
+#include "ccn-iribu-pkt-ndntlv.h"
 #else
-#include "../../ccnl-core/include/ccnl-core.h"
-#include "../include/ccnl-pkt-ccnb.h"
-#include "../include/ccnl-pkt-ccntlv.h"
-#include "../include/ccnl-pkt-ndntlv.h"
+#include "../../ccn-iribu-core/include/ccn-iribu-core.h"
+#include "../include/ccn-iribu-pkt-ccnb.h"
+#include "../include/ccn-iribu-pkt-ccntlv.h"
+#include "../include/ccn-iribu-pkt-ndntlv.h"
 #endif
 
 
 
 int8_t
-ccnl_switch_dehead(uint8_t **buf, size_t *len, int32_t *code)
+ccn_iribu_switch_dehead(uint8_t **buf, size_t *len, int32_t *code)
 {
     if (*len < 2 || **buf != 0x80) {
         return -1;
@@ -53,20 +53,20 @@ ccnl_switch_dehead(uint8_t **buf, size_t *len, int32_t *code)
 }
 
 int
-ccnl_enc2suite(int enc)
+ccn_iribu_enc2suite(int enc)
 {
     switch(enc) {
 #ifdef USE_SUITE_CCNB
-    case CCNL_ENC_CCNB:      return CCNL_SUITE_CCNB;
+    case CCN_IRIBU_ENC_CCNB:      return CCN_IRIBU_SUITE_CCNB;
 #endif
 #ifdef USE_SUITE_NDNTLV
-    case CCNL_ENC_NDN2013:   return CCNL_SUITE_NDNTLV;
+    case CCN_IRIBU_ENC_NDN2013:   return CCN_IRIBU_SUITE_NDNTLV;
 #endif
 #ifdef USE_SUITE_CCNTLV
-    case CCNL_ENC_CCNX2014:  return CCNL_SUITE_CCNTLV;
+    case CCN_IRIBU_ENC_CCNX2014:  return CCN_IRIBU_SUITE_CCNTLV;
 #endif
 #ifdef USE_SUITE_LOCALRPC
-    case CCNL_ENC_LOCALRPC:  return CCNL_SUITE_LOCALRPC;
+    case CCN_IRIBU_ENC_LOCALRPC:  return CCN_IRIBU_SUITE_LOCALRPC;
 #endif
     default:
         break;
@@ -80,7 +80,7 @@ ccnl_enc2suite(int enc)
 #ifdef NEEDS_PACKET_CRAFTING
 
 int8_t
-ccnl_switch_prependCodeVal(uint64_t val, size_t *offset, uint8_t *buf, size_t *res)
+ccn_iribu_switch_prependCodeVal(uint64_t val, size_t *offset, uint8_t *buf, size_t *res)
 {
     size_t len, i;
     uint8_t t;
@@ -109,14 +109,14 @@ ccnl_switch_prependCodeVal(uint64_t val, size_t *offset, uint8_t *buf, size_t *r
 }
 
 int8_t
-ccnl_switch_prependCoding(uint64_t code, size_t *offset, uint8_t *buf, size_t *res)
+ccn_iribu_switch_prependCoding(uint64_t code, size_t *offset, uint8_t *buf, size_t *res)
 {
     size_t len;
 
     if (*offset < 2) {
         return -1;
     }
-    if (ccnl_switch_prependCodeVal(code, offset, buf, &len) || *offset < 1) {
+    if (ccn_iribu_switch_prependCodeVal(code, offset, buf, &len) || *offset < 1) {
         return -1;
     }
     *offset -= 1;

@@ -1,5 +1,5 @@
 /*
- * @f ccnl-pkt-util.h
+ * @f ccn-iribu-pkt-util.h
  * @b Helper functions for identifying packets
  *
  * Copyright (C) 2011-18 University of Basel
@@ -19,32 +19,32 @@
  */
 
 
-#ifndef CCNL_PKT_UTIL_H
-#define CCNL_PKT_UTIL_H
+#ifndef CCN_IRIBU_PKT_UTIL_H
+#define CCN_IRIBU_PKT_UTIL_H
 
-#ifndef CCNL_LINUXKERNEL
+#ifndef CCN_IRIBU_LINUXKERNEL
 #include <stdint.h>
 #else
 #include <linux/types.h>
 #endif
 #include <stddef.h>
 
-#include "ccnl-pkt.h"
+#include "ccn-iribu-pkt.h"
 
 uint8_t
-ccnl_isSuite(int suite);
+ccn_iribu_isSuite(int suite);
 
 int
-ccnl_suite2defaultPort(int suite);
+ccn_iribu_suite2defaultPort(int suite);
 
 const char*
-ccnl_suite2str(int suite);
+ccn_iribu_suite2str(int suite);
 
 int
-ccnl_str2suite(char *cp);
+ccn_iribu_str2suite(char *cp);
 
 int
-ccnl_pkt2suite(uint8_t *data, size_t len, size_t *skip);
+ccn_iribu_pkt2suite(uint8_t *data, size_t len, size_t *skip);
 
 /**
  * Returns the integer representation of a string
@@ -56,7 +56,7 @@ ccnl_pkt2suite(uint8_t *data, size_t len, size_t *skip);
  * @return Upon failure the function returns 0 (e.g. if no valid conversion could be performed)
  */
 int
-ccnl_cmp2int(unsigned char *cmp, size_t cmplen);
+ccn_iribu_cmp2int(unsigned char *cmp, size_t cmplen);
 
 /**
  * Returns the Interest lifetime in seconds
@@ -66,6 +66,6 @@ ccnl_cmp2int(unsigned char *cmp, size_t cmplen);
  * @return        The interest lifetime in seconds
  */
 uint64_t
-ccnl_pkt_interest_lifetime(const struct ccnl_pkt_s *pkt);
+ccn_iribu_pkt_interest_lifetime(const struct ccn_iribu_pkt_s *pkt);
 
 #endif

@@ -1,5 +1,5 @@
 /*
- * @f ccnl-producer.c
+ * @f ccn-iribu-producer.c
  * @b Producer functions
  *
  * Copyright (C) 2011-14, Christian Tschudin, University of Basel
@@ -22,22 +22,22 @@
  * 2018-01-24 created (based on ccn-lite-riot.c)
  */
 
-#include "ccnl-producer.h"
+#include "ccn-iribu-producer.h"
 
 /**
  * local producer function defined by the application
  */
-static ccnl_producer_func _prod_func = NULL;
+static ccn_iribu_producer_func _prod_func = NULL;
 
 void
-ccnl_set_local_producer(ccnl_producer_func func)
+ccn_iribu_set_local_producer(ccn_iribu_producer_func func)
 {
     _prod_func = func;
 }
 
 int
-local_producer(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
-                   struct ccnl_pkt_s *pkt)
+local_producer(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
+                   struct ccn_iribu_pkt_s *pkt)
 {
     if (_prod_func) {
         return _prod_func(relay, from, pkt);

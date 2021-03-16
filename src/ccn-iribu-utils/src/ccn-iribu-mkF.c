@@ -21,7 +21,7 @@
  */
 
 
-#include "ccnl-common.h"
+#include "ccn-iribu-common.h"
 
 // ----------------------------------------------------------------------
 void
@@ -29,24 +29,24 @@ file2frags(int suite, unsigned char *data, int datalen, char *fileprefix,
            int bytelimit, unsigned int *seqnr, unsigned int seqnrwidth,
            uint8_t noclobber)
 {
-    struct ccnl_buf_s *fragbuf;
-    struct ccnl_frag_s fr;
+    struct ccn_iribu_buf_s *fragbuf;
+    struct ccn_iribu_frag_s fr;
     char fname[512];
     int cnt = 0, f;
 
     memset(&fr, 0, sizeof(fr));
-    //    fr.protocol = CCNL_FRAG_CCNx2013;
-    // fr.protocol = CCNL_FRAG_SEQUENCED2015;
-    fr.protocol = CCNL_FRAG_BEGINEND2015;
-    fr.bigpkt = ccnl_buf_new(data, datalen);
+    //    fr.protocol = CCN_IRIBU_FRAG_CCNx2013;
+    // fr.protocol = CCN_IRIBU_FRAG_SEQUENCED2015;
+    fr.protocol = CCN_IRIBU_FRAG_BEGINEND2015;
+    fr.bigpkt = ccn_iribu_buf_new(data, datalen);
     fr.mtu = bytelimit;
     fr.sendseq = *seqnr;
     fr.sendseqwidth = seqnrwidth;
     fr.flagwidth = 1;
     fr.outsuite = suite;
 
-    //    fragbuf = ccnl_frag_getnext(&fr);
-    fragbuf = ccnl_frag_getnext(&fr, NULL, NULL);
+    //    fragbuf = ccn_iribu_frag_getnext(&fr);
+    fragbuf = ccn_iribu_frag_getnext(&fr, NULL, NULL);
     while (fragbuf) {
         snprintf(fname, sizeof(fname), "%s%03d.frag", fileprefix, cnt);
         if (noclobber && !access(fname, F_OK)) {
@@ -62,8 +62,8 @@ file2frags(int suite, unsigned char *data, int datalen, char *fileprefix,
                     perror("write");
                 close(f);
             }
-            ccnl_free(fragbuf);
-            fragbuf = ccnl_frag_getnext(&fr, NULL, NULL); //ccnl_frag_getnext(&fr);
+            ccn_iribu_free(fragbuf);
+            fragbuf = ccn_iribu_frag_getnext(&fr, NULL, NULL); //ccn_iribu_frag_getnext(&fr);
         }
         cnt++;
     }
@@ -79,7 +79,7 @@ main(int argc, char *argv[])
     unsigned int bytelimit = 1500, seqnr = 0, seqnrlen = 4;
     char *cmdname = argv[0], *cp, *fname, *fileprefix = "frag";
     uint8_t noclobber = false;
-    int suite = CCNL_SUITE_DEFAULT;
+    int suite = CCN_IRIBU_SUITE_DEFAULT;
 
     while ((opt = getopt(argc, argv, "a:b:f:hns:v:")) != -1) {
         switch (opt) {
@@ -98,15 +98,15 @@ main(int argc, char *argv[])
             noclobber = true;
             break;
         case 's':
-            suite = ccnl_str2suite(optarg);
-            if (!ccnl_isSuite(suite)) {
+            suite = ccn_iribu_str2suite(optarg);
+            if (!ccn_iribu_isSuite(suite)) {
                 DEBUGMSG(ERROR, "Unsupported suite %s\n", optarg);
                 goto Usage;
             }
             break;
         case 'v':
 #ifdef USE_LOGGING
-            debug_level = ccnl_debug_str2level(optarg);
+            debug_level = ccn_iribu_debug_str2level(optarg);
 #endif
             break;
 
@@ -128,7 +128,7 @@ Usage:
         }
     }
 
-    DEBUGMSG(INFO, "Using suite %d:%s\n", suite, ccnl_suite2str(suite));
+    DEBUGMSG(INFO, "Using suite %d:%s\n", suite, ccn_iribu_suite2str(suite));
 
     fname = argv[optind] ? argv[optind++] : "-";
     do {

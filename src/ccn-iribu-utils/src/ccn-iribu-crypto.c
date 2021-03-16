@@ -1,5 +1,5 @@
 /*
- * @f util/ccnl-crypto.c
+ * @f util/ccn-iribu-crypto.c
  * @b crypto functions for the CCN-lite utilities
  *
  * Copyright (C) 2013, Christian Tschudin, University of Basel
@@ -22,7 +22,7 @@
 
 // ----------------------------------------------------------------------
 
-#include "ccnl-crypto.h"
+#include "ccn-iribu-crypto.h"
 
 #ifdef USE_SIGNATURES
 // ----------------------------------------------------------------------
@@ -166,17 +166,17 @@ add_signature(unsigned char *out, char *private_key_path,
     unsigned char sig[2048];
     unsigned int sig_len;
 
-    len = ccnl_ccnb_mkHeader(out, CCN_DTAG_SIGNATURE, CCN_TT_DTAG);
-    len += ccnl_ccnb_mkStrBlob(out + len, CCN_DTAG_NAME, CCN_TT_DTAG, "SHA256");
-    len += ccnl_ccnb_mkStrBlob(out + len, CCN_DTAG_WITNESS, CCN_TT_DTAG, "");
+    len = ccn_iribu_ccnb_mkHeader(out, CCN_DTAG_SIGNATURE, CCN_TT_DTAG);
+    len += ccn_iribu_ccnb_mkStrBlob(out + len, CCN_DTAG_NAME, CCN_TT_DTAG, "SHA256");
+    len += ccn_iribu_ccnb_mkStrBlob(out + len, CCN_DTAG_WITNESS, CCN_TT_DTAG, "");
 
     if(!sign(private_key_path, (unsigned char*)file, fsize, (unsigned char*)sig, &sig_len)) return 0;
     //printf("SIGLEN: %d\n",sig_len);
     sig[sig_len]=0;
 
     //add signaturebits bits...
-    len += ccnl_ccnb_mkHeader(out + len, CCN_DTAG_SIGNATUREBITS, CCN_TT_DTAG);
-    len += ccnl_ccnb_addBlob(out + len, (char*)sig, sig_len);
+    len += ccn_iribu_ccnb_mkHeader(out + len, CCN_DTAG_SIGNATUREBITS, CCN_TT_DTAG);
+    len += ccn_iribu_ccnb_addBlob(out + len, (char*)sig, sig_len);
     out[len++] = 0; // end signaturebits
 
     out[len++] = 0; // end signature

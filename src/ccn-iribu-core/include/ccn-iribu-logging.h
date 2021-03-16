@@ -1,5 +1,5 @@
 /*
- * @f ccnl-ext-logging.h
+ * @f ccn-iribu-ext-logging.h
  * @b CCNL logging
  *
  * Copyright (C) 2011-17, University of Basel
@@ -20,14 +20,14 @@
  * 2017-06-16 created <christopher.scherb@unibas.ch>
  */
 
-#ifndef CCNL_LOGGING_H
-#define CCNL_LOGGING_H
+#ifndef CCN_IRIBU_LOGGING_H
+#define CCN_IRIBU_LOGGING_H
 
 #ifdef DEBUG
 #undef DEBUG
 #endif
 
-#ifndef CCNL_RIOT
+#ifndef CCN_IRIBU_RIOT
 #define FATAL   0  // FATAL
 #define ERROR   1  // ERROR
 #define WARNING 2  // WARNING
@@ -36,25 +36,25 @@
 #define VERBOSE 5  // VERBOSE
 #define TRACE 	6  // TRACE
 #else
-#include "ccnl-riot-logging.h"
+#include "ccn-iribu-riot-logging.h"
 #endif
 
 #ifdef USE_LOGGING
-#ifndef CCNL_LINUXKERNEL
-#include "ccnl-malloc.h"
+#ifndef CCN_IRIBU_LINUXKERNEL
+#include "ccn-iribu-malloc.h"
 #include <stdio.h>
 #endif
-//#include "ccnl-os-time.h"
+//#include "ccn-iribu-os-time.h"
 
 extern int debug_level;
 
 char
-ccnl_debugLevelToChar(int level);
+ccn_iribu_debugLevelToChar(int level);
 
 // ----------------------------------------------------------------------
 // _TRACE macro
 
-#ifdef CCNL_ARDUINO
+#ifdef CCN_IRIBU_ARDUINO
 
 #define _TRACE(F,P) do {                    \
     if (debug_level >= TRACE) { char *cp;   \
@@ -74,7 +74,7 @@ ccnl_debugLevelToChar(int level);
 
 #else
 
-#ifdef CCNL_LINUXKERNEL
+#ifdef CCN_IRIBU_LINUXKERNEL
 
 #define _TRACE(F,P) do {                                    \
     if (debug_level >= TRACE) {                             \
@@ -90,12 +90,12 @@ ccnl_debugLevelToChar(int level);
                 (P), timestamp(), (F), __FILE__, __LINE__); \
     }} while (0)
 
-#endif // CCNL_LINUXKERNEL
+#endif // CCN_IRIBU_LINUXKERNEL
 
 int
-ccnl_debug_str2level(char *s);
+ccn_iribu_debug_str2level(char *s);
 
-#endif // CCNL_ARDUINO
+#endif // CCN_IRIBU_ARDUINO
 
 #define DEBUGSTMT(LVL, ...) do { \
         if ((LVL)>debug_level) break; \
@@ -105,7 +105,7 @@ ccnl_debug_str2level(char *s);
 // ----------------------------------------------------------------------
 // DEBUGMSG macro
 
-#ifdef CCNL_LINUXKERNEL
+#ifdef CCN_IRIBU_LINUXKERNEL
 
 #  define DEBUGMSG(LVL, ...) do {       \
         if ((LVL)>debug_level) break;   \
@@ -114,24 +114,24 @@ ccnl_debug_str2level(char *s);
     } while (0)
 #  define fprintf(fd, ...)      printk(__VA_ARGS__)
 
-#elif defined(CCNL_ANDROID)
+#elif defined(CCN_IRIBU_ANDROID)
 
 #  define DEBUGMSG(LVL, ...) do { int len;          \
         if ((LVL)>debug_level) break;               \
         len = snprintf(android_logstr, sizeof(android_logstr), "[%c] %s: ",  \
-            ccnl_debugLevelToChar(LVL),             \
+            ccn_iribu_debugLevelToChar(LVL),             \
             timestamp());                           \
         len += snprintf(android_logstr+len, sizeof(android_logstr)-len, __VA_ARGS__);   \
         jni_append_to_log(android_logstr);          \
     } while (0)
 
-#elif defined(CCNL_ARDUINO)
+#elif defined(CCN_IRIBU_ARDUINO)
 
 #  define DEBUGMSG_OFF(...) do{}while(0)
 #  define DEBUGMSG_ON(L,FMT, ...) do {     \
         if ((L) <= debug_level) {       \
           Serial.print("[");            \
-          Serial.print(ccnl_debugLevelToChar(debug_level)); \
+          Serial.print(ccn_iribu_debugLevelToChar(debug_level)); \
           Serial.print("] ");           \
           sprintf_P(logstr, PSTR(FMT), ##__VA_ARGS__); \
           Serial.print(timestamp());    \
@@ -142,17 +142,17 @@ ccnl_debug_str2level(char *s);
    } while(0)
 
 #else
-#ifndef CCNL_RIOT
+#ifndef CCN_IRIBU_RIOT
 #  define DEBUGMSG(LVL, ...) do {                   \
         if ((LVL)>debug_level) break;               \
         fprintf(stderr, "[%c] %s: ",                \
-            ccnl_debugLevelToChar(LVL),             \
+            ccn_iribu_debugLevelToChar(LVL),             \
             timestamp());                           \
         fprintf(stderr, __VA_ARGS__);               \
     } while (0)
 #endif
 #endif
-#ifndef CCNL_RIOT
+#ifndef CCN_IRIBU_RIOT
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #  define TRACEIN(F)    do { _TRACE(__func__, '>'); } while (0)
 #  define TRACEOUT(F)   do { _TRACE(__func__, '<'); } while (0)
@@ -165,7 +165,7 @@ ccnl_debug_str2level(char *s);
 // ----------------------------------------------------------------------
 
 #else // !USE_LOGGING
-#ifndef CCNL_RIOT
+#ifndef CCN_IRIBU_RIOT
 #  define DEBUGSTMT(...)                   do {} while(0)
 #  define DEBUGMSG(...)                    do {} while(0)
 #  define DEBUGMSG_ON(...)                 do {} while(0)
@@ -189,7 +189,7 @@ debug_memdump(void);
 
 
 // only in the Arduino case we wish to control debugging on a module basis
-#ifndef CCNL_ARDUINO
+#ifndef CCN_IRIBU_ARDUINO
 // core source files
 # define DEBUGMSG_CORE(...) DEBUGMSG(__VA_ARGS__)
 # define DEBUGMSG_CFWD(...) DEBUGMSG(__VA_ARGS__)
@@ -202,15 +202,15 @@ debug_memdump(void);
 # define DEBUGMSG_PNDN(...) DEBUGMSG(__VA_ARGS__)
 #endif
 
-#ifdef CCNL_ARDUINO
+#ifdef CCN_IRIBU_ARDUINO
 #  define CONSOLE(FMT, ...)   do { \
      sprintf_P(logstr, PSTR(FMT), ##__VA_ARGS__); \
      Serial.print(logstr); \
      Serial.print("\r"); \
    } while(0)
-#  define CONSTSTR(s)         ccnl_arduino_getPROGMEMstr(PSTR(s))
+#  define CONSTSTR(s)         ccn_iribu_arduino_getPROGMEMstr(PSTR(s))
 
-#elif defined(CCNL_ANDROID)
+#elif defined(CCN_IRIBU_ANDROID)
 
 static char android_logstr[1024];
 void jni_append_to_log(char *line);
@@ -220,16 +220,16 @@ void jni_append_to_log(char *line);
                               } while(0)
 #  define CONSTSTR(s)         s
 
-#elif !defined(CCNL_LINUXKERNEL)
+#elif !defined(CCN_IRIBU_LINUXKERNEL)
 
 #  define CONSOLE(...)        fprintf(stderr, __VA_ARGS__)
 #  define CONSTSTR(s)         s
 
-#else // CCNL_LINUXKERNEL
+#else // CCN_IRIBU_LINUXKERNEL
 
 #  define CONSOLE(FMT, ...)   printk(FMT, ##__VA_ARGS__)
 #  define CONSTSTR(s)         s
 
 #endif
 
-#endif // CCNL_LOGGING_H
+#endif // CCN_IRIBU_LOGGING_H

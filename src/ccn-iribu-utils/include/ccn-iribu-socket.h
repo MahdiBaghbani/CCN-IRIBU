@@ -2,7 +2,7 @@
  * @addtogroup CCNL-utils
  * @{
  *
- * @file ccnl-socket.h
+ * @file ccn-iribu-socket.h
  * @brief Request content: send an interest open socket etc
  *
  * Copyright (C) 2013-18, Christian Tschudin, University of Basel
@@ -19,8 +19,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifndef CCNL_SOCKET_H
-#define CCNL_SOCKET_H
+#ifndef CCN_IRIBU_SOCKET_H
+#define CCN_IRIBU_SOCKET_H
 
 #include <ctype.h>
 #include <getopt.h>

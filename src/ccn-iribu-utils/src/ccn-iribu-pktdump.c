@@ -23,7 +23,7 @@
  */
 
 #include "base64.h"
-#include "ccnl-common.h"
+#include "ccn-iribu-common.h"
 
 // ----------------------------------------------------------------------
 
@@ -210,15 +210,15 @@ ccnb_dtag2name(int num)
     case CCN_DTAG_CCNPDU:        n = "ccnProtocolDataUnit"; break;
 
 /*
-    case CCNL_DTAG_MACSRC:   n = "MACsrc"; break;
-    case CCNL_DTAG_IP4SRC:   n = "IP4src"; break;
-    case CCNL_DTAG_FRAG:     n = "fragmentation"; break;
-    case CCNL_DTAG_FACEFLAGS:    n = "faceFlags"; break;
-    case CCNL_DTAG_DEBUGREQUEST: n = "debugRequest"; break;
-    case CCNL_DTAG_DEBUGACTION:  n = "debugAction"; break;
+    case CCN_IRIBU_DTAG_MACSRC:   n = "MACsrc"; break;
+    case CCN_IRIBU_DTAG_IP4SRC:   n = "IP4src"; break;
+    case CCN_IRIBU_DTAG_FRAG:     n = "fragmentation"; break;
+    case CCN_IRIBU_DTAG_FACEFLAGS:    n = "faceFlags"; break;
+    case CCN_IRIBU_DTAG_DEBUGREQUEST: n = "debugRequest"; break;
+    case CCN_IRIBU_DTAG_DEBUGACTION:  n = "debugAction"; break;
 
-    case CCNL_DTAG_FRAG2012_OLOSS:   n = "fragmentOurLoss"; break;
-    case CCNL_DTAG_FRAG2012_YSEQN:   n = "fragmentYourSeqNo"; break;
+    case CCN_IRIBU_DTAG_FRAG2012_OLOSS:   n = "fragmentOurLoss"; break;
+    case CCN_IRIBU_DTAG_FRAG2012_YSEQN:   n = "fragmentYourSeqNo"; break;
 */
 
     default:
@@ -391,7 +391,7 @@ ccntlv_must_recurse(uint16_t ctx, uint16_t typ)
 // ----------------------------------------------------------------------
 
 static char*
-ccnl_ccntlv_type2name(uint16_t ctx, uint16_t type, int rawxml)
+ccn_iribu_ccntlv_type2name(uint16_t ctx, uint16_t type, int rawxml)
 {
     char *cn = "globalCtx", *tn = NULL;
     static char tmp[50];
@@ -516,7 +516,7 @@ ccntlv_parse_sequence(size_t lev, uint16_t ctx, unsigned char *base,
 
     while (*len > 0) {
         cp = *buf;
-        if (ccnl_ccntlv_dehead(buf, len, &typ, &vallen) < 0) {
+        if (ccn_iribu_ccntlv_dehead(buf, len, &typ, &vallen) < 0) {
             return -1;
         }
 
@@ -527,7 +527,7 @@ ccntlv_parse_sequence(size_t lev, uint16_t ctx, unsigned char *base,
             exit(-1);
         }
 
-        n = ccnl_ccntlv_type2name(ctx, typ, rawxml);
+        n = ccn_iribu_ccntlv_type2name(ctx, typ, rawxml);
         if (!n) {
             snprintf(tmp, sizeof(tmp), "type=%hu", typ);
             n = tmp;
@@ -810,7 +810,7 @@ ndn_parse_sequence(size_t lev, uint8_t *base, uint8_t **buf,
 
     while (*len > 0) {
         cp = *buf;
-        if (ccnl_ndntlv_dehead(buf, len, &typ, &vallen)) {
+        if (ccn_iribu_ndntlv_dehead(buf, len, &typ, &vallen)) {
             return -1;
         }
         if (vallen > *len) {
@@ -955,7 +955,7 @@ localrpc_parse(size_t lev, uint8_t *base, uint8_t **buf, size_t *len,
     } else
     */
         {
-            if (ccnl_lrpc_dehead(buf, len, &typ, &vallen)) {
+            if (ccn_iribu_lrpc_dehead(buf, len, &typ, &vallen)) {
                 return -1;
             }
             if (vallen > *len) {
@@ -1013,7 +1013,7 @@ localrpc_parse(size_t lev, uint8_t *base, uint8_t **buf, size_t *len,
             for (i = 0; i <= lev; i++) {
                 printf("  ");
             }
-            printf("%ld\n", ccnl_ndntlv_nonNegInt(*buf, vallen));
+            printf("%ld\n", ccn_iribu_ndntlv_nonNegInt(*buf, vallen));
         } else if (typ == LRPC_FLATNAME) {
             printf("%04zx  ", *buf - base);
             for (i = 0; i <= lev; i++) {
@@ -1045,7 +1045,7 @@ localrpc_201405(uint8_t *data, size_t len, int8_t rawxml, FILE* out)
     // int typ2, vallen2, len2;
     //    unsigned char *cp;
 
-    if (len <= 0 || ccnl_lrpc_dehead(&buf, &len, &typ, &vallen) ||
+    if (len <= 0 || ccn_iribu_lrpc_dehead(&buf, &len, &typ, &vallen) ||
           (typ != LRPC_PT_REQUEST && typ != LRPC_PT_REPLY)) {
         return;
     }
@@ -1053,12 +1053,12 @@ localrpc_201405(uint8_t *data, size_t len, int8_t rawxml, FILE* out)
     /*
     cp = buf;
     len2 = vallen;
-    if (ccnl_lrpc_dehead(&buf, &len2, &typ2, &vallen2) < 0)
+    if (ccn_iribu_lrpc_dehead(&buf, &len2, &typ2, &vallen2) < 0)
         return;
     if (typ2 == LRPC_NONNEGINT) { // RPC return code
         printf("0000  RPC-result\n");
         printf("%04zx    INT %ld\n", cp - data,
-               ccnl_lrpc_nonNegInt(buf, vallen2));
+               ccn_iribu_lrpc_nonNegInt(buf, vallen2));
         buf += vallen2;
         len = origlen - (buf - data);
         localrpc_parse(1, data, &buf, &len, rawxml, out);
@@ -1077,36 +1077,36 @@ int8_t
 emit_content_only(uint8_t *start, size_t len, int suite, int format)
 {
     uint8_t *data;
-    struct ccnl_pkt_s *pkt;
+    struct ccn_iribu_pkt_s *pkt;
 
     // we cheat, by hardwired jump over the outermost container heads
     switch (suite) {
-    case CCNL_SUITE_CCNB: {
+    case CCN_IRIBU_SUITE_CCNB: {
         data = start + 2;
         len -= 2;
 
-        pkt = ccnl_ccnb_bytes2pkt(start, &data, &len);
+        pkt = ccn_iribu_ccnb_bytes2pkt(start, &data, &len);
         break;
     }
-    case CCNL_SUITE_CCNTLV: {
+    case CCN_IRIBU_SUITE_CCNTLV: {
         size_t hdrlen;
-        if (ccnl_ccntlv_getHdrLen(start, len, &hdrlen)) {
+        if (ccn_iribu_ccntlv_getHdrLen(start, len, &hdrlen)) {
             return -1;
         }
         data = start + hdrlen;
         len -= hdrlen;
 
-        pkt = ccnl_ccntlv_bytes2pkt(start, &data, &len);
+        pkt = ccn_iribu_ccntlv_bytes2pkt(start, &data, &len);
         break;
     }
-    case CCNL_SUITE_NDNTLV: {
+    case CCN_IRIBU_SUITE_NDNTLV: {
         uint64_t pkttype;
         size_t vallen;
         data = start;
-        if (ccnl_ndntlv_dehead(&data, &len, &pkttype, &vallen)) {
+        if (ccn_iribu_ndntlv_dehead(&data, &len, &pkttype, &vallen)) {
             return -1;
         }
-        pkt = ccnl_ndntlv_bytes2pkt(pkttype, start, &data, &len);
+        pkt = ccn_iribu_ndntlv_bytes2pkt(pkttype, start, &data, &len);
         break;
     }
     default:
@@ -1114,13 +1114,13 @@ emit_content_only(uint8_t *start, size_t len, int suite, int format)
     }
     if (!pkt) {
         DEBUGMSG(WARNING, "extract (%s): parsing error or no prefix\n",
-                 ccnl_suite2str(suite));
+                 ccn_iribu_suite2str(suite));
         return -1;
     }
 
     if (pkt->contlen > INT_MAX) {
         DEBUGMSG(WARNING, "extract (%s): content too long\n",
-                 ccnl_suite2str(suite));
+                 ccn_iribu_suite2str(suite));
         return -1;
     }
     printf("%.*s", (int) pkt->contlen, pkt->content);
@@ -1128,7 +1128,7 @@ emit_content_only(uint8_t *start, size_t len, int suite, int format)
         printf("\n");
     }
 
-    ccnl_pkt_free(pkt);
+    ccn_iribu_pkt_free(pkt);
     return 0;
 }
 
@@ -1152,7 +1152,7 @@ dump_content(size_t lev, uint8_t *base, uint8_t *data,
 
     if (suite >= 0) {
         forced = "forced";
-        while (!ccnl_switch_dehead(&data, &len, &enc)) {
+        while (!ccn_iribu_switch_dehead(&data, &len, &enc)) {
             if (format) {
                 continue;
             }
@@ -1161,13 +1161,13 @@ dump_content(size_t lev, uint8_t *base, uint8_t *data,
             while (olddata < data) {
                 printf("0x%02x ", *(olddata++));
             }
-            printf("-- ignored: switch to %s\n", ccnl_enc2str(enc));
+            printf("-- ignored: switch to %s\n", ccn_iribu_enc2str(enc));
             olddata = data;
         }
     } else {
         forced = "auto-detected";
-        while (!ccnl_switch_dehead(&data, &len, &enc)) {
-            suite = ccnl_enc2suite(enc);
+        while (!ccn_iribu_switch_dehead(&data, &len, &enc)) {
+            suite = ccn_iribu_enc2suite(enc);
             if (format) {
                 continue;
             }
@@ -1176,12 +1176,12 @@ dump_content(size_t lev, uint8_t *base, uint8_t *data,
             while (olddata < data) {
                 printf("0x%02x ", *(olddata++));
             }
-            printf("--> switch to %s\n", ccnl_enc2str(enc));
+            printf("--> switch to %s\n", ccn_iribu_enc2str(enc));
             forced = "explicit";
             olddata = data;
         }
         if (suite < 0) {
-            suite = ccnl_pkt2suite(olddata, oldlen, NULL);
+            suite = ccn_iribu_pkt2suite(olddata, oldlen, NULL);
         }
     }
 
@@ -1190,21 +1190,21 @@ dump_content(size_t lev, uint8_t *base, uint8_t *data,
     }
 
     switch (suite) {
-    case CCNL_SUITE_CCNB:
+    case CCN_IRIBU_SUITE_CCNB:
         if (format == 0) {
             indent("#   ", lev);
             printf("%s CCNB format\n#\n", forced);
         }
         ccnb_parse(lev, data, len, format == 1, out);
         break;
-    case CCNL_SUITE_CCNTLV:
+    case CCN_IRIBU_SUITE_CCNTLV:
         if (format == 0) {
             indent("#   ", lev);
             printf("%s CCNx TLV format (as of Mar 2015)\n#\n", forced);
         }
         ccntlv_2015(lev, data, len, format == 1, out);
         break;
-    case CCNL_SUITE_LOCALRPC:
+    case CCN_IRIBU_SUITE_LOCALRPC:
         if (format == 0) {
             indent("#   ", lev);
             printf("%s local RPC format (Dec 2014, with NDNTLV encoding)\n#\n",
@@ -1212,7 +1212,7 @@ dump_content(size_t lev, uint8_t *base, uint8_t *data,
         }
         localrpc_201405(data, len, format == 1, out);
         break;
-    case CCNL_SUITE_NDNTLV:
+    case CCN_IRIBU_SUITE_NDNTLV:
         if (format == 0) {
             indent("#   ", lev);
             printf("%s NDN TLV format (as of Mar 2014)\n#\n", forced);
@@ -1256,8 +1256,8 @@ main(int argc, char *argv[])
     while ((opt = getopt(argc, argv, "hs:f:v:")) != -1) {
         switch (opt) {
         case 's':
-            suite = ccnl_str2suite(optarg);
-            if (!ccnl_isSuite(suite)) {
+            suite = ccn_iribu_str2suite(optarg);
+            if (!ccn_iribu_isSuite(suite)) {
                 goto help;
             }
             break;
@@ -1269,7 +1269,7 @@ main(int argc, char *argv[])
             if (isdigit(optarg[0])) {
                 debug_level =  (int)strtol(optarg, (char **)NULL, 10);
             } else {
-                debug_level = ccnl_debug_str2level(optarg);
+                debug_level = ccn_iribu_debug_str2level(optarg);
             }
 #endif
             break;

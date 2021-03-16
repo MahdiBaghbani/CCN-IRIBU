@@ -2,7 +2,7 @@
  * @addtogroup CCNL-fwd 
  * @brief CCN-lite Forwarding Library for different packet formats
  * @{
- * @file ccnl-fwd.h
+ * @file ccn-iribu-fwd.h
  * @brief CCN lite (CCNL), packet forwarding logic
  *
  * @author Christopher Scherb <christopher.scherb@unibas.ch>
@@ -21,31 +21,31 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef CCNL_FWD_H
-#define CCNL_FWD_H
+#ifndef CCN_IRIBU_FWD_H
+#define CCN_IRIBU_FWD_H
 
-#ifndef CCNL_LINUXKERNEL
-#include "ccnl-core.h"
+#ifndef CCN_IRIBU_LINUXKERNEL
+#include "ccn-iribu-core.h"
 #else
-#include "../../ccnl-core/include/ccnl-core.h"
+#include "../../ccn-iribu-core/include/ccn-iribu-core.h"
 #endif
 
 /**
  * @brief       Functionpointer to a CCN-lite Forwarder Function
  */
-typedef int8_t (*dispatchFct)(struct ccnl_relay_s*, struct ccnl_face_s*,
+typedef int8_t (*dispatchFct)(struct ccn_iribu_relay_s*, struct ccn_iribu_face_s*,
                            uint8_t**, size_t *);
 
 /**
  * @brief       Functionpointer to a CCN-lite CS-Matching Function
  */
-typedef int8_t (*cMatchFct)(struct ccnl_pkt_s *p, struct ccnl_content_s *c);
+typedef int8_t (*cMatchFct)(struct ccn_iribu_pkt_s *p, struct ccn_iribu_content_s *c);
 
 /**
  * @brief       Defines for every Packet format the Forwarding and CS-Matching function
  *
  */
-struct ccnl_suite_s {
+struct ccn_iribu_suite_s {
     dispatchFct RX; /**< Forwarder Function for a specific packet format */
     cMatchFct cMatch; /**< CS-Matching Function for a speific packet format */
 };
@@ -63,7 +63,7 @@ struct ccnl_suite_s {
  * @return      < 0 if no bytes consumed or error
  */
 int8_t
-ccnl_ccnb_fwd(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
+ccn_iribu_ccnb_fwd(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
               uint8_t **data, size_t *datalen, uint64_t typ);
 
 /**
@@ -77,7 +77,7 @@ ccnl_ccnb_fwd(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
  * @return      < 0 if no bytes consumed or error
  */
 int8_t
-ccnl_ccnb_forwarder(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
+ccn_iribu_ccnb_forwarder(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
                     uint8_t **data, size_t *datalen);
 #endif // USE_SUITE_CCNB
 
@@ -93,7 +93,7 @@ ccnl_ccnb_forwarder(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
  * @return      < 0 if no bytes consumed or error
  */
 int8_t
-ccnl_ccntlv_forwarder(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
+ccn_iribu_ccntlv_forwarder(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
                       uint8_t **data, size_t *datalen);
 #endif // USE_SUITE_CCNTLV
 
@@ -109,7 +109,7 @@ ccnl_ccntlv_forwarder(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
  * @return      < 0 if no bytes consumed or error
  */
 int8_t
-ccnl_ndntlv_forwarder(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
+ccn_iribu_ndntlv_forwarder(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
                       uint8_t **data, size_t *datalen);
 #endif // USE_SUITE_NDNTLV
 
@@ -125,8 +125,8 @@ ccnl_ndntlv_forwarder(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
  * @return   < 0 on failure
 */
 int
-ccnl_fwd_handleInterest(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
-                        struct ccnl_pkt_s **pkt, cMatchFct cMatch);
+ccn_iribu_fwd_handleInterest(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
+                        struct ccn_iribu_pkt_s **pkt, cMatchFct cMatch);
 
 
 /**
@@ -140,8 +140,8 @@ ccnl_fwd_handleInterest(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
  * @return   < 0 on failure
 */
 int
-ccnl_fwd_handleContent(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
-                       struct ccnl_pkt_s **pkt);
+ccn_iribu_fwd_handleContent(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
+                       struct ccn_iribu_pkt_s **pkt);
 
 #endif
 

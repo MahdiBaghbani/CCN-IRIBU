@@ -21,7 +21,7 @@
  * 2014-06-18  added NDNTLV support
  */
 
-#include "ccnl-common.h"
+#include "ccn-iribu-common.h"
 #include <unistd.h>
 #ifndef assert
 #define assert(...) do {} while(0)
@@ -29,11 +29,11 @@
 
 // ----------------------------------------------------------------------
 
-unsigned char out[8*CCNL_MAX_PACKET_SIZE];
+unsigned char out[8*CCN_IRIBU_MAX_PACKET_SIZE];
 int outlen;
 
 int
-frag_cb(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
+frag_cb(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
         unsigned char **data, int *len)
 {
     (void)relay;
@@ -48,15 +48,15 @@ frag_cb(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
 int
 main(int argc, char *argv[])
 {
-    int cnt, len, opt, port, sock = 0, socksize, suite = CCNL_SUITE_NDNTLV;
+    int cnt, len, opt, port, sock = 0, socksize, suite = CCN_IRIBU_SUITE_NDNTLV;
     char *addr = NULL, *udp = NULL, *ux = NULL;
     struct sockaddr sa;
-    struct ccnl_prefix_s *prefix;
+    struct ccn_iribu_prefix_s *prefix;
     float wait = 3.0;
     unsigned int chunknum = UINT_MAX;
-    struct ccnl_buf_s *buf = NULL;
+    struct ccn_iribu_buf_s *buf = NULL;
 #ifdef USE_FRAG
-    ccnl_isFragmentFunc isFragment;
+    ccn_iribu_isFragmentFunc isFragment;
 #endif
 
     while ((opt = getopt(argc, argv, "hn:s:u:v:w:x:")) != -1) {
@@ -71,8 +71,8 @@ main(int argc, char *argv[])
             break;
         }
         case 's':
-            suite = ccnl_str2suite(optarg);
-            if (!ccnl_isSuite(suite))
+            suite = ccn_iribu_str2suite(optarg);
+            if (!ccn_iribu_isSuite(suite))
                 goto usage;
             break;
         case 'u':
@@ -83,7 +83,7 @@ main(int argc, char *argv[])
             if (isdigit(optarg[0]))
                 debug_level =  (int)strtol(optarg, (char **)NULL, 10);
             else
-                debug_level = ccnl_debug_str2level(optarg);
+                debug_level = ccn_iribu_debug_str2level(optarg);
 #endif
             break;
         case 'w':
@@ -117,13 +117,13 @@ usage:
 
     srandom(time(NULL));
 
-    if (ccnl_parseUdp(udp, suite, &addr, &port) != 0) {
+    if (ccn_iribu_parseUdp(udp, suite, &addr, &port) != 0) {
         exit(-1);
     }
     DEBUGMSG(TRACE, "using udp address %s/%d\n", addr, port);
 
 #ifdef USE_FRAG
-    isFragment = ccnl_suite2isFragmentFunc(suite);
+    isFragment = ccn_iribu_suite2isFragmentFunc(suite);
 #endif
 
     if (ux) { // use UNIX socket
@@ -139,16 +139,16 @@ usage:
         sock = udp_open();
     }
 
-    prefix = ccnl_URItoPrefix(argv[optind], suite, chunknum == UINT_MAX ? NULL : &chunknum);
+    prefix = ccn_iribu_URItoPrefix(argv[optind], suite, chunknum == UINT_MAX ? NULL : &chunknum);
 
     DEBUGMSG(DEBUG, "prefix <%s><%s> became %s\n",
-            argv[optind], argv[optind+1], ccnl_prefix_to_path(prefix));
+            argv[optind], argv[optind+1], ccn_iribu_prefix_to_path(prefix));
 
     for (cnt = 0; cnt < 3; cnt++) {
         int32_t nonce = (int32_t) random();
         int rc;
-        struct ccnl_face_s dummyFace;
-        ccnl_interest_opts_u int_opts;
+        struct ccn_iribu_face_s dummyFace;
+        ccn_iribu_interest_opts_u int_opts;
 #ifdef USE_SUITE_NDNTLV
         int_opts.ndntlv.nonce = nonce;
 #endif
@@ -157,7 +157,7 @@ usage:
 
         memset(&dummyFace, 0, sizeof(dummyFace));
 
-        buf = ccnl_mkSimpleInterest(prefix, &int_opts);
+        buf = ccn_iribu_mkSimpleInterest(prefix, &int_opts);
         if (!buf) {
             fprintf(stderr, "Failed to create interest.\n");
             myexit(1);
@@ -205,8 +205,8 @@ usage:
 */
             suite2 = -1;
             len2 = len;
-            while (!ccnl_switch_dehead(&cp, &len2, &enc)) {
-                suite2 = ccnl_enc2suite(enc);
+            while (!ccn_iribu_switch_dehead(&cp, &len2, &enc)) {
+                suite2 = ccn_iribu_enc2suite(enc);
             }
             if (suite2 != -1 && suite2 != suite) {
                 DEBUGMSG(DEBUG, "  unknown suite %d\n", suite);
@@ -219,23 +219,23 @@ usage:
                 int len3;
                 DEBUGMSG(DEBUG, "  fragment, %d bytes\n", len2);
                 switch(suite) {
-                case CCNL_SUITE_CCNTLV: {
+                case CCN_IRIBU_SUITE_CCNTLV: {
                     struct ccnx_tlvhdr_ccnx2015_s *hp;
                     hp = (struct ccnx_tlvhdr_ccnx2015_s *) out;
                     cp = out + sizeof(*hp);
                     len2 -= sizeof(*hp);
-                    if (ccnl_ccntlv_dehead(&cp, &len2, (unsigned*)&t, (unsigned*) &len3) < 0 ||
+                    if (ccn_iribu_ccntlv_dehead(&cp, &len2, (unsigned*)&t, (unsigned*) &len3) < 0 ||
                         t != CCNX_TLV_TL_Fragment) {
                         DEBUGMSG(ERROR, "  error parsing fragment\n");
                         continue;
                     }
                     /*
-                    rc = ccnl_frag_RX_Sequenced2015(frag_cb, NULL, &dummyFace,
+                    rc = ccn_iribu_frag_RX_Sequenced2015(frag_cb, NULL, &dummyFace,
                                       4096, hp->fill[0] >> 6,
                                       ntohs(*(uint16_t*) hp->fill) & 0x03fff,
                                       &cp, (int*) &len2);
                     */
-                    rc = ccnl_frag_RX_BeginEnd2015(frag_cb, NULL, &dummyFace,
+                    rc = ccn_iribu_frag_RX_BeginEnd2015(frag_cb, NULL, &dummyFace,
                                       4096, hp->fill[0] >> 6,
                                       ntohs(*(uint16_t*) hp->fill) & 0x03fff,
                                       &cp, (int*) &len3);
@@ -257,7 +257,7 @@ usage:
             close(fd);
         }
 */
-            rc = ccnl_isContent(out, len, suite);
+            rc = ccn_iribu_isContent(out, len, suite);
             if (rc < 0) {
                 DEBUGMSG(ERROR, "error when checking type of packet\n");
                 goto done;

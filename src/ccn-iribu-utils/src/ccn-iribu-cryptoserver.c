@@ -21,8 +21,8 @@
  */
 
 
-#include "ccnl-common.h"
-#include "ccnl-crypto.h"
+#include "ccn-iribu-common.h"
+#include "ccn-iribu-crypto.h"
 
 // ----------------------------------------------------------------------
 
@@ -48,7 +48,7 @@ char *ux_path, *private_key, *ctrl_public_key;
 }*/
 
 int
-ccnl_crypto_ux_open(char *frompath)
+ccn_iribu_crypto_ux_open(char *frompath)
 {
     int sock;
     size_t bufsize;
@@ -70,7 +70,7 @@ ccnl_crypto_ux_open(char *frompath)
     }
 //    printf("socket -->%s\n", NAME);
 
-    bufsize = 4 * CCNL_MAX_PACKET_SIZE;
+    bufsize = 4 * CCN_IRIBU_MAX_PACKET_SIZE;
     setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof(bufsize));
     setsockopt(sock, SOL_SOCKET, SO_SNDBUF, &bufsize, sizeof(bufsize));
 
@@ -78,7 +78,7 @@ ccnl_crypto_ux_open(char *frompath)
 }
 
 size_t
-ccnl_crypto_get_tag_content(uint8_t **buf, size_t *len, char *content, size_t contentlen){
+ccn_iribu_crypto_get_tag_content(uint8_t **buf, size_t *len, char *content, size_t contentlen){
     size_t num = 0;
     memset(content, 0, contentlen);
     while ((**buf) !=  0 && num < contentlen)
@@ -102,7 +102,7 @@ handle_verify(uint8_t **buf, size_t *buflen, int sock, char *callback){
     uint8_t *component_buf = 0, *msg = 0;
     char h[1024];
 
-    while (!ccnl_ccnb_dehead(buf, buflen, &num, &typ)) {
+    while (!ccn_iribu_ccnb_dehead(buf, buflen, &num, &typ)) {
         if (num==0 && typ==0) {
             break; // end
         }
@@ -115,7 +115,7 @@ handle_verify(uint8_t **buf, size_t *buflen, int sock, char *callback){
         contentlen = *buflen;
         extractStr2(content, CCN_DTAG_CONTENTDIGEST);
 
-        if (ccnl_ccnb_consume(typ, num, buf, buflen, 0, 0)) {
+        if (ccn_iribu_ccnb_consume(typ, num, buf, buflen, 0, 0)) {
             goto Bail;
         }
     }
@@ -130,27 +130,27 @@ handle_verify(uint8_t **buf, size_t *buflen, int sock, char *callback){
 
     //return message object
     msglen = sizeof(char)*contentlen + 1000;
-    msg = ccnl_malloc(msglen);
+    msg = ccn_iribu_malloc(msglen);
     if (!msg) {
         goto Bail;
     }
     complen = sizeof(char)*contentlen + 666;
-    component_buf = ccnl_malloc(complen);
+    component_buf = ccn_iribu_malloc(complen);
     if (!component_buf) {
         goto Bail;
     }
 
-    if (ccnl_ccnb_mkHeader(msg, msg + msglen, CCN_DTAG_CONTENTOBJ, CCN_TT_DTAG, &len)) {  // ContentObj
+    if (ccn_iribu_ccnb_mkHeader(msg, msg + msglen, CCN_DTAG_CONTENTOBJ, CCN_TT_DTAG, &len)) {  // ContentObj
         goto Bail;
     }
 
-    if (ccnl_ccnb_mkHeader(msg+len, msg + msglen, CCN_DTAG_NAME, CCN_TT_DTAG, &len)) {  // name
+    if (ccn_iribu_ccnb_mkHeader(msg+len, msg + msglen, CCN_DTAG_NAME, CCN_TT_DTAG, &len)) {  // name
         goto Bail;
     }
-    if (ccnl_ccnb_mkStrBlob(msg+len, msg + msglen, CCN_DTAG_COMPONENT, CCN_TT_DTAG, "ccnx", &len)) {
+    if (ccn_iribu_ccnb_mkStrBlob(msg+len, msg + msglen, CCN_DTAG_COMPONENT, CCN_TT_DTAG, "ccnx", &len)) {
         goto Bail;
     }
-    if (ccnl_ccnb_mkStrBlob(msg+len, msg + msglen, CCN_DTAG_COMPONENT, CCN_TT_DTAG, "crypto", &len)) {
+    if (ccn_iribu_ccnb_mkStrBlob(msg+len, msg + msglen, CCN_DTAG_COMPONENT, CCN_TT_DTAG, "crypto", &len)) {
         goto Bail;
     }
     if (len + 1 >= 1000) {
@@ -158,25 +158,25 @@ handle_verify(uint8_t **buf, size_t *buflen, int sock, char *callback){
     }
     msg[len++] = 0; // end-of-name
 
-    if (ccnl_ccnb_mkStrBlob(component_buf+len3, component_buf + complen, CCNL_DTAG_CALLBACK, CCN_TT_DTAG, callback, &len3)) {
+    if (ccn_iribu_ccnb_mkStrBlob(component_buf+len3, component_buf + complen, CCN_IRIBU_DTAG_CALLBACK, CCN_TT_DTAG, callback, &len3)) {
         goto Bail;
     }
-    if (ccnl_ccnb_mkStrBlob(component_buf+len3, component_buf + complen, CCN_DTAG_TYPE, CCN_TT_DTAG, "verify", &len3)) {
+    if (ccn_iribu_ccnb_mkStrBlob(component_buf+len3, component_buf + complen, CCN_DTAG_TYPE, CCN_TT_DTAG, "verify", &len3)) {
         goto Bail;
     }
-    if (ccnl_ccnb_mkStrBlob(component_buf+len3, component_buf + complen, CCN_DTAG_SEQNO, CCN_TT_DTAG, (char*) txid_s, &len3)) {
+    if (ccn_iribu_ccnb_mkStrBlob(component_buf+len3, component_buf + complen, CCN_DTAG_SEQNO, CCN_TT_DTAG, (char*) txid_s, &len3)) {
         goto Bail;
     }
     memset(h,0,sizeof(h));
     snprintf(h, sizeof(h), "%d", verified);
-    if (ccnl_ccnb_mkStrBlob(component_buf+len3, component_buf + complen, CCNL_DTAG_VERIFIED, CCN_TT_DTAG, h, &len3)) {
+    if (ccn_iribu_ccnb_mkStrBlob(component_buf+len3, component_buf + complen, CCN_IRIBU_DTAG_VERIFIED, CCN_TT_DTAG, h, &len3)) {
         goto Bail;
     }
-    if (ccnl_ccnb_mkBlob(component_buf + len3, component_buf + complen, CCN_DTAG_CONTENTDIGEST, CCN_TT_DTAG, (char*) content, contentlen, &len3)) {
+    if (ccn_iribu_ccnb_mkBlob(component_buf + len3, component_buf + complen, CCN_DTAG_CONTENTDIGEST, CCN_TT_DTAG, (char*) content, contentlen, &len3)) {
         goto Bail;
     }
 
-    if (ccnl_ccnb_mkBlob(msg+len, msg + msglen, CCN_DTAG_CONTENT, CCN_TT_DTAG,  // content
+    if (ccn_iribu_ccnb_mkBlob(msg+len, msg + msglen, CCN_DTAG_CONTENT, CCN_TT_DTAG,  // content
                             (char*) component_buf, len3, &len)) {
         goto Bail;
     }
@@ -191,17 +191,17 @@ handle_verify(uint8_t **buf, size_t *buflen, int sock, char *callback){
     if (h[sizeof(h) - 1] != 0) {
         goto Bail;
     }
-    if (len > CCNL_MAX_PACKET_SIZE) {
+    if (len > CCN_IRIBU_MAX_PACKET_SIZE) {
         return 0;
     }
     ux_sendto(sock, h, msg, len);
     printf("\t complete, answered to: %s len: %zu\n", ux_path, len);
 Bail:
     if (component_buf) {
-        ccnl_free(component_buf);
+        ccn_iribu_free(component_buf);
     }
     if (msg) {
-        ccnl_free(msg);
+        ccn_iribu_free(msg);
     }
     return verified;
 }
@@ -219,7 +219,7 @@ handle_sign(uint8_t **buf, size_t *buflen, int sock, char *callback){
     uint8_t *component_buf = 0, *msg = 0;
     char h[1024];
 
-    while (ccnl_ccnb_dehead(buf, buflen, &num, &typ) == 0) {
+    while (ccn_iribu_ccnb_dehead(buf, buflen, &num, &typ) == 0) {
         if (num==0 && typ==0) {
             break; // end
         }
@@ -227,13 +227,13 @@ handle_sign(uint8_t **buf, size_t *buflen, int sock, char *callback){
         contentlen = *buflen;
         extractStr2(content, CCN_DTAG_CONTENTDIGEST);
 
-        if (ccnl_ccnb_consume(typ, num, buf, buflen, 0, 0) < 0) goto Bail;
+        if (ccn_iribu_ccnb_consume(typ, num, buf, buflen, 0, 0) < 0) goto Bail;
     }
     contentlen = contentlen - (*buflen + 4);
 
     printf(" \tHandeling TXID: %s; Type: Sign; Contentlen: %zu;\n", txid_s, contentlen);
 
-    sig = ccnl_malloc(sizeof(char)*4096);
+    sig = ccn_iribu_malloc(sizeof(char)*4096);
     if (!sig) {
         goto Bail;
     }
@@ -241,34 +241,34 @@ handle_sign(uint8_t **buf, size_t *buflen, int sock, char *callback){
     sign(private_key, content, contentlen, sig, &siglen);
 #endif
     if (siglen <= 0) {
-        ccnl_free(sig);
+        ccn_iribu_free(sig);
         sig = (unsigned char*) "Error";
         siglen = 6;
     }
 
     //return message object
     msglen = sizeof(char)*siglen + sizeof(char)*contentlen  + 1000;
-    msg = ccnl_malloc(msglen);
+    msg = ccn_iribu_malloc(msglen);
     if (!msg) {
         goto Bail;
     }
     complen = sizeof(char)*siglen + sizeof(char)*contentlen + 666;
-    component_buf = ccnl_malloc(complen);
+    component_buf = ccn_iribu_malloc(complen);
     if (!component_buf) {
         goto Bail;
     }
 
-    if (ccnl_ccnb_mkHeader(msg, msg+msglen, CCN_DTAG_CONTENTOBJ, CCN_TT_DTAG, &len)) {  // ContentObj
+    if (ccn_iribu_ccnb_mkHeader(msg, msg+msglen, CCN_DTAG_CONTENTOBJ, CCN_TT_DTAG, &len)) {  // ContentObj
         goto Bail;
     }
 
-    if (ccnl_ccnb_mkHeader(msg+len, msg+msglen, CCN_DTAG_NAME, CCN_TT_DTAG, &len)) {  // name
+    if (ccn_iribu_ccnb_mkHeader(msg+len, msg+msglen, CCN_DTAG_NAME, CCN_TT_DTAG, &len)) {  // name
         goto Bail;
     }
-    if (ccnl_ccnb_mkStrBlob(msg+len, msg+msglen, CCN_DTAG_COMPONENT, CCN_TT_DTAG, "ccnx", &len)) {
+    if (ccn_iribu_ccnb_mkStrBlob(msg+len, msg+msglen, CCN_DTAG_COMPONENT, CCN_TT_DTAG, "ccnx", &len)) {
         goto Bail;
     }
-    if (ccnl_ccnb_mkStrBlob(msg+len, msg+msglen, CCN_DTAG_COMPONENT, CCN_TT_DTAG, "crypto", &len)) {
+    if (ccn_iribu_ccnb_mkStrBlob(msg+len, msg+msglen, CCN_DTAG_COMPONENT, CCN_TT_DTAG, "crypto", &len)) {
         goto Bail;
     }
     if (len + 1 >= msglen) {
@@ -276,26 +276,26 @@ handle_sign(uint8_t **buf, size_t *buflen, int sock, char *callback){
     }
     msg[len++] = 0; // end-of-name
 
-    if (ccnl_ccnb_mkStrBlob(component_buf+len3, component_buf + complen, CCNL_DTAG_CALLBACK, CCN_TT_DTAG, callback, &len3)) {
+    if (ccn_iribu_ccnb_mkStrBlob(component_buf+len3, component_buf + complen, CCN_IRIBU_DTAG_CALLBACK, CCN_TT_DTAG, callback, &len3)) {
         goto Bail;
     }
-    if (ccnl_ccnb_mkStrBlob(component_buf+len3, component_buf + complen, CCN_DTAG_TYPE, CCN_TT_DTAG, "sign", &len3)) {
+    if (ccn_iribu_ccnb_mkStrBlob(component_buf+len3, component_buf + complen, CCN_DTAG_TYPE, CCN_TT_DTAG, "sign", &len3)) {
         goto Bail;
     }
-    if (ccnl_ccnb_mkStrBlob(component_buf+len3, component_buf + complen, CCN_DTAG_SEQNO, CCN_TT_DTAG, (char*) txid_s, &len3)) {
+    if (ccn_iribu_ccnb_mkStrBlob(component_buf+len3, component_buf + complen, CCN_DTAG_SEQNO, CCN_TT_DTAG, (char*) txid_s, &len3)) {
         goto Bail;
     }
 
-    if (ccnl_ccnb_mkBlob(component_buf+len3, component_buf + complen, CCN_DTAG_SIGNATURE, CCN_TT_DTAG,  // signature
+    if (ccn_iribu_ccnb_mkBlob(component_buf+len3, component_buf + complen, CCN_DTAG_SIGNATURE, CCN_TT_DTAG,  // signature
                    (char*) sig, siglen, &len3)) {
         goto Bail;
     }
-    if (ccnl_ccnb_mkBlob(component_buf + len3, component_buf + complen, CCN_DTAG_CONTENTDIGEST,
+    if (ccn_iribu_ccnb_mkBlob(component_buf + len3, component_buf + complen, CCN_DTAG_CONTENTDIGEST,
                              CCN_TT_DTAG, (char*) content, contentlen, &len3)) {
         goto Bail;
     }
 
-    if (ccnl_ccnb_mkBlob(msg+len, msg + msglen, CCN_DTAG_CONTENT, CCN_TT_DTAG,  // content
+    if (ccn_iribu_ccnb_mkBlob(msg+len, msg + msglen, CCN_DTAG_CONTENT, CCN_TT_DTAG,  // content
                             (char*) component_buf, len3, &len)) {
         goto Bail;
     }
@@ -310,20 +310,20 @@ handle_sign(uint8_t **buf, size_t *buflen, int sock, char *callback){
     if (h[sizeof(h)-1] != 0) {
         goto Bail;
     }
-    if (len > CCNL_MAX_PACKET_SIZE) {
+    if (len > CCN_IRIBU_MAX_PACKET_SIZE) {
         return 0;
     }
     ux_sendto(sock, h, msg, len);
     printf("\t complete, answered to: %s len: %zu\n", ux_path, len);
 Bail:
     if (component_buf) {
-        ccnl_free(component_buf);
+        ccn_iribu_free(component_buf);
     }
     if (msg) {
-        ccnl_free(msg);
+        ccn_iribu_free(msg);
     }
     if (sig) {
-        ccnl_free(sig);
+        ccn_iribu_free(sig);
     }
     ret = 1;
     return ret;
@@ -334,19 +334,19 @@ int parse_crypto_packet(uint8_t *buf, size_t buflen, int sock) {
     uint8_t typ;
     char component[100];
     char type[100];
-    //    char content[CCNL_MAX_PACKET_SIZE];
+    //    char content[CCN_IRIBU_MAX_PACKET_SIZE];
     char callback[1024];
 
 
     printf("Crypto Request... parsing \n");
-    if(ccnl_ccnb_dehead(&buf, &buflen, &num, &typ)) {
+    if(ccn_iribu_ccnb_dehead(&buf, &buflen, &num, &typ)) {
         goto Bail;
     }
     if (typ != CCN_TT_DTAG || num != CCN_DTAG_INTEREST) {
         goto Bail;
     }
 
-    if(ccnl_ccnb_dehead(&buf, &buflen, &num, &typ)) {
+    if(ccn_iribu_ccnb_dehead(&buf, &buflen, &num, &typ)) {
         goto Bail;
     }
     if (typ != CCN_TT_DTAG || num != CCN_DTAG_NAME) {
@@ -354,70 +354,70 @@ int parse_crypto_packet(uint8_t *buf, size_t buflen, int sock) {
     }
 
     //check if component ist ccnx
-    if(ccnl_ccnb_dehead(&buf, &buflen, &num, &typ)) {
+    if(ccn_iribu_ccnb_dehead(&buf, &buflen, &num, &typ)) {
         goto Bail;
     }
     if (typ != CCN_TT_DTAG || num != CCN_DTAG_COMPONENT) {
         goto Bail;
     }
-    if(ccnl_ccnb_dehead(&buf, &buflen, &num, &typ)) {
+    if(ccn_iribu_ccnb_dehead(&buf, &buflen, &num, &typ)) {
         goto Bail;
     }
     if (typ != CCN_TT_BLOB) {
         goto Bail;
     }
     memset(component, 0, sizeof(component));
-    ccnl_crypto_get_tag_content(&buf, &buflen, component, sizeof(component));
+    ccn_iribu_crypto_get_tag_content(&buf, &buflen, component, sizeof(component));
     if (strcmp(component, "ccnx")) {
         goto Bail;
     }
 
     //check if component is crypto
-    if(ccnl_ccnb_dehead(&buf, &buflen, &num, &typ)) {
+    if(ccn_iribu_ccnb_dehead(&buf, &buflen, &num, &typ)) {
         goto Bail;
     }
     if (typ != CCN_TT_DTAG || num != CCN_DTAG_COMPONENT) {
         goto Bail;
     }
-    if(ccnl_ccnb_dehead(&buf, &buflen, &num, &typ)) {
+    if(ccn_iribu_ccnb_dehead(&buf, &buflen, &num, &typ)) {
         goto Bail;
     }
     if (typ != CCN_TT_BLOB) {
         goto Bail;
     }
     memset(component, 0, sizeof(component));
-    ccnl_crypto_get_tag_content(&buf, &buflen, component, sizeof(component));
+    ccn_iribu_crypto_get_tag_content(&buf, &buflen, component, sizeof(component));
     if(strcmp(component, "crypto")) {
         goto Bail;
     }
 
 
-    if(ccnl_ccnb_dehead(&buf, &buflen, &num, &typ)) {
+    if(ccn_iribu_ccnb_dehead(&buf, &buflen, &num, &typ)) {
         goto Bail;
     }
     if (typ != CCN_TT_DTAG || num != CCN_DTAG_COMPONENT) {
         goto Bail;
     }
-    if(ccnl_ccnb_dehead(&buf, &buflen, &num, &typ)) {
+    if(ccn_iribu_ccnb_dehead(&buf, &buflen, &num, &typ)) {
         goto Bail;
     }
     if (typ != CCN_TT_BLOB) {
         goto Bail;
     }
      //open content object
-    if(ccnl_ccnb_dehead(&buf, &buflen, &num, &typ)) {
+    if(ccn_iribu_ccnb_dehead(&buf, &buflen, &num, &typ)) {
         goto Bail;
     }
     if (typ != CCN_TT_DTAG || num != CCN_DTAG_CONTENTOBJ) {
         goto Bail;
     }
-    if(ccnl_ccnb_dehead(&buf, &buflen, &num, &typ)) {
+    if(ccn_iribu_ccnb_dehead(&buf, &buflen, &num, &typ)) {
         goto Bail;
     }
     if (typ != CCN_TT_DTAG || num != CCN_DTAG_CONTENT) {
         goto Bail;
     }
-    if(ccnl_ccnb_dehead(&buf, &buflen, &num, &typ)) {
+    if(ccn_iribu_ccnb_dehead(&buf, &buflen, &num, &typ)) {
         goto Bail;
     }
     if (typ != CCN_TT_BLOB) {
@@ -425,38 +425,38 @@ int parse_crypto_packet(uint8_t *buf, size_t buflen, int sock) {
     }
 
 
-    if(ccnl_ccnb_dehead(&buf, &buflen, &num, &typ)) {
+    if(ccn_iribu_ccnb_dehead(&buf, &buflen, &num, &typ)) {
         goto Bail;
     }
-    if (typ != CCN_TT_DTAG || num != CCNL_DTAG_CALLBACK) {
+    if (typ != CCN_TT_DTAG || num != CCN_IRIBU_DTAG_CALLBACK) {
         goto Bail;
     }
-    if(ccnl_ccnb_dehead(&buf, &buflen, &num, &typ)) {
+    if(ccn_iribu_ccnb_dehead(&buf, &buflen, &num, &typ)) {
         goto Bail;
     }
     if (typ != CCN_TT_BLOB) {
         goto Bail;
     }
     memset(callback, 0, sizeof(callback));
-    ccnl_crypto_get_tag_content(&buf, &buflen, callback, sizeof(callback));
+    ccn_iribu_crypto_get_tag_content(&buf, &buflen, callback, sizeof(callback));
 
     printf("\tCallback function is: %s\n", callback);
 
     //get msg-type, what to do
-    if(ccnl_ccnb_dehead(&buf, &buflen, &num, &typ)) {
+    if(ccn_iribu_ccnb_dehead(&buf, &buflen, &num, &typ)) {
         goto Bail;
     }
     if (typ != CCN_TT_DTAG || num != CCN_DTAG_TYPE) {
         goto Bail;
     }
-    if(ccnl_ccnb_dehead(&buf, &buflen, &num, &typ)) {
+    if(ccn_iribu_ccnb_dehead(&buf, &buflen, &num, &typ)) {
         goto Bail;
     }
     if (typ != CCN_TT_BLOB) {
         goto Bail;
     }
     memset(type, 0, sizeof(type));
-    ccnl_crypto_get_tag_content(&buf, &buflen, type, sizeof(type));
+    ccn_iribu_crypto_get_tag_content(&buf, &buflen, type, sizeof(type));
 
     if(!strcmp(type, "verify")) {
         handle_verify(&buf, &buflen, sock, callback);
@@ -478,7 +478,7 @@ int crypto_main_loop(int sock)
     size_t len;
     ssize_t len_s;
     // pid_t  pid;
-    uint8_t buf[CCNL_MAX_PACKET_SIZE];
+    uint8_t buf[CCN_IRIBU_MAX_PACKET_SIZE];
     struct sockaddr_un src_addr;
     socklen_t addrlen = sizeof(struct sockaddr_un);
 
@@ -510,7 +510,7 @@ int main(int argc, char **argv)
         private_key = argv[3];
     }
 
-    int sock = ccnl_crypto_ux_open(ux_path);
+    int sock = ccn_iribu_crypto_ux_open(ux_path);
     while (crypto_main_loop(sock));
     return 0;
 

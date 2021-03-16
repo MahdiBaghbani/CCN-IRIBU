@@ -4,14 +4,14 @@
  *
  */
 #include <assert.h>
-#ifndef CCNL_LINUXKERNEL
+#ifndef CCN_IRIBU_LINUXKERNEL
 #include <stdint.h>
 #else
 #include <linux/types.h>
 #endif
 #include <string.h>
 
-#ifdef CCNL_ARDUINO
+#ifdef CCN_IRIBU_ARDUINO
 # define _MEMLOCATION_ PROGMEM
 # define K256_(i)      pgm_read_dword_near(K256 + i)
 #else
@@ -120,13 +120,13 @@ typedef uint64_t sha2_word64;	/* Exactly 8 bytes */
 
 /*** SHA-256: *********************************************************/
 
-void ccnl_SHA256_Init(SHA256_CTX_t* context);
+void ccn_iribu_SHA256_Init(SHA256_CTX_t* context);
 
-void ccnl_SHA256_Transform(SHA256_CTX_t* context, const sha2_word32* data);
+void ccn_iribu_SHA256_Transform(SHA256_CTX_t* context, const sha2_word32* data);
 
 
-void ccnl_SHA256_Update(SHA256_CTX_t* context, const sha2_byte *data, size_t len);
+void ccn_iribu_SHA256_Update(SHA256_CTX_t* context, const sha2_byte *data, size_t len);
 
-void ccnl_SHA256_Final(sha2_byte digest[], SHA256_CTX_t* context);
+void ccn_iribu_SHA256_Final(sha2_byte digest[], SHA256_CTX_t* context);
 
 // eof

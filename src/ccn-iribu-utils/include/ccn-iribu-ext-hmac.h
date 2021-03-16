@@ -2,7 +2,7 @@
  * @addtogroup CCNL-utils
  * @{
  *
- * @file ccnl-ext-hmac.h
+ * @file ccn-iribu-ext-hmac.h
  * @brief HMAC-256 signing support based on RFC 2104
  *
  * Copyright (C) 2015-18 <christian.tschudin@unibas.ch>
@@ -19,16 +19,16 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifndef CCNL_EXT_MAC_H_
-#define CCNL_EXT_MAC_H_
+#ifndef CCN_IRIBU_EXT_MAC_H_
+#define CCN_IRIBU_EXT_MAC_H_
 
 #include "lib-sha256.h"
 
-#include "ccnl-pkt-ccnb.h"
-#include "ccnl-pkt-ccntlv.h"
-#include "ccnl-pkt-localrpc.h"
-#include "ccnl-pkt-ndntlv.h"
-#include "ccnl-pkt-switch.h"
+#include "ccn-iribu-pkt-ccnb.h"
+#include "ccn-iribu-pkt-ccntlv.h"
+#include "ccn-iribu-pkt-localrpc.h"
+#include "ccn-iribu-pkt-ndntlv.h"
+#include "ccn-iribu-pkt-switch.h"
 
 /**
  * @brief Generates an HMAC key
@@ -43,7 +43,7 @@
  * @param[in] keyval The (final) key (to be copied or generated)
  */
 void
-ccnl_hmac256_keyval(uint8_t *key, size_t klen,
+ccn_iribu_hmac256_keyval(uint8_t *key, size_t klen,
                     uint8_t *keyval);
 
 /**
@@ -56,7 +56,7 @@ ccnl_hmac256_keyval(uint8_t *key, size_t klen,
  * @param[in] keyid TODO
  */
 void
-ccnl_hmac256_keyid(uint8_t *key, size_t klen,
+ccn_iribu_hmac256_keyid(uint8_t *key, size_t klen,
                    uint8_t *keyid);
 
 /**
@@ -68,7 +68,7 @@ ccnl_hmac256_keyid(uint8_t *key, size_t klen,
  * @param[in] pad The padding byte
  */
 void
-ccnl_hmac256_keysetup(SHA256_CTX_t *ctx, uint8_t *keyval, size_t kvlen,
+ccn_iribu_hmac256_keysetup(SHA256_CTX_t *ctx, uint8_t *keyval, size_t kvlen,
                       uint8_t pad);
 
 /**
@@ -82,7 +82,7 @@ ccnl_hmac256_keysetup(SHA256_CTX_t *ctx, uint8_t *keyval, size_t kvlen,
  * @param[out] mlen The length of the message digest
  */
 void
-ccnl_hmac256_sign(uint8_t *keyval, size_t kvlen,
+ccn_iribu_hmac256_sign(uint8_t *keyval, size_t kvlen,
                   uint8_t *data, size_t dlen,
                   uint8_t *md, size_t *mlen);
 
@@ -108,7 +108,7 @@ ccnl_hmac256_sign(uint8_t *keyval, size_t kvlen,
  * @return Upon success, the function returns the number of used bytes
  */
 int8_t
-ccnl_ccntlv_prependSignedContentWithHdr(struct ccnl_prefix_s *name,
+ccn_iribu_ccntlv_prependSignedContentWithHdr(struct ccn_iribu_prefix_s *name,
                                         uint8_t *payload, size_t paylen,
                                         uint32_t *lastchunknum,
                                         size_t *contentpos,
@@ -134,7 +134,7 @@ ccnl_ccntlv_prependSignedContentWithHdr(struct ccnl_prefix_s *name,
  * @return 0 upon success, nonzero upon failure
  */
 int8_t
-ccnl_ndntlv_prependSignedContent(struct ccnl_prefix_s *name,
+ccn_iribu_ndntlv_prependSignedContent(struct ccn_iribu_prefix_s *name,
                                  uint8_t *payload, size_t paylen,
                                  uint32_t *final_block_id, size_t *contentpos,
                                  uint8_t *keyval, // 64B

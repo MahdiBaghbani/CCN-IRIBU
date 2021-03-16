@@ -1,5 +1,5 @@
 /*
- * @f ccnl-frag.h
+ * @f ccn-iribu-frag.h
  * @b CCN lite (CCNL), core header file (internal data structures)
  *
  * Copyright (C) 2011-17, University of Basel
@@ -20,29 +20,29 @@
  * 2017-06-16 created
  */
 
-#ifndef CCNL_FRAG_H
-#define CCNL_FRAG_H
+#ifndef CCN_IRIBU_FRAG_H
+#define CCN_IRIBU_FRAG_H
 
-#include "ccnl-sockunion.h"
-#include "ccnl-face.h"
-#include "ccnl-relay.h"
+#include "ccn-iribu-sockunion.h"
+#include "ccn-iribu-face.h"
+#include "ccn-iribu-relay.h"
 
 // returns >=0 if content consumed, buf and len pointers updated
-typedef int (RX_datagram)(struct ccnl_relay_s*, struct ccnl_face_s*,
+typedef int (RX_datagram)(struct ccn_iribu_relay_s*, struct ccn_iribu_face_s*,
                           unsigned char**, int*);
 
- struct ccnl_frag_s {
+ struct ccn_iribu_frag_s {
     int protocol; // fragmentation protocol, 0=none
     int mtu;
     sockunion dest;
-    struct ccnl_buf_s *bigpkt; // outgoing bytes
+    struct ccn_iribu_buf_s *bigpkt; // outgoing bytes
     unsigned int sendoffs;
     int outsuite; // suite of outgoing packet
     // transport state, if present:
     int ifndx;
 
     // int insuite; // suite of incoming packet series
-    struct ccnl_buf_s *defrag; // incoming bytes
+    struct ccn_iribu_buf_s *defrag; // incoming bytes
 
     unsigned int sendseq;
     unsigned int losscount;
@@ -60,38 +60,38 @@ struct serialFragPDU_s { // collect all fields of a numbered HBH fragment
     unsigned char flagwidth, ourseqwidth, ourlosswidth, yourseqwidth;
 };
 
-struct ccnl_frag_s*
-ccnl_frag_new(int protocol, int mtu);
+struct ccn_iribu_frag_s*
+ccn_iribu_frag_new(int protocol, int mtu);
 
 void
-ccnl_frag_reset(struct ccnl_frag_s *e, struct ccnl_buf_s *buf,
+ccn_iribu_frag_reset(struct ccn_iribu_frag_s *e, struct ccn_iribu_buf_s *buf,
                   int ifndx, sockunion *dst);
 
 int
-ccnl_frag_getfragcount(struct ccnl_frag_s *e, int origlen, int *totallen);
+ccn_iribu_frag_getfragcount(struct ccn_iribu_frag_s *e, int origlen, int *totallen);
 
 #ifdef OBSOLTE_BY_2015_06
 #ifdef USE_SUITE_CCNB
-struct ccnl_buf_s*
-ccnl_frag_getnextSEQD2012(struct ccnl_frag_s *e, int *ifndx, sockunion *su);
-struct ccnl_buf_s*
-ccnl_frag_getnextCCNx2013(struct ccnl_frag_s *fr, int *ifndx, sockunion *su);
+struct ccn_iribu_buf_s*
+ccn_iribu_frag_getnextSEQD2012(struct ccn_iribu_frag_s *e, int *ifndx, sockunion *su);
+struct ccn_iribu_buf_s*
+ccn_iribu_frag_getnextCCNx2013(struct ccn_iribu_frag_s *fr, int *ifndx, sockunion *su);
 #endif // USE_SUITE_CCNB
-struct ccnl_buf_s*
-ccnl_frag_getnextSEQD2015(struct ccnl_frag_s *fr, int *ifndx, sockunion *su);
+struct ccn_iribu_buf_s*
+ccn_iribu_frag_getnextSEQD2015(struct ccn_iribu_frag_s *fr, int *ifndx, sockunion *su);
 #endif // OBSOLTE_BY_2015_06
 
-struct ccnl_buf_s*
-ccnl_frag_getnextBE2015(struct ccnl_frag_s *fr, int *ifndx, sockunion *su);
+struct ccn_iribu_buf_s*
+ccn_iribu_frag_getnextBE2015(struct ccn_iribu_frag_s *fr, int *ifndx, sockunion *su);
 
-struct ccnl_buf_s*
-ccnl_frag_getnext(struct ccnl_frag_s *fr, int *ifndx, sockunion *su);
+struct ccn_iribu_buf_s*
+ccn_iribu_frag_getnext(struct ccn_iribu_frag_s *fr, int *ifndx, sockunion *su);
 
 int
-ccnl_frag_nomorefragments(struct ccnl_frag_s *e);
+ccn_iribu_frag_nomorefragments(struct ccn_iribu_frag_s *e);
 
 void
-ccnl_frag_destroy(struct ccnl_frag_s *e);
+ccn_iribu_frag_destroy(struct ccn_iribu_frag_s *e);
 
 void
 serialFragPDU_init(struct serialFragPDU_s *s);
@@ -99,16 +99,16 @@ serialFragPDU_init(struct serialFragPDU_s *s);
 #ifdef OBSOLETE_BY_2015_06
 // processes a SEQENCED fragment. Once fully assembled we call the callback
 void
-ccnl_frag_RX_serialfragment(RX_datagram callback,
-                            struct ccnl_relay_s *relay,
-                            struct ccnl_face_s *from,
+ccn_iribu_frag_RX_serialfragment(RX_datagram callback,
+                            struct ccn_iribu_relay_s *relay,
+                            struct ccn_iribu_face_s *from,
                             struct serialFragPDU_s *s)
 
 #ifdef USE_SUITE_CCNB
 
 #define getNumField(var,len,flag,rem) \
         DEBUGMSG_EFRA(TRACE, "  parsing " rem "\n"); \
-        if (ccnl_ccnb_unmkBinaryInt(data, datalen, &var, &len) != 0) \
+        if (ccn_iribu_ccnb_unmkBinaryInt(data, datalen, &var, &len) != 0) \
             goto Bail; \
         s.HAS |= flag
 #define HAS_FLAGS  0x01
@@ -117,32 +117,32 @@ ccnl_frag_RX_serialfragment(RX_datagram callback,
 #define HAS_YSEQ   0x08
 
 int
-ccnl_frag_RX_frag2012(RX_datagram callback,
-                        struct ccnl_relay_s *relay, struct ccnl_face_s *from,
+ccn_iribu_frag_RX_frag2012(RX_datagram callback,
+                        struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
                         unsigned char **data, int *datalen);
 int
-ccnl_frag_RX_CCNx2013(RX_datagram callback,
-                       struct ccnl_relay_s *relay, struct ccnl_face_s *from,
+ccn_iribu_frag_RX_CCNx2013(RX_datagram callback,
+                       struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
                        unsigned char **data, int *datalen);
 
 
 #endif USE_SUITE_CCNB
 
 int
-ccnl_frag_RX_Sequenced2015(RX_datagram callback, struct ccnl_relay_s *relay,
-                           struct ccnl_face_s *from, int mtu,
+ccn_iribu_frag_RX_Sequenced2015(RX_datagram callback, struct ccn_iribu_relay_s *relay,
+                           struct ccn_iribu_face_s *from, int mtu,
                            unsigned int bits, unsigned int seqno,
                            unsigned char **data, int *datalen);
 
 #endif // OBSOLTE_BY_2015_06
 
 int
-ccnl_frag_RX_BeginEnd2015(RX_datagram callback, struct ccnl_relay_s *relay,
-                          struct ccnl_face_s *from, int mtu,
+ccn_iribu_frag_RX_BeginEnd2015(RX_datagram callback, struct ccn_iribu_relay_s *relay,
+                          struct ccn_iribu_face_s *from, int mtu,
                           unsigned int bits, unsigned int seqno,
                           unsigned char **data, int *datalen);
 
-struct ccnl_buf_s*
-ccnl_frag_getnext(struct ccnl_frag_s *fr, int *ifndx, sockunion *su);
+struct ccn_iribu_buf_s*
+ccn_iribu_frag_getnext(struct ccn_iribu_frag_s *fr, int *ifndx, sockunion *su);
 
-#endif //CCNL_FRAG_H
+#endif //CCN_IRIBU_FRAG_H

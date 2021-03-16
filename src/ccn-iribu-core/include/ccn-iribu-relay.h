@@ -1,8 +1,8 @@
 /**
  * @ingroup CCNL-core
  * @{
- * @file ccnl-relay.h
- * @brief CCN lite (CCNL) data structure ccnl-relay. contains all important datastructures for CCN-lite forwarding
+ * @file ccn-iribu-relay.h
+ * @brief CCN lite (CCNL) data structure ccn-iribu-relay. contains all important datastructures for CCN-lite forwarding
  *
  * @author Christopher Scherb <christopher.scherb@unibas.ch>
  * @author Christian Tschudin <christian.tschudin@unibas.ch>
@@ -20,47 +20,47 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef CCNL_RELAY_H
-#define CCNL_RELAY_H
+#ifndef CCN_IRIBU_RELAY_H
+#define CCN_IRIBU_RELAY_H
 
-#include "ccnl-defs.h"
-#include "ccnl-face.h"
-#include "ccnl-if.h"
-#include "ccnl-pkt.h"
-#include "ccnl-sched.h"
+#include "ccn-iribu-defs.h"
+#include "ccn-iribu-face.h"
+#include "ccn-iribu-if.h"
+#include "ccn-iribu-pkt.h"
+#include "ccn-iribu-sched.h"
 
 
-struct ccnl_relay_s {
-    void (*ccnl_ll_TX_ptr)(struct ccnl_relay_s*, struct ccnl_if_s*,
-        sockunion*, struct ccnl_buf_s*);
-#ifndef CCNL_ARDUINO
+struct ccn_iribu_relay_s {
+    void (*ccn_iribu_ll_TX_ptr)(struct ccn_iribu_relay_s*, struct ccn_iribu_if_s*,
+        sockunion*, struct ccn_iribu_buf_s*);
+#ifndef CCN_IRIBU_ARDUINO
     time_t startup_time;
 #endif
     int id;
-    struct ccnl_face_s *faces;  /**< The existing forwarding faces */
-    struct ccnl_forward_s *fib; /**< The Forwarding Information Base (FIB) */
+    struct ccn_iribu_face_s *faces;  /**< The existing forwarding faces */
+    struct ccn_iribu_forward_s *fib; /**< The Forwarding Information Base (FIB) */
 
-    struct ccnl_interest_s *pit; /**< The Pending Interest Table (PIT) */
-    struct ccnl_content_s *contents; /**< contentsend; */
-    struct ccnl_buf_s *nonces;  /**< The nonces that are currently in use */
+    struct ccn_iribu_interest_s *pit; /**< The Pending Interest Table (PIT) */
+    struct ccn_iribu_content_s *contents; /**< contentsend; */
+    struct ccn_iribu_buf_s *nonces;  /**< The nonces that are currently in use */
     int contentcnt;             /**< number of cached items */
     int max_cache_entries;      /**< max number of cached items -1: unlimited */
     int pitcnt;                 /**< Number of entries in the PIT */
     int max_pit_entries;        /**< max number of pit entries; -1: unlimited */ 
-    struct ccnl_if_s ifs[CCNL_MAX_INTERFACES];
+    struct ccn_iribu_if_s ifs[CCN_IRIBU_MAX_INTERFACES];
     int ifcount;               /**< number of active interfaces */
     char halt_flag;            /**< Flag to interrupt the IO_Loop and to exit the relay */
-    struct ccnl_sched_s* (*defaultFaceScheduler)(struct ccnl_relay_s*,
+    struct ccn_iribu_sched_s* (*defaultFaceScheduler)(struct ccn_iribu_relay_s*,
                                                  void(*cts_done)(void*,void*)); /**< FuncPoint to the scheduler for faces*/
-    struct ccnl_sched_s* (*defaultInterfaceScheduler)(struct ccnl_relay_s*,
+    struct ccn_iribu_sched_s* (*defaultInterfaceScheduler)(struct ccn_iribu_relay_s*,
                                                  void(*cts_done)(void*,void*)); /**< FuncPoint to the scheduler for interfaces*/
 #ifdef USE_HTTP_STATUS
-    struct ccnl_http_s *http;  /**< http server for status information*/
+    struct ccn_iribu_http_s *http;  /**< http server for status information*/
 #endif
     void *aux;
   /*
-    struct ccnl_face_s *crypto_face;
-    struct ccnl_pendcrypt_s *pendcrypt;
+    struct ccn_iribu_face_s *crypto_face;
+    struct ccn_iribu_pendcrypt_s *pendcrypt;
     char *crypto_path;
   */
 };
@@ -68,8 +68,8 @@ struct ccnl_relay_s {
 /**
  * @brief Function pointer type for caching strategy function
  */
-typedef int (*ccnl_cache_strategy_func)(struct ccnl_relay_s *relay,
-                                        struct ccnl_content_s *c);
+typedef int (*ccn_iribu_cache_strategy_func)(struct ccn_iribu_relay_s *relay,
+                                        struct ccn_iribu_content_s *c);
 
 /**
  * @brief Broadcast an interest message to all available interfaces
@@ -77,28 +77,28 @@ typedef int (*ccnl_cache_strategy_func)(struct ccnl_relay_s *relay,
  * @param[in] ccnl          The CCN-lite relay used to send the interest
  * @param[in] interest      The interest which should be sent
  */
-void ccnl_interest_broadcast(struct ccnl_relay_s *ccnl,
-                             struct ccnl_interest_s *interest);
+void ccn_iribu_interest_broadcast(struct ccn_iribu_relay_s *ccnl,
+                             struct ccn_iribu_interest_s *interest);
 
-void ccnl_face_CTS(struct ccnl_relay_s *ccnl, struct ccnl_face_s *f);
+void ccn_iribu_face_CTS(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *f);
 
-struct ccnl_face_s*
-ccnl_get_face_or_create(struct ccnl_relay_s *ccnl, int ifndx,
+struct ccn_iribu_face_s*
+ccn_iribu_get_face_or_create(struct ccn_iribu_relay_s *ccnl, int ifndx,
                         struct sockaddr *sa, size_t addrlen);
 
-struct ccnl_face_s*
-ccnl_face_remove(struct ccnl_relay_s *ccnl, struct ccnl_face_s *f);
+struct ccn_iribu_face_s*
+ccn_iribu_face_remove(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *f);
 
 void
-ccnl_interface_enqueue(void (tx_done)(void*, int, int), struct ccnl_face_s *f,
-                       struct ccnl_relay_s *ccnl, struct ccnl_if_s *ifc,
-                       struct ccnl_buf_s *buf, sockunion *dest);
+ccn_iribu_interface_enqueue(void (tx_done)(void*, int, int), struct ccn_iribu_face_s *f,
+                       struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_if_s *ifc,
+                       struct ccn_iribu_buf_s *buf, sockunion *dest);
 
-struct ccnl_buf_s*
-ccnl_face_dequeue(struct ccnl_relay_s *ccnl, struct ccnl_face_s *f);
+struct ccn_iribu_buf_s*
+ccn_iribu_face_dequeue(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *f);
 
 void
-ccnl_face_CTS_done(void *ptr, int cnt, int len);
+ccn_iribu_face_CTS_done(void *ptr, int cnt, int len);
 
 /**
  * @brief Send a packet to the face @p to
@@ -111,8 +111,8 @@ ccnl_face_CTS_done(void *ptr, int cnt, int len);
  * @return   < 0 on failure
 */
 int
-ccnl_send_pkt(struct ccnl_relay_s *ccnl, struct ccnl_face_s *to,
-                struct ccnl_pkt_s *pkt);
+ccn_iribu_send_pkt(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *to,
+                struct ccn_iribu_pkt_s *pkt);
 
 /**
  * @brief Send a buffer to the face @p to 
@@ -125,12 +125,12 @@ ccnl_send_pkt(struct ccnl_relay_s *ccnl, struct ccnl_face_s *to,
  * @return   < 0 on failure
 */
 int
-ccnl_face_enqueue(struct ccnl_relay_s *ccnl, struct ccnl_face_s *to,
-                 struct ccnl_buf_s *buf);
+ccn_iribu_face_enqueue(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *to,
+                 struct ccn_iribu_buf_s *buf);
 
 
-struct ccnl_interest_s*
-ccnl_interest_remove(struct ccnl_relay_s *ccnl, struct ccnl_interest_s *i);
+struct ccn_iribu_interest_s*
+ccn_iribu_interest_remove(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_interest_s *i);
 
 /**
  * @brief Forwards interest message according to FIB rules 
@@ -139,11 +139,11 @@ ccnl_interest_remove(struct ccnl_relay_s *ccnl, struct ccnl_interest_s *i);
  * @param[in] i     interest message to be forwarded
 */
 void
-ccnl_interest_propagate(struct ccnl_relay_s *ccnl, struct ccnl_interest_s *i);
+ccn_iribu_interest_propagate(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_interest_s *i);
 
 
-struct ccnl_content_s*
-ccnl_content_remove(struct ccnl_relay_s *ccnl, struct ccnl_content_s *c);
+struct ccn_iribu_content_s*
+ccn_iribu_content_remove(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_content_s *c);
 
 /**
  * @brief add content @p c to the content store
@@ -156,8 +156,8 @@ ccnl_content_remove(struct ccnl_relay_s *ccnl, struct ccnl_content_s *c);
  * @return   reference to the content @p c
  * @return   NULL, if @p c cannot be added
 */
-struct ccnl_content_s*
-ccnl_content_add2cache(struct ccnl_relay_s *ccnl, struct ccnl_content_s *c);
+struct ccn_iribu_content_s*
+ccn_iribu_content_add2cache(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_content_s *c);
 
 /**
  * @brief deliver new content @p c to all clients with (loosely) matching interest 
@@ -168,19 +168,19 @@ ccnl_content_add2cache(struct ccnl_relay_s *ccnl, struct ccnl_content_s *c);
  * @return   number of faces to which the content was sent to
 */
 int
-ccnl_content_serve_pending(struct ccnl_relay_s *ccnl, struct ccnl_content_s *c);
+ccn_iribu_content_serve_pending(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_content_s *c);
 
 void
-ccnl_do_ageing(void *ptr, void *dummy);
+ccn_iribu_do_ageing(void *ptr, void *dummy);
 
 int
-ccnl_nonce_find_or_append(struct ccnl_relay_s *ccnl, struct ccnl_buf_s *nonce);
+ccn_iribu_nonce_find_or_append(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *nonce);
 
 int
-ccnl_nonce_isDup(struct ccnl_relay_s *relay, struct ccnl_pkt_s *pkt);
+ccn_iribu_nonce_isDup(struct ccn_iribu_relay_s *relay, struct ccn_iribu_pkt_s *pkt);
 
 void
-ccnl_core_cleanup(struct ccnl_relay_s *ccnl);
+ccn_iribu_core_cleanup(struct ccn_iribu_relay_s *ccnl);
 
 #ifdef NEEDS_PREFIX_MATCHING
 /**
@@ -194,8 +194,8 @@ ccnl_core_cleanup(struct ccnl_relay_s *ccnl);
  * @return -1   on error
  */
 int
-ccnl_fib_add_entry(struct ccnl_relay_s *relay, struct ccnl_prefix_s *pfx,
-                   struct ccnl_face_s *face);
+ccn_iribu_fib_add_entry(struct ccn_iribu_relay_s *relay, struct ccn_iribu_prefix_s *pfx,
+                   struct ccn_iribu_face_s *face);
 
 /**
  * @brief Remove entry from the FIB
@@ -208,8 +208,8 @@ ccnl_fib_add_entry(struct ccnl_relay_s *relay, struct ccnl_prefix_s *pfx,
  * @return -1   on error
  */
 int
-ccnl_fib_rem_entry(struct ccnl_relay_s *relay, struct ccnl_prefix_s *pfx,
-                   struct ccnl_face_s *face);
+ccn_iribu_fib_rem_entry(struct ccn_iribu_relay_s *relay, struct ccn_iribu_prefix_s *pfx,
+                   struct ccn_iribu_face_s *face);
 #endif //NEEDS_PREFIX_MATCHING
 
 /**
@@ -218,7 +218,7 @@ ccnl_fib_rem_entry(struct ccnl_relay_s *relay, struct ccnl_prefix_s *pfx,
  * @par[in] relay   Local relay struct
  */
 void
-ccnl_fib_show(struct ccnl_relay_s *relay);
+ccn_iribu_fib_show(struct ccn_iribu_relay_s *relay);
 
 /**
  * @brief Prints the content of the content store
@@ -226,10 +226,10 @@ ccnl_fib_show(struct ccnl_relay_s *relay);
  * @par[in] ccnl Local relay struct
  */
 void
-ccnl_cs_dump(struct ccnl_relay_s *ccnl);
+ccn_iribu_cs_dump(struct ccn_iribu_relay_s *ccnl);
 
 void
-ccnl_interface_CTS(void *aux1, void *aux2);
+ccn_iribu_interface_CTS(void *aux1, void *aux2);
 
 #define DBL_LINKED_LIST_ADD(l,e) \
   do { if ((l)) (l)->prev = (e); \
@@ -243,8 +243,8 @@ ccnl_interface_CTS(void *aux1, void *aux2);
        if ((e)->next) (e)->next->prev = (e)->prev; \
   } while(0)
 
-#ifdef CCNL_APP_RX
-int ccnl_app_RX(struct ccnl_relay_s *ccnl, struct ccnl_content_s *c);
+#ifdef CCN_IRIBU_APP_RX
+int ccn_iribu_app_RX(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_content_s *c);
 #endif
 
 /**
@@ -257,7 +257,7 @@ int ccnl_app_RX(struct ccnl_relay_s *ccnl, struct ccnl_content_s *c);
  * @return   -1, otherwise
 */
 int
-ccnl_cs_add(struct ccnl_relay_s *ccnl, struct ccnl_content_s *c);
+ccn_iribu_cs_add(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_content_s *c);
 
 /**
  * @brief Remove content with @p prefix from the Content Store
@@ -271,7 +271,7 @@ ccnl_cs_add(struct ccnl_relay_s *ccnl, struct ccnl_content_s *c);
  * @return   -3, if no content with @p prefix was found to be removed
 */
 int
-ccnl_cs_remove(struct ccnl_relay_s *ccnl, char *prefix);
+ccn_iribu_cs_remove(struct ccn_iribu_relay_s *ccnl, char *prefix);
 
 /**
  * @brief Lookup content from the Content Store with prefix @p prefix
@@ -284,8 +284,8 @@ ccnl_cs_remove(struct ccnl_relay_s *ccnl, char *prefix);
  * @return              NULL, on memory allocation failure
  * @return              NULL, if not found
 */
-struct ccnl_content_s *
-ccnl_cs_lookup(struct ccnl_relay_s *ccnl, char *prefix);
+struct ccn_iribu_content_s *
+ccn_iribu_cs_lookup(struct ccn_iribu_relay_s *ccnl, char *prefix);
 
 /**
  * @brief Set a function to control the cache replacement strategy
@@ -300,7 +300,7 @@ ccnl_cs_lookup(struct ccnl_relay_s *ccnl, char *prefix);
  * @param[in] func  The function to be called for an incoming content chunk if
  *                  the cache is full.
  */
-void ccnl_set_cache_strategy_remove(ccnl_cache_strategy_func func);
+void ccn_iribu_set_cache_strategy_remove(ccn_iribu_cache_strategy_func func);
 
 /**
  * @brief Set a function to control the caching decision strategy
@@ -315,17 +315,17 @@ void ccnl_set_cache_strategy_remove(ccnl_cache_strategy_func func);
  * @param[in] func  The function to be called for an incoming content
  *                  chunk.
  */
-void ccnl_set_cache_strategy_cache(ccnl_cache_strategy_func func);
+void ccn_iribu_set_cache_strategy_cache(ccn_iribu_cache_strategy_func func);
 
 /**
  * @brief May be defined for a particular caching strategy
  */
-int cache_strategy_remove(struct ccnl_relay_s *relay, struct ccnl_content_s *c);
+int cache_strategy_remove(struct ccn_iribu_relay_s *relay, struct ccn_iribu_content_s *c);
 
 /**
  * @brief May be defined for a particular caching decision strategy
  */
-int cache_strategy_cache(struct ccnl_relay_s *relay, struct ccnl_content_s *c);
+int cache_strategy_cache(struct ccn_iribu_relay_s *relay, struct ccn_iribu_content_s *c);
 
-#endif //CCNL_RELAY_H
+#endif //CCN_IRIBU_RELAY_H
 /** @} */

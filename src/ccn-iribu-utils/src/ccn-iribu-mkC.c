@@ -23,10 +23,10 @@
 
 //#define NEEDS_PACKET_CRAFTING
 
-#include "ccnl-common.h"
-#include "ccnl-crypto.h"
-#include "ccnl-pkt-ndntlv.h"
-#include "ccnl-ext-hmac.h"
+#include "ccn-iribu-common.h"
+#include "ccn-iribu-crypto.h"
+#include "ccn-iribu-pkt-ndntlv.h"
+#include "ccn-iribu-ext-hmac.h"
 
 #ifndef CCN_LITE_MKC_OUT_SIZE
 #define CCN_LITE_MKC_OUT_SIZE (65 * 1024)
@@ -54,10 +54,10 @@ main(int argc, char *argv[])
     int f, opt;
     size_t  plen, len, offs = 0;
     int contentpos;
-    struct ccnl_prefix_s *name;
-    int suite = CCNL_SUITE_DEFAULT;
+    struct ccn_iribu_prefix_s *name;
+    int suite = CCN_IRIBU_SUITE_DEFAULT;
     struct key_s *keys = NULL;
-    ccnl_data_opts_u data_opts;
+    ccn_iribu_data_opts_u data_opts;
 
     (void)contentpos;
     (void)keys;
@@ -91,8 +91,8 @@ main(int argc, char *argv[])
             }
             break;
         case 's':
-            suite = ccnl_str2suite(optarg);
-            if (!ccnl_isSuite(suite)) {
+            suite = ccn_iribu_str2suite(optarg);
+            if (!ccn_iribu_isSuite(suite)) {
                 DEBUGMSG(ERROR, "Unsupported suite %d\n", suite);
                 goto Usage;
             }
@@ -102,7 +102,7 @@ main(int argc, char *argv[])
             if (isdigit(optarg[0]))
                 debug_level = (int)strtol(optarg, (char**)NULL, 10);
             else
-                debug_level = ccnl_debug_str2level(optarg);
+                debug_level = ccn_iribu_debug_str2level(optarg);
 #endif
             break;
 
@@ -153,22 +153,22 @@ Usage:
     close(f);
     memset(out, 0, sizeof(out));
 
-    name = ccnl_URItoPrefix(argv[optind], suite, 
+    name = ccn_iribu_URItoPrefix(argv[optind], suite, 
                             chunknum == UINT32_MAX ? NULL : &chunknum);
 
     switch (suite) {
 #ifdef USE_SUITE_CCNB
-    case CCNL_SUITE_CCNB:
-        if (ccnl_ccnb_fillContent(name, body, len, NULL, out, out + sizeof(out), &len)) {
+    case CCN_IRIBU_SUITE_CCNB:
+        if (ccn_iribu_ccnb_fillContent(name, body, len, NULL, out, out + sizeof(out), &len)) {
             DEBUGMSG(ERROR, "Error: Failed creating content object.");
             exit(1);
         }
         break;
 #endif
 #ifdef USE_SUITE_CCNTLV
-    case CCNL_SUITE_CCNTLV:
+    case CCN_IRIBU_SUITE_CCNTLV:
 
-        offs = CCNL_MAX_PACKET_SIZE;
+        offs = CCN_IRIBU_MAX_PACKET_SIZE;
         if (keys) {
             uint8_t keyval[64];
             uint8_t keyid[32];
@@ -177,16 +177,16 @@ Usage:
                 DEBUGMSG(ERROR, "Error: Invalid key length: %d", keys->keylen);
                 exit(1);
             }
-            ccnl_hmac256_keyval(keys->key, (size_t) keys->keylen, keyval);
-            ccnl_hmac256_keyid(keys->key, (size_t) keys->keylen, keyid);
-            if (ccnl_ccntlv_prependSignedContentWithHdr(name, body, len,
+            ccn_iribu_hmac256_keyval(keys->key, (size_t) keys->keylen, keyval);
+            ccn_iribu_hmac256_keyid(keys->key, (size_t) keys->keylen, keyid);
+            if (ccn_iribu_ccntlv_prependSignedContentWithHdr(name, body, len,
                                                         lastchunknum == UINT32_MAX ? NULL : &lastchunknum,
                                                         NULL, keyval, keyid, &offs, out, &len)) {
                 DEBUGMSG(ERROR, "Error: Failed prepending signed content.");
                 exit(1);
             }
         } else {
-            if (ccnl_ccntlv_prependContentWithHdr(name, body, len,
+            if (ccn_iribu_ccntlv_prependContentWithHdr(name, body, len,
                                                   lastchunknum == UINT32_MAX ? NULL : &lastchunknum,
                                                   NULL /* Int *contentpos */, &offs, out, &len)) {
                 DEBUGMSG(ERROR, "Error: Failed prepending content.");
@@ -196,8 +196,8 @@ Usage:
         break;
 #endif
 #ifdef USE_SUITE_NDNTLV
-    case CCNL_SUITE_NDNTLV:
-        offs = CCNL_MAX_PACKET_SIZE;
+    case CCN_IRIBU_SUITE_NDNTLV:
+        offs = CCN_IRIBU_MAX_PACKET_SIZE;
         if (keys) {
             uint8_t keyval[64];
             uint8_t keyid[32];
@@ -206,9 +206,9 @@ Usage:
                 DEBUGMSG(ERROR, "Error: Invalid key length: %d", keys->keylen);
                 exit(1);
             }
-            ccnl_hmac256_keyval(keys->key, (size_t) keys->keylen, keyval);
-            ccnl_hmac256_keyid(keys->key, (size_t) keys->keylen, keyid);
-            if (ccnl_ndntlv_prependSignedContent(name, body, len,
+            ccn_iribu_hmac256_keyval(keys->key, (size_t) keys->keylen, keyval);
+            ccn_iribu_hmac256_keyid(keys->key, (size_t) keys->keylen, keyid);
+            if (ccn_iribu_ndntlv_prependSignedContent(name, body, len,
                   lastchunknum == UINT32_MAX ? NULL : &lastchunknum,
                   NULL, keyval, keyid, &offs, out, &len)) {
                 DEBUGMSG(ERROR, "Error: Failed prepending signed content.");
@@ -216,7 +216,7 @@ Usage:
             }
         } else {
             data_opts.ndntlv.finalblockid = lastchunknum;
-            if (ccnl_ndntlv_prependContent(name, body, len,
+            if (ccn_iribu_ndntlv_prependContent(name, body, len,
                   NULL, lastchunknum == UINT32_MAX ? NULL : &(data_opts.ndntlv),
                                              &offs, out, &len)) {
                 DEBUGMSG(ERROR, "Error: Failed prepending content.");

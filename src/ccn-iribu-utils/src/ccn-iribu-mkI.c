@@ -18,7 +18,7 @@
  *
  */
 
-#include "ccnl-common.h"
+#include "ccn-iribu-common.h"
 
 // ----------------------------------------------------------------------
 
@@ -30,13 +30,13 @@ main(int argc, char *argv[])
     char *fname = 0;
     int f, opt;
     int dlen = 0, plen = 0;
-    int packettype = CCNL_SUITE_NDNTLV;
-    struct ccnl_prefix_s *prefix;
+    int packettype = CCN_IRIBU_SUITE_NDNTLV;
+    struct ccn_iribu_prefix_s *prefix;
     time_t curtime;
     uint32_t nonce;
     int isLambda = 0;
     unsigned int chunknum = UINT_MAX;
-    ccnl_interest_opts_u int_opts;
+    ccn_iribu_interest_opts_u int_opts;
 
     time(&curtime);
     // Get current time in double to avoid dealing with time_t
@@ -80,12 +80,12 @@ main(int argc, char *argv[])
             if (isdigit(optarg[0]))
                 debug_level = (int)strtol(optarg, (char**)NULL, 10);
             else
-                debug_level = ccnl_debug_str2level(optarg);
+                debug_level = ccn_iribu_debug_str2level(optarg);
 #endif
             break;
         case 's':
-            packettype = ccnl_str2suite(optarg);
-            if (packettype >= 0 && packettype < CCNL_SUITE_LAST)
+            packettype = ccn_iribu_str2suite(optarg);
+            if (packettype >= 0 && packettype < CCN_IRIBU_SUITE_LAST)
                 break;
         /* falls through */
         case 'h':
@@ -114,10 +114,10 @@ Usage:
 
     /*
     if (isLambda)
-        i = ccnl_lambdaStrToComponents(prefix, argv[optind]);
+        i = ccn_iribu_lambdaStrToComponents(prefix, argv[optind]);
     else
     */
-    prefix = ccnl_URItoPrefix(argv[optind],
+    prefix = ccn_iribu_URItoPrefix(argv[optind],
                               packettype,
                               chunknum == UINT_MAX ? NULL : &chunknum);
     if (!prefix) {
@@ -129,7 +129,7 @@ Usage:
 #ifdef USE_SUITE_NDNTLV
     int_opts.ndntlv.nonce = nonce;
 #endif
-    struct ccnl_buf_s *buf = ccnl_mkSimpleInterest(prefix, &int_opts);
+    struct ccn_iribu_buf_s *buf = ccn_iribu_mkSimpleInterest(prefix, &int_opts);
 
     if (buf->datalen <= 0) {
         DEBUGMSG(ERROR, "internal error: empty packet\n");

@@ -1,5 +1,5 @@
 /*
- * @f ccnl-face.c
+ * @f ccn-iribu-face.c
  * @b CCN lite (CCNL), core header file (internal data structures)
  *
  * Copyright (C) 2011-17, University of Basel
@@ -20,9 +20,9 @@
  * 2017-06-16 created
  */
 
-#include "ccnl-malloc.h"
-#include "ccnl-face.h"
+#include "ccn-iribu-malloc.h"
+#include "ccn-iribu-face.h"
 
-void ccnl_face_free(struct ccnl_face_s *face) {
-    ccnl_free(face);
+void ccn_iribu_face_free(struct ccn_iribu_face_s *face) {
+    ccn_iribu_free(face);
 }

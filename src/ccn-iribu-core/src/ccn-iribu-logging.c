@@ -1,5 +1,5 @@
 /*
- * @f ccnl-ext-logging.c
+ * @f ccn-iribu-ext-logging.c
  * @b CCNL logging
  *
  * Copyright (C) 2011-17, University of Basel
@@ -20,20 +20,20 @@
  * 2017-06-16 created <christopher.scherb@unibas.ch>
  */
 
-#ifndef CCNL_LINUXKERNEL
-#include "ccnl-logging.h"
+#ifndef CCN_IRIBU_LINUXKERNEL
+#include "ccn-iribu-logging.h"
 #include <string.h>
 #include <stdio.h>
 #else
-#include "../include/ccnl-logging.h"
+#include "../include/ccn-iribu-logging.h"
 #endif
 
 int debug_level;
 
 char
-ccnl_debugLevelToChar(int level)
+ccn_iribu_debugLevelToChar(int level)
 {
-#if !defined(CCNL_ARDUINO) && !defined(CCNL_RIOT)
+#if !defined(CCN_IRIBU_ARDUINO) && !defined(CCN_IRIBU_RIOT)
     switch (level) {
         case FATAL:     return 'F';
         case ERROR:     return 'E';
@@ -65,7 +65,7 @@ ccnl_debugLevelToChar(int level)
 }
 
 int
-ccnl_debug_str2level(char *s)
+ccn_iribu_debug_str2level(char *s)
 {
     if (!strcmp(s, "fatal"))   return FATAL;
     if (!strcmp(s, "error"))   return ERROR;
@@ -99,7 +99,7 @@ debug_memdump(void)
 
     CONSOLE("[M] %s: @@@ memory dump starts\n", timestamp());
     for (h = mem; h; h = h->next) {
-#ifdef CCNL_ARDUINO
+#ifdef CCN_IRIBU_ARDUINO
         sprintf_P(logstr, PSTR("addr %p %5d Bytes, "),
                   (int)((unsigned char *)h + sizeof(struct mhdr)),
                   h->size);

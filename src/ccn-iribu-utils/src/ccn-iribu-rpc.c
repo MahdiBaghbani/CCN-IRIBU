@@ -20,7 +20,7 @@
  * 2014-05-11  created
  */
 
-#include "ccnl-common.h"
+#include "ccn-iribu-common.h"
 
 /*
   use examples:
@@ -214,12 +214,12 @@ parsePrefixTerm(int lev, char **cpp)
     return term;
 }
 
-int ccnl_rdr_dump(int lev, struct rdr_ds_s *x)
+int ccn_iribu_rdr_dump(int lev, struct rdr_ds_s *x)
 {
     int i, t;
     char *n, tmp[10];
 
-    t = ccnl_rdr_getType(x);
+    t = ccn_iribu_rdr_getType(x);
     if (t < LRPC_NOT_SERIALIZED)
         return t;
     if (t < LRPC_APPLICATION) {
@@ -249,10 +249,10 @@ int ccnl_rdr_dump(int lev, struct rdr_ds_s *x)
 
     switch (t) {
     case LRPC_APPLICATION:
-        ccnl_rdr_dump(lev+1, x->u.fct);
+        ccn_iribu_rdr_dump(lev+1, x->u.fct);
         break;
     case LRPC_LAMBDA:
-        ccnl_rdr_dump(lev+1, x->u.lambdavar);
+        ccn_iribu_rdr_dump(lev+1, x->u.lambdavar);
         break;
     case LRPC_SEQUENCE:
         break;
@@ -265,7 +265,7 @@ int ccnl_rdr_dump(int lev, struct rdr_ds_s *x)
     }
     x = x->aux;
     while (x) {
-        ccnl_rdr_dump(lev+1, x);
+        ccn_iribu_rdr_dump(lev+1, x);
         x = x->nextinseq;
     }
     return 0;
@@ -280,8 +280,8 @@ rpc_cli2rdr(char *cmd)
     e = parsePrefixTerm(0, &cp);
 
 /*
-    ccnl_rdr_getFlatLen(e);
-    ccnl_rdr_dump(0, e);
+    ccn_iribu_rdr_getFlatLen(e);
+    ccn_iribu_rdr_dump(0, e);
 */
 
     return e;
@@ -315,7 +315,7 @@ main(int argc, char *argv[])
             if (isdigit(optarg[0]))
                 debug_level = (int)strtol(optarg, (char**)NULL, 10);
             else
-                debug_level = ccnl_debug_str2level(optarg);
+                debug_level = ccn_iribu_debug_str2level(optarg);
 #endif
             break;
         case 'w':
@@ -348,7 +348,7 @@ Usage:
     if (!argv[optind])
         goto Usage;
 
-    if (ccnl_parseUdp(udp, CCNL_SUITE_LOCALRPC, &addr, &port) != 0) {
+    if (ccn_iribu_parseUdp(udp, CCN_IRIBU_SUITE_LOCALRPC, &addr, &port) != 0) {
         exit(-1);
     }
     DEBUGMSG(TRACE, "using udp address %s/%d\n", addr, port);
@@ -387,14 +387,14 @@ Usage:
     }
 
     reqlen = sizeof(tmp);
-    if (ccnl_switch_prependCoding(CCNL_ENC_LOCALRPC, &reqlen, tmp, &switchlen)) {
+    if (ccn_iribu_switch_prependCoding(CCN_IRIBU_ENC_LOCALRPC, &reqlen, tmp, &switchlen)) {
         free(expr);
 
         return -1;
     }
     memcpy(request, tmp+reqlen, switchlen);
 
-    if (ccnl_rdr_serialize(expr, request + switchlen,
+    if (ccn_iribu_rdr_serialize(expr, request + switchlen,
                            sizeof(request) - switchlen, &reqlen)) {
         DEBUGMSG(ERROR, "could no serialize\n");
     }
@@ -452,13 +452,13 @@ Usage:
             DEBUGMSG(DEBUG, "received %zu bytes\n", replen);
             if (replen > 0) {
                 DEBUGMSG(DEBUG, "  suite=%d\n",
-                         ccnl_pkt2suite(reply, replen, NULL));
+                         ccn_iribu_pkt2suite(reply, replen, NULL));
             }
 
             if (replen <= 0) {
                 goto done;
             }
-            if (ccnl_pkt2suite(reply, replen, &offs) != CCNL_SUITE_LOCALRPC ||
+            if (ccn_iribu_pkt2suite(reply, replen, &offs) != CCN_IRIBU_SUITE_LOCALRPC ||
                                reply[offs] != LRPC_PT_REPLY) {
                 // not a Reply pkt
                 DEBUGMSG(WARNING, "skipping non-Reply packet 0x%02x 0x%02x\n",

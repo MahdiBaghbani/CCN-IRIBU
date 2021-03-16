@@ -1,5 +1,5 @@
 /*
- * @f ccnl-face.h
+ * @f ccn-iribu-face.h
  * @b CCN lite (CCNL), core header file (internal data structures)
  *
  * Copyright (C) 2011-17, University of Basel
@@ -20,31 +20,31 @@
  * 2017-06-16 created
  */
 
-#ifndef CCNL_FACE_H
-#define CCNL_FACE_H
+#ifndef CCN_IRIBU_FACE_H
+#define CCN_IRIBU_FACE_H
 
-#include "ccnl-sockunion.h"
+#include "ccn-iribu-sockunion.h"
 
-#ifdef CCNL_RIOT
+#ifdef CCN_IRIBU_RIOT
 #include "evtimer_msg.h"
 #endif
 
-struct ccnl_face_s {
-    struct ccnl_face_s *next, *prev;
+struct ccn_iribu_face_s {
+    struct ccn_iribu_face_s *next, *prev;
     int faceid;
     int ifndx;
     sockunion peer;
     int flags;
     uint32_t last_used; // updated when we receive a packet
-    struct ccnl_buf_s *outq, *outqend; // queue of packets to send
-    struct ccnl_frag_s *frag;  // which special datagram armoring
-    struct ccnl_sched_s *sched;
-#ifdef CCNL_RIOT
+    struct ccn_iribu_buf_s *outq, *outqend; // queue of packets to send
+    struct ccn_iribu_frag_s *frag;  // which special datagram armoring
+    struct ccn_iribu_sched_s *sched;
+#ifdef CCN_IRIBU_RIOT
     evtimer_msg_event_t evtmsg_timeout;
 #endif
 };
 
 void
-ccnl_face_free(struct ccnl_face_s *face);
+ccn_iribu_face_free(struct ccn_iribu_face_s *face);
 
-#endif // CCNL_FACE_H
+#endif // CCN_IRIBU_FACE_H

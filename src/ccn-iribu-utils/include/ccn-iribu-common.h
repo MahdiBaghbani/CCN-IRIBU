@@ -2,7 +2,7 @@
  * @addtogroup CCNL-utils
  * @{
  *
- * @file ccnl-common.h
+ * @file ccn-iribu-common.h
  * @brief Common functions for the CCN-lite utilities
  *
  * Copyright (C) 2013-18 Christian Tschudin, University of Basel
@@ -19,10 +19,10 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifndef CCNL_COMMON_H
-#define CCNL_COMMON_H
+#ifndef CCN_IRIBU_COMMON_H
+#define CCN_IRIBU_COMMON_H
 
-#ifndef CCNL_UAPI_H_    // if CCNL_UAPI_H_ is defined then the following config is taken care elsewhere in the code composite
+#ifndef CCN_IRIBU_UAPI_H_    // if CCN_IRIBU_UAPI_H_ is defined then the following config is taken care elsewhere in the code composite
 
 
 #define _DEFAULT_SOURCE
@@ -48,76 +48,76 @@
 
 #include "base64.h"
 
-#include "ccnl-os-includes.h"
-#include "ccnl-defs.h"
-#include "ccnl-core.h"
-#include "ccnl-pkt-builder.h"
-#include "ccnl-malloc.h"
-#include "ccnl-os-time.h"
-#include "ccnl-logging.h"
-#include "ccnl-pkt-builder.h"
+#include "ccn-iribu-os-includes.h"
+#include "ccn-iribu-defs.h"
+#include "ccn-iribu-core.h"
+#include "ccn-iribu-pkt-builder.h"
+#include "ccn-iribu-malloc.h"
+#include "ccn-iribu-os-time.h"
+#include "ccn-iribu-logging.h"
+#include "ccn-iribu-pkt-builder.h"
 
 #ifndef USE_DEBUG_MALLOC
-#define ccnl_malloc(s)                  malloc(s)
-#define ccnl_calloc(n,s)                calloc(n,s)
-#define ccnl_realloc(p,s)               realloc(p,s)
-#define ccnl_free(p)                    free(p)
+#define ccn_iribu_malloc(s)                  malloc(s)
+#define ccn_iribu_calloc(n,s)                calloc(n,s)
+#define ccn_iribu_realloc(p,s)               realloc(p,s)
+#define ccn_iribu_free(p)                    free(p)
 #endif //USE_DEBUG_MALLOC
-#define free_2ptr_list(a,b)     ccnl_free(a), ccnl_free(b)
+#define free_2ptr_list(a,b)     ccn_iribu_free(a), ccn_iribu_free(b)
 
-struct ccnl_prefix_s* ccnl_prefix_new(char suite, uint32_t cnt);
-int ccnl_pkt_prependComponent(int suite, char *src, int *offset, unsigned char *buf);
+struct ccn_iribu_prefix_s* ccn_iribu_prefix_new(char suite, uint32_t cnt);
+int ccn_iribu_pkt_prependComponent(int suite, char *src, int *offset, unsigned char *buf);
 
-#include "ccnl-core.h"
-#include "ccnl-pkt-ccnb.h"
-#include "ccnl-pkt-ccntlv.h"
-#include "ccnl-pkt-localrpc.h"
-#include "ccnl-pkt-ndntlv.h"
-#include "ccnl-pkt-switch.h"
+#include "ccn-iribu-core.h"
+#include "ccn-iribu-pkt-ccnb.h"
+#include "ccn-iribu-pkt-ccntlv.h"
+#include "ccn-iribu-pkt-localrpc.h"
+#include "ccn-iribu-pkt-ndntlv.h"
+#include "ccn-iribu-pkt-switch.h"
 
-#include "ccnl-socket.h"
+#include "ccn-iribu-socket.h"
 
 
 // include only the utils, not the core routines:
 #ifdef USE_FRAG
-#include "../ccnl-frag.h"
+#include "../ccn-iribu-frag.h"
 #endif
 
-#else // CCNL_UAPI_H_ is defined
+#else // CCN_IRIBU_UAPI_H_ is defined
 
 #include "base64.c"
 #ifdef RIOT_VERSION
-#include "ccnl-defs.h"
+#include "ccn-iribu-defs.h"
 #include "net/packet.h"
 #include <unistd.h>
 #include "sys/socket.h"
 #include "ccn-lite-riot.h"
-#include "ccnl-headers.h"
-#include "ccnl-pkt-ndntlv.h"
-#include "ccnl-pkt-ccntlv.h"
-#include "ccnl-pkt-ccnb.h"
+#include "ccn-iribu-headers.h"
+#include "ccn-iribu-pkt-ndntlv.h"
+#include "ccn-iribu-pkt-ccntlv.h"
+#include "ccn-iribu-pkt-ccnb.h"
 
 
-extern int ccnl_suite2defaultPort(int suite);
+extern int ccn_iribu_suite2defaultPort(int suite);
 #endif
 
-#endif // CCNL_UAPI_H_
+#endif // CCN_IRIBU_UAPI_H_
 
 
 // ----------------------------------------------------------------------
 
-const char* ccnl_enc2str(int enc);
+const char* ccn_iribu_enc2str(int enc);
 
 // ----------------------------------------------------------------------
 
 #define extractStr(VAR,DTAG) \
     if (typ == CCN_TT_DTAG && num == DTAG) { \
         char *s; unsigned char *valptr; size_t vallen; \
-        if (ccnl_ccnb_consume(typ, num, &buf, &buflen, &valptr, &vallen) < 0) \
+        if (ccn_iribu_ccnb_consume(typ, num, &buf, &buflen, &valptr, &vallen) < 0) \
                 goto Bail; \
-        s = ccnl_malloc(vallen+1); if (!s) goto Bail; \
+        s = ccn_iribu_malloc(vallen+1); if (!s) goto Bail; \
         memcpy(s, valptr, vallen); s[vallen] = '\0'; \
-        ccnl_free(VAR); \
+        ccn_iribu_free(VAR); \
         VAR = (unsigned char*) s; \
         continue; \
     } do {} while(0)
@@ -125,11 +125,11 @@ const char* ccnl_enc2str(int enc);
 #define extractStr2(VAR,DTAG) \
     if (typ == CCN_TT_DTAG && num == DTAG) { \
         char *s; unsigned char *valptr; size_t vallen; \
-        if (ccnl_ccnb_consume(typ, num, buf, buflen, &valptr, &vallen) < 0) \
+        if (ccn_iribu_ccnb_consume(typ, num, buf, buflen, &valptr, &vallen) < 0) \
                 goto Bail; \
-        s = ccnl_malloc(vallen+1); if (!s) goto Bail; \
+        s = ccn_iribu_malloc(vallen+1); if (!s) goto Bail; \
         memcpy(s, valptr, vallen); s[vallen] = '\0'; \
-        ccnl_free(VAR); \
+        ccn_iribu_free(VAR); \
     VAR = (unsigned char*) s; \
         continue; \
     } do {} while(0)
@@ -147,7 +147,7 @@ struct key_s* load_keys_from_file(char *path);
 // ----------------------------------------------------------------------
 
 int
-ccnl_parseUdp(char *udp, int suite, char **addr, int *port);
+ccn_iribu_parseUdp(char *udp, int suite, char **addr, int *port);
 
 #endif 
 /** @} */

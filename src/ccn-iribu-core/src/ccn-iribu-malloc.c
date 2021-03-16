@@ -1,5 +1,5 @@
 /*
- * @f ccnl-malloc.c
+ * @f ccn-iribu-malloc.c
  * @b CCN lite (CCNL), core header file (internal data structures)
  *
  * Copyright (C) 2011-17, University of Basel
@@ -19,14 +19,14 @@
  * File history:
  * 2017-06-16 created
  */
-#include "ccnl-malloc.h"
-#include "ccnl-logging.h"
-#include "ccnl-overflow.h"
+#include "ccn-iribu-malloc.h"
+#include "ccn-iribu-logging.h"
+#include "ccn-iribu-overflow.h"
 
 
 #ifdef USE_DEBUG_MALLOC
 
-#ifdef CCNL_ARDUINO
+#ifdef CCN_IRIBU_ARDUINO
 void* debug_malloc(size_t s, const char *fn, int lno, double tstamp)
 #else
 void* debug_malloc(size_t s, const char *fn, int lno, char *tstamp)
@@ -51,7 +51,7 @@ void* debug_malloc(size_t s, const char *fn, int lno, char *tstamp)
         h->lineno = lno;
         h->size = s;
 
-#ifdef CCNL_ARDUINO
+#ifdef CCN_IRIBU_ARDUINO
         h->tstamp = tstamp;
 #else
         size_t new_timestamp_size;
@@ -82,7 +82,7 @@ void* debug_malloc(size_t s, const char *fn, int lno, char *tstamp)
         }
 #endif // BUILTIN_INT_ADD_OVERFLOW_DETECTION_UNAVAILABLE
 
-#endif  // CCNL_ARDUINO
+#endif  // CCN_IRIBU_ARDUINO
         return ((unsigned char *)h) + sizeof(struct mhdr);
 #ifndef BUILTIN_INT_ADD_OVERFLOW_DETECTION_UNAVAILABLE
     }
@@ -91,7 +91,7 @@ void* debug_malloc(size_t s, const char *fn, int lno, char *tstamp)
 #endif // BUILTIN_INT_ADD_OVERFLOW_DETECTION_UNAVAILABLE
 }
 
-#ifdef CCNL_ARDUINO
+#ifdef CCN_IRIBU_ARDUINO
 void* debug_calloc(size_t n, size_t s, const char *fn, int lno, double tstamp)
 #else
 void* debug_calloc(size_t n, size_t s, const char *fn, int lno, char *tstamp)
@@ -178,7 +178,7 @@ debug_realloc(void *p, size_t s, const char *fn, int lno)
     return ((unsigned char *)h) + sizeof(struct mhdr);
 }
 
-#ifdef CCNL_ARDUINO
+#ifdef CCN_IRIBU_ARDUINO
 void* debug_strdup(const char *s, const char *fn, int lno, double tstamp)
 #else
 void* debug_strdup(const char *s, const char *fn, int lno, char *tstamp)
@@ -224,7 +224,7 @@ debug_free(void *p, const char *fn, int lno)
                 timestamp(), fn, lno, p);
         return;
     }
-#ifndef CCNL_ARDUINO
+#ifndef CCN_IRIBU_ARDUINO
     if (h->tstamp && *h->tstamp)
          free(h->tstamp);
 #endif

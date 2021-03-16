@@ -40,10 +40,10 @@
 #include "net/packet.h"
 #include "ccn-lite-riot.h"
 
-#include "ccnl-os-time.h"
-#include "ccnl-fwd.h"
-#include "ccnl-producer.h"
-#include "ccnl-pkt-builder.h"
+#include "ccn-iribu-os-time.h"
+#include "ccn-iribu-fwd.h"
+#include "ccn-iribu-producer.h"
+#include "ccn-iribu-pkt-builder.h"
 
 /**
  * @brief RIOT specific local variables
@@ -53,38 +53,38 @@
 /**
  * @brief message queue for eventloop
  */
-static msg_t _msg_queue[CCNL_QUEUE_SIZE];
+static msg_t _msg_queue[CCN_IRIBU_QUEUE_SIZE];
 
 /**
  * @brief stack for the CCN-Lite eventloop
  */
-static char _ccnl_stack[CCNL_STACK_SIZE];
+static char _ccn_iribu_stack[CCN_IRIBU_STACK_SIZE];
 
 /**
  * currently configured suite
  */
-static int _ccnl_suite = CCNL_SUITE_NDNTLV;
+static int _ccn_iribu_suite = CCN_IRIBU_SUITE_NDNTLV;
 
 /**
  * @}
  */
 
-kernel_pid_t ccnl_event_loop_pid = KERNEL_PID_UNDEF;
+kernel_pid_t ccn_iribu_event_loop_pid = KERNEL_PID_UNDEF;
 
-evtimer_msg_t ccnl_evtimer;
+evtimer_msg_t ccn_iribu_evtimer;
 
-#include "ccnl-defs.h"
-#include "ccnl-core.h"
+#include "ccn-iribu-defs.h"
+#include "ccn-iribu-core.h"
 
 /**
  * @brief Central relay information
  */
-struct ccnl_relay_s ccnl_relay;
+struct ccn_iribu_relay_s ccn_iribu_relay;
 
 /**
  * @brief Local loopback face
  */
-static struct ccnl_face_s *loopback_face;
+static struct ccn_iribu_face_s *loopback_face;
 
 /**
  * @brief Debugging level
@@ -100,8 +100,8 @@ extern int debug_level;
  * @par[in] buf     Data to send
  */
 void
-ccnl_ll_TX(struct ccnl_relay_s *ccnl, struct ccnl_if_s *ifc,
-           sockunion *dest, struct ccnl_buf_s *buf);
+ccn_iribu_ll_TX(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_if_s *ifc,
+           sockunion *dest, struct ccn_iribu_buf_s *buf);
 
 /**
  * @brief Callback for packet reception which should be passed to the application
@@ -112,30 +112,30 @@ ccnl_ll_TX(struct ccnl_relay_s *ccnl, struct ccnl_if_s *ifc,
  * @returns 0 on success
  * @return -1 on error
  */
-int ccnl_app_RX(struct ccnl_relay_s *ccnl, struct ccnl_content_s *c);
+int ccn_iribu_app_RX(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_content_s *c);
 
 /**
  * @brief netreg entry for CCN-Lite packets
  */
-static gnrc_netreg_entry_t _ccnl_ne;
+static gnrc_netreg_entry_t _ccn_iribu_ne;
 
 /* add a netif to CCN-lite's interfaces, set the nettype, and register a receiver */
 int
-ccnl_open_netif(kernel_pid_t if_pid, gnrc_nettype_t netreg_type)
+ccn_iribu_open_netif(kernel_pid_t if_pid, gnrc_nettype_t netreg_type)
 {
     assert(pid_is_valid(if_pid));
     if (gnrc_netif_get_by_pid(if_pid) == NULL) {
         return -1;
     }
-    if (ccnl_relay.ifcount >= CCNL_MAX_INTERFACES) {
+    if (ccn_iribu_relay.ifcount >= CCN_IRIBU_MAX_INTERFACES) {
         DEBUGMSG(WARNING, "cannot open more than %u interfaces for CCN-Lite\n",
-                 (unsigned) CCNL_MAX_INTERFACES);
+                 (unsigned) CCN_IRIBU_MAX_INTERFACES);
         return -1;
     }
 
     /* get current interface from CCN-Lite's relay */
-    struct ccnl_if_s *i;
-    i = &ccnl_relay.ifs[ccnl_relay.ifcount];
+    struct ccn_iribu_if_s *i;
+    i = &ccn_iribu_relay.ifs[ccn_iribu_relay.ifcount];
     i->mtu = NDN_DEFAULT_MTU;
     i->fwdalli = 1;
     i->if_pid = if_pid;
@@ -166,27 +166,27 @@ ccnl_open_netif(kernel_pid_t if_pid, gnrc_nettype_t netreg_type)
     DEBUGMSG(DEBUG, "interface's address is %s\n", ll2ascii(i->hwaddr, i->addr_len));
 
     /* advance interface counter in relay */
-    ccnl_relay.ifcount++;
+    ccn_iribu_relay.ifcount++;
 
     /* configure the interface to use the specified nettype protocol */
     gnrc_netapi_set(if_pid, NETOPT_PROTO, 0, &netreg_type, sizeof(gnrc_nettype_t));
     /* register for this nettype if not already done */
-    if (_ccnl_ne.demux_ctx == 0) {
-        gnrc_netreg_entry_init_pid(&_ccnl_ne, GNRC_NETREG_DEMUX_CTX_ALL,
-                                   ccnl_event_loop_pid);
-        return gnrc_netreg_register(netreg_type, &_ccnl_ne);
+    if (_ccn_iribu_ne.demux_ctx == 0) {
+        gnrc_netreg_entry_init_pid(&_ccn_iribu_ne, GNRC_NETREG_DEMUX_CTX_ALL,
+                                   ccn_iribu_event_loop_pid);
+        return gnrc_netreg_register(netreg_type, &_ccn_iribu_ne);
     }
     return 0;
 }
 
 /* (link layer) sending function */
 void
-ccnl_ll_TX(struct ccnl_relay_s *ccnl, struct ccnl_if_s *ifc,
-           sockunion *dest, struct ccnl_buf_s *buf)
+ccn_iribu_ll_TX(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_if_s *ifc,
+           sockunion *dest, struct ccn_iribu_buf_s *buf)
 {
     (void) ccnl;
     int rc;
-    DEBUGMSG(TRACE, "ccnl_ll_TX %d bytes to %s\n", (buf ? (int) buf->datalen : -1), ccnl_addr2ascii(dest));
+    DEBUGMSG(TRACE, "ccn_iribu_ll_TX %d bytes to %s\n", (buf ? (int) buf->datalen : -1), ccn_iribu_addr2ascii(dest));
 
     (void) ifc;
     switch(dest->sa.sa_family) {
@@ -234,7 +234,7 @@ ccnl_ll_TX(struct ccnl_relay_s *ccnl, struct ccnl_if_s *ifc,
 
                             if (is_loopback) {
                                     DEBUGMSG(DEBUG, "loopback packet\n");
-                                    if (gnrc_netapi_receive(ccnl_event_loop_pid, pkt) < 1) {
+                                    if (gnrc_netapi_receive(ccn_iribu_event_loop_pid, pkt) < 1) {
                                         DEBUGMSG(ERROR, "error: unable to loopback packet, discard it\n");
                                         gnrc_pktbuf_release(pkt);
                                     }
@@ -275,7 +275,7 @@ ccnl_ll_TX(struct ccnl_relay_s *ccnl, struct ccnl_if_s *ifc,
 
 /* packets delivered to the application */
 int
-ccnl_app_RX(struct ccnl_relay_s *ccnl, struct ccnl_content_s *c)
+ccn_iribu_app_RX(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_content_s *c)
 {
     (void) ccnl;
     DEBUGMSG(DEBUG, "Received something of size %u for the application\n", c->pkt->contlen);
@@ -300,17 +300,17 @@ ccnl_app_RX(struct ccnl_relay_s *ccnl, struct ccnl_content_s *c)
 
 /* receiving callback for CCN packets */
 void
-_receive(struct ccnl_relay_s *ccnl, msg_t *m)
+_receive(struct ccn_iribu_relay_s *ccnl, msg_t *m)
 {
     int i;
     /* iterate over interfaces */
-    for (i = 0; i < ccnl->ifcount; i++) {
-        if (ccnl->ifs[i].if_pid == m->sender_pid) {
+    for (i = 0; i < ccn-iribu->ifcount; i++) {
+        if (ccn-iribu->ifs[i].if_pid == m->sender_pid) {
             break;
         }
     }
 
-    if (i == ccnl->ifcount) {
+    if (i == ccn-iribu->ifcount) {
         DEBUGMSG(WARNING, "No matching CCN interface found, assume it's from the default interface\n");
         i = 0;
     }
@@ -329,41 +329,41 @@ _receive(struct ccnl_relay_s *ccnl, msg_t *m)
     memcpy(su.linklayer.sll_addr, gnrc_netif_hdr_get_src_addr(nethdr), nethdr->src_l2addr_len);
 
     /* call CCN-lite callback and free memory in packet buffer */
-    ccnl_core_RX(ccnl, i, ccn_pkt->data, ccn_pkt->size, &su.sa, sizeof(su.sa));
+    ccn_iribu_core_RX(ccnl, i, ccn_pkt->data, ccn_pkt->size, &su.sa, sizeof(su.sa));
     gnrc_pktbuf_release(pkt);
 }
 
 static void
-ccnl_interest_retransmit(struct ccnl_relay_s *relay, struct ccnl_interest_s *ccnl_int)
+ccn_iribu_interest_retransmit(struct ccn_iribu_relay_s *relay, struct ccn_iribu_interest_s *ccn_iribu_int)
 {
-    if(ccnl_int->retries >= CCNL_MAX_INTEREST_RETRANSMIT) {
+    if(ccn_iribu_int->retries >= CCN_IRIBU_MAX_INTEREST_RETRANSMIT) {
         return;
     }
 
-    ccnl_int->evtmsg_retrans.msg.type = CCNL_MSG_INT_RETRANS;
-    ccnl_int->evtmsg_retrans.msg.content.ptr = ccnl_int;
-    ((evtimer_event_t *)&ccnl_int->evtmsg_retrans)->offset = CCNL_INTEREST_RETRANS_TIMEOUT;
-    evtimer_add_msg(&ccnl_evtimer, &ccnl_int->evtmsg_retrans, ccnl_event_loop_pid);
-    ccnl_int->retries++;
-    ccnl_interest_propagate(relay, ccnl_int);
+    ccn_iribu_int->evtmsg_retrans.msg.type = CCN_IRIBU_MSG_INT_RETRANS;
+    ccn_iribu_int->evtmsg_retrans.msg.content.ptr = ccn_iribu_int;
+    ((evtimer_event_t *)&ccn_iribu_int->evtmsg_retrans)->offset = CCN_IRIBU_INTEREST_RETRANS_TIMEOUT;
+    evtimer_add_msg(&ccn_iribu_evtimer, &ccn_iribu_int->evtmsg_retrans, ccn_iribu_event_loop_pid);
+    ccn_iribu_int->retries++;
+    ccn_iribu_interest_propagate(relay, ccn_iribu_int);
 }
 
 /* the main event-loop */
 void
-*_ccnl_event_loop(void *arg)
+*_ccn_iribu_event_loop(void *arg)
 {
-    struct ccnl_content_s *content;
-    struct ccnl_pkt_s *pkt;
-    struct ccnl_prefix_s *prefix;
-    struct ccnl_interest_s *ccnl_int;
-    struct ccnl_face_s *face;
+    struct ccn_iribu_content_s *content;
+    struct ccn_iribu_pkt_s *pkt;
+    struct ccn_iribu_prefix_s *prefix;
+    struct ccn_iribu_interest_s *ccn_iribu_int;
+    struct ccn_iribu_face_s *face;
     char *spref;
 
-    msg_init_queue(_msg_queue, CCNL_QUEUE_SIZE);
-    evtimer_init_msg(&ccnl_evtimer);
-    struct ccnl_relay_s *ccnl = (struct ccnl_relay_s*) arg;
+    msg_init_queue(_msg_queue, CCN_IRIBU_QUEUE_SIZE);
+    evtimer_init_msg(&ccn_iribu_evtimer);
+    struct ccn_iribu_relay_s *ccnl = (struct ccn_iribu_relay_s*) arg;
 
-    while(!ccnl->halt_flag) {
+    while(!ccn-iribu->halt_flag) {
         msg_t m, reply, mr;
         DEBUGMSG(VERBOSE, "ccn-lite: waiting for incoming message.\n");
         msg_receive(&m);
@@ -376,9 +376,9 @@ void
 
             case GNRC_NETAPI_MSG_TYPE_SND:
                 DEBUGMSG(DEBUG, "ccn-lite: GNRC_NETAPI_MSG_TYPE_SND received\n");
-                pkt = (struct ccnl_pkt_s *) m.content.ptr;
-                ccnl_fwd_handleInterest(ccnl, loopback_face, &pkt, ccnl_ndntlv_cMatch);
-                ccnl_pkt_free(pkt);
+                pkt = (struct ccn_iribu_pkt_s *) m.content.ptr;
+                ccn_iribu_fwd_handleInterest(ccnl, loopback_face, &pkt, ccn_iribu_ndntlv_cMatch);
+                ccn_iribu_pkt_free(pkt);
                 break;
 
             case GNRC_NETAPI_MSG_TYPE_GET:
@@ -387,32 +387,32 @@ void
                 reply.content.value = -ENOTSUP;
                 msg_reply(&m, &reply);
                 break;
-            case CCNL_MSG_CS_ADD:
+            case CCN_IRIBU_MSG_CS_ADD:
                 DEBUGMSG(VERBOSE, "ccn-lite: CS add\n");
-                content = (struct ccnl_content_s *)m.content.ptr;
-                ccnl_cs_add(ccnl, content);
+                content = (struct ccn_iribu_content_s *)m.content.ptr;
+                ccn_iribu_cs_add(ccnl, content);
                 break;
-            case CCNL_MSG_CS_DEL:
+            case CCN_IRIBU_MSG_CS_DEL:
                 DEBUGMSG(VERBOSE, "ccn-lite: CS remove\n");
-                prefix = (struct ccnl_prefix_s *)m.content.ptr;
-                spref = ccnl_prefix_to_path(prefix);
+                prefix = (struct ccn_iribu_prefix_s *)m.content.ptr;
+                spref = ccn_iribu_prefix_to_path(prefix);
                 if (!spref) {
                     DEBUGMSG(WARNING, "ccn-lite: CS remove failed, because of no memory available\n");
                     break;
                 }
-                if (ccnl_cs_remove(ccnl, spref) < 0) {
+                if (ccn_iribu_cs_remove(ccnl, spref) < 0) {
                     DEBUGMSG(WARNING, "removing CS entry failed\n");
                 }
-                ccnl_free(spref);
+                ccn_iribu_free(spref);
                 break;
-            case CCNL_MSG_CS_LOOKUP:
+            case CCN_IRIBU_MSG_CS_LOOKUP:
                 DEBUGMSG(VERBOSE, "ccn-lite: CS lookup\n");
-                prefix = (struct ccnl_prefix_s *)m.content.ptr;
-                spref = ccnl_prefix_to_path(prefix);
-                mr.type = CCNL_MSG_CS_LOOKUP;
+                prefix = (struct ccn_iribu_prefix_s *)m.content.ptr;
+                spref = ccn_iribu_prefix_to_path(prefix);
+                mr.type = CCN_IRIBU_MSG_CS_LOOKUP;
                 if (spref) {
-                    content = ccnl_cs_lookup(ccnl, spref);
-                    ccnl_free(spref);
+                    content = ccn_iribu_cs_lookup(ccnl, spref);
+                    ccn_iribu_free(spref);
                 }
                 else {
                     DEBUGMSG(WARNING, "ccn-lite: CS lookup failed, because of no memory available\n");
@@ -421,19 +421,19 @@ void
                 mr.content.ptr = content;
                 msg_reply(&m, &mr);
                 break;
-            case CCNL_MSG_INT_RETRANS:
-                ccnl_int = (struct ccnl_interest_s *)m.content.ptr;
-                ccnl_interest_retransmit(ccnl, ccnl_int);
+            case CCN_IRIBU_MSG_INT_RETRANS:
+                ccn_iribu_int = (struct ccn_iribu_interest_s *)m.content.ptr;
+                ccn_iribu_interest_retransmit(ccnl, ccn_iribu_int);
                 break;
-            case CCNL_MSG_INT_TIMEOUT:
-                ccnl_int = (struct ccnl_interest_s *)m.content.ptr;
-                ccnl_interest_remove(ccnl, ccnl_int);
+            case CCN_IRIBU_MSG_INT_TIMEOUT:
+                ccn_iribu_int = (struct ccn_iribu_interest_s *)m.content.ptr;
+                ccn_iribu_interest_remove(ccnl, ccn_iribu_int);
                 break;
-            case CCNL_MSG_FACE_TIMEOUT:
-                face = (struct ccnl_face_s *)m.content.ptr;
+            case CCN_IRIBU_MSG_FACE_TIMEOUT:
+                face = (struct ccn_iribu_face_s *)m.content.ptr;
                 if (face &&
-                    !(face->flags & CCNL_FACE_FLAGS_STATIC)) {
-                    ccnl_face_remove(ccnl, face);
+                    !(face->flags & CCN_IRIBU_FACE_FLAGS_STATIC)) {
+                    ccn_iribu_face_remove(ccnl, face);
                 }
                 break;
             default:
@@ -447,39 +447,39 @@ void
 
 /* trampoline function creating the loopback face */
 kernel_pid_t
-ccnl_start(void)
+ccn_iribu_start(void)
 {
-    loopback_face = ccnl_get_face_or_create(&ccnl_relay, -1, NULL, 0);
-    loopback_face->flags |= CCNL_FACE_FLAGS_STATIC;
+    loopback_face = ccn_iribu_get_face_or_create(&ccn_iribu_relay, -1, NULL, 0);
+    loopback_face->flags |= CCN_IRIBU_FACE_FLAGS_STATIC;
 
-    ccnl_relay.max_cache_entries = CCNL_CACHE_SIZE;
-    ccnl_relay.max_pit_entries = CCNL_DEFAULT_MAX_PIT_ENTRIES;
-    ccnl_relay.ccnl_ll_TX_ptr = &ccnl_ll_TX;
+    ccn_iribu_relay.max_cache_entries = CCN_IRIBU_CACHE_SIZE;
+    ccn_iribu_relay.max_pit_entries = CCN_IRIBU_DEFAULT_MAX_PIT_ENTRIES;
+    ccn_iribu_relay.ccn_iribu_ll_TX_ptr = &ccn_iribu_ll_TX;
 
     /* start the CCN-Lite event-loop */
-    ccnl_event_loop_pid =  thread_create(_ccnl_stack, sizeof(_ccnl_stack),
-                                          CCNL_THREAD_PRIORITY,
-                                          THREAD_CREATE_STACKTEST, _ccnl_event_loop,
-                                          &ccnl_relay, "ccnl");
-    return ccnl_event_loop_pid;
+    ccn_iribu_event_loop_pid =  thread_create(_ccn_iribu_stack, sizeof(_ccn_iribu_stack),
+                                          CCN_IRIBU_THREAD_PRIORITY,
+                                          THREAD_CREATE_STACKTEST, _ccn_iribu_event_loop,
+                                          &ccn_iribu_relay, "ccnl");
+    return ccn_iribu_event_loop_pid;
 }
 
 static xtimer_t _wait_timer;
 static msg_t _timeout_msg;
 int
-ccnl_wait_for_chunk(void *buf, size_t buf_len, uint64_t timeout)
+ccn_iribu_wait_for_chunk(void *buf, size_t buf_len, uint64_t timeout)
 {
     int res = (-1);
 
     if (timeout == 0) {
-        timeout = CCNL_MAX_INTEREST_RETRANSMIT * US_PER_SEC;
+        timeout = CCN_IRIBU_MAX_INTEREST_RETRANSMIT * US_PER_SEC;
     }
 
     while (1) { /* wait for a content pkt (ignore interests) */
         DEBUGMSG(DEBUG, "  waiting for packet\n");
 
         /* TODO: receive from socket or interface */
-        _timeout_msg.type = CCNL_MSG_TIMEOUT;
+        _timeout_msg.type = CCN_IRIBU_MSG_TIMEOUT;
         xtimer_set_msg64(&_wait_timer, timeout, &_timeout_msg, thread_getpid());
         msg_t m;
         msg_receive(&m);
@@ -503,7 +503,7 @@ ccnl_wait_for_chunk(void *buf, size_t buf_len, uint64_t timeout)
             xtimer_remove(&_wait_timer);
             break;
         }
-        else if (m.type == CCNL_MSG_TIMEOUT) {
+        else if (m.type == CCN_IRIBU_MSG_TIMEOUT) {
             res = -ETIMEDOUT;
             break;
         }
@@ -520,17 +520,17 @@ ccnl_wait_for_chunk(void *buf, size_t buf_len, uint64_t timeout)
 
 /* generates and send out an interest */
 int
-ccnl_send_interest(struct ccnl_prefix_s *prefix, unsigned char *buf, int buf_len,
-                   ccnl_interest_opts_u *int_opts)
+ccn_iribu_send_interest(struct ccn_iribu_prefix_s *prefix, unsigned char *buf, int buf_len,
+                   ccn_iribu_interest_opts_u *int_opts)
 {
     int ret = 0;
     size_t len = 0;
-    ccnl_interest_opts_u default_opts;
+    ccn_iribu_interest_opts_u default_opts;
     default_opts.ndntlv.nonce = 0;
     default_opts.ndntlv.mustbefresh = false;
-    default_opts.ndntlv.interestlifetime = CCNL_INTEREST_TIMEOUT * 1000; // ms
+    default_opts.ndntlv.interestlifetime = CCN_IRIBU_INTEREST_TIMEOUT * 1000; // ms
 
-    if (_ccnl_suite != CCNL_SUITE_NDNTLV) {
+    if (_ccn_iribu_suite != CCN_IRIBU_SUITE_NDNTLV) {
         DEBUGMSG(WARNING, "Suite not supported by RIOT!\n");
         return -1;
     }
@@ -552,25 +552,25 @@ ccnl_send_interest(struct ccnl_prefix_s *prefix, unsigned char *buf, int buf_len
 
     DEBUGMSG(DEBUG, "nonce: %" PRIi32 "\n", int_opts->ndntlv.nonce);
 
-    ccnl_mkInterest(prefix, int_opts, buf, (buf + buf_len), &len, (size_t *)&buf_len);
+    ccn_iribu_mkInterest(prefix, int_opts, buf, (buf + buf_len), &len, (size_t *)&buf_len);
 
     buf += buf_len;
 
     unsigned char *start = buf;
     unsigned char *data = buf;
-    struct ccnl_pkt_s *pkt, *pktc;
+    struct ccn_iribu_pkt_s *pkt, *pktc;
     (void) pktc;
 
     uint64_t typ;
     size_t int_len;
 
     /* TODO: support other suites */
-    if (ccnl_ndntlv_dehead(&data, &len, &typ, &int_len) || (int_len > len)) {
+    if (ccn_iribu_ndntlv_dehead(&data, &len, &typ, &int_len) || (int_len > len)) {
         DEBUGMSG(WARNING, "  invalid packet format\n");
         return -3;
     }
 
-    pkt = ccnl_ndntlv_bytes2pkt(NDN_TLV_Interest, start, &data, &len);
+    pkt = ccn_iribu_ndntlv_bytes2pkt(NDN_TLV_Interest, start, &data, &len);
 
     if (!pkt) {
         DEBUGMSG(WARNING, "could not create Interest pkt\n");
@@ -578,7 +578,7 @@ ccnl_send_interest(struct ccnl_prefix_s *prefix, unsigned char *buf, int buf_len
     }
 
     msg_t m = { .type = GNRC_NETAPI_MSG_TYPE_SND, .content.ptr = pkt };
-    ret = msg_send(&m, ccnl_event_loop_pid);
+    ret = msg_send(&m, ccn_iribu_event_loop_pid);
     if(ret < 1){
         DEBUGMSG(WARNING, "could not send Interest: %i\n", ret);
     }

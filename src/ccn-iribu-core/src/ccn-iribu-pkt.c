@@ -1,5 +1,5 @@
 /*
- * @f ccnl-pkt.c
+ * @f ccn-iribu-pkt.c
  * @b CCN lite, core CCNx protocol logic
  *
  * Copyright (C) 2011-18 University of Basel
@@ -19,75 +19,75 @@
  * File history:
  * 2017-06-16 created
  */
-#ifndef CCNL_LINUXKERNEL
-#include "ccnl-pkt.h"
+#ifndef CCN_IRIBU_LINUXKERNEL
+#include "ccn-iribu-pkt.h"
 
-#include "ccnl-os-time.h"
-#include "ccnl-defs.h"
-#include "ccnl-pkt-ccntlv.h"
+#include "ccn-iribu-os-time.h"
+#include "ccn-iribu-defs.h"
+#include "ccn-iribu-pkt-ccntlv.h"
 
-#include "ccnl-prefix.h"
-#include "ccnl-malloc.h"
+#include "ccn-iribu-prefix.h"
+#include "ccn-iribu-malloc.h"
 
-#include "ccnl-logging.h"
+#include "ccn-iribu-logging.h"
 #else
-#include "../include/ccnl-pkt.h"
+#include "../include/ccn-iribu-pkt.h"
 
-#include "../include/ccnl-os-time.h"
-#include "../include/ccnl-defs.h"
-#include "../../ccnl-pkt/include/ccnl-pkt-ccntlv.h"
+#include "../include/ccn-iribu-os-time.h"
+#include "../include/ccn-iribu-defs.h"
+#include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ccntlv.h"
 
-#include "../include/ccnl-prefix.h"
-#include "../include/ccnl-malloc.h"
+#include "../include/ccn-iribu-prefix.h"
+#include "../include/ccn-iribu-malloc.h"
 
-#include "../include/ccnl-logging.h"
+#include "../include/ccn-iribu-logging.h"
 #endif
 
 void
-ccnl_pkt_free(struct ccnl_pkt_s *pkt)
+ccn_iribu_pkt_free(struct ccn_iribu_pkt_s *pkt)
 {
     if (pkt) {
         if (pkt->pfx) {
             switch (pkt->pfx->suite) {
 #ifdef USE_SUITE_CCNB
-            case CCNL_SUITE_CCNB:
-                ccnl_free(pkt->s.ccnb.nonce);
-                ccnl_free(pkt->s.ccnb.ppkd);
+            case CCN_IRIBU_SUITE_CCNB:
+                ccn_iribu_free(pkt->s.ccnb.nonce);
+                ccn_iribu_free(pkt->s.ccnb.ppkd);
                 break;
 #endif
 #ifdef USE_SUITE_CCNTLV
-            case CCNL_SUITE_CCNTLV:
-                ccnl_free(pkt->s.ccntlv.keyid);
+            case CCN_IRIBU_SUITE_CCNTLV:
+                ccn_iribu_free(pkt->s.ccntlv.keyid);
                 break;
 #endif
 #ifdef USE_SUITE_NDNTLV
-            case CCNL_SUITE_NDNTLV:
-                ccnl_free(pkt->s.ndntlv.nonce);
-                ccnl_free(pkt->s.ndntlv.ppkl);
+            case CCN_IRIBU_SUITE_NDNTLV:
+                ccn_iribu_free(pkt->s.ndntlv.nonce);
+                ccn_iribu_free(pkt->s.ndntlv.ppkl);
                 break;
 #endif
 #ifdef USE_SUITE_LOCALRPC
-            case CCNL_SUITE_LOCALRPC:
+            case CCN_IRIBU_SUITE_LOCALRPC:
 #endif
             default:
                 break;
             }
-            ccnl_prefix_free(pkt->pfx);
+            ccn_iribu_prefix_free(pkt->pfx);
         }
         if(pkt->buf){
-            ccnl_free(pkt->buf);
+            ccn_iribu_free(pkt->buf);
         }
-        ccnl_free(pkt);
+        ccn_iribu_free(pkt);
     }
 }
 
 
-struct ccnl_pkt_s *
-ccnl_pkt_dup(struct ccnl_pkt_s *pkt){
-    struct ccnl_pkt_s * ret = ccnl_malloc(sizeof(struct ccnl_pkt_s));
+struct ccn_iribu_pkt_s *
+ccn_iribu_pkt_dup(struct ccn_iribu_pkt_s *pkt){
+    struct ccn_iribu_pkt_s * ret = ccn_iribu_malloc(sizeof(struct ccn_iribu_pkt_s));
     if(!pkt){
         if (ret) {
-            ccnl_free(ret);
+            ccn_iribu_free(ret);
         }
         return NULL;
     }
@@ -98,32 +98,32 @@ ccnl_pkt_dup(struct ccnl_pkt_s *pkt){
         ret->s = pkt->s;
         switch (pkt->pfx->suite) {
 #ifdef USE_SUITE_CCNB
-        case CCNL_SUITE_CCNB:
+        case CCN_IRIBU_SUITE_CCNB:
             ret->s.ccnb.nonce = buf_dup(pkt->s.ccnb.nonce);
             ret->s.ccnb.ppkd = buf_dup(pkt->s.ccnb.ppkd);
             break;
 #endif
 #ifdef USE_SUITE_CCNTLV
-        case CCNL_SUITE_CCNTLV:
+        case CCN_IRIBU_SUITE_CCNTLV:
             ret->s.ccntlv.keyid = buf_dup(pkt->s.ccntlv.keyid);
             break;
 #endif
 #ifdef USE_SUITE_NDNTLV
-        case CCNL_SUITE_NDNTLV:
+        case CCN_IRIBU_SUITE_NDNTLV:
             ret->s.ndntlv.nonce = buf_dup(pkt->s.ndntlv.nonce);
             ret->s.ndntlv.ppkl = buf_dup(pkt->s.ndntlv.ppkl);
             break;
 #endif
 #ifdef USE_SUITE_LOCALRPC
-        case CCNL_SUITE_LOCALRPC:
+        case CCN_IRIBU_SUITE_LOCALRPC:
 #endif
         default:
             break;
         }
-        ret->pfx = ccnl_prefix_dup(pkt->pfx);
+        ret->pfx = ccn_iribu_prefix_dup(pkt->pfx);
         if(!ret->pfx){
             ret->buf = NULL;
-            ccnl_pkt_free(ret);
+            ccn_iribu_pkt_free(ret);
             return NULL;
         }
         ret->pfx->suite = pkt->pfx->suite;
@@ -136,13 +136,13 @@ ccnl_pkt_dup(struct ccnl_pkt_s *pkt){
 }
 
 size_t
-ccnl_pkt_mkComponent(int suite, uint8_t *dst, char *src, size_t srclen)
+ccn_iribu_pkt_mkComponent(int suite, uint8_t *dst, char *src, size_t srclen)
 {
     size_t len = 0;
 
     switch (suite) {
 #ifdef USE_SUITE_CCNTLV
-    case CCNL_SUITE_CCNTLV: {
+    case CCN_IRIBU_SUITE_CCNTLV: {
         if (srclen > UINT16_MAX) {
             return 0;
         }
@@ -165,11 +165,11 @@ ccnl_pkt_mkComponent(int suite, uint8_t *dst, char *src, size_t srclen)
 }
 
 int
-ccnl_pkt_prependComponent(int suite, char *src, int *offset, unsigned char *buf)
+ccn_iribu_pkt_prependComponent(int suite, char *src, int *offset, unsigned char *buf)
 {
     int len = strlen(src);
 
-    DEBUGMSG_CUTL(TRACE, "ccnl_pkt_prependComponent(%d, %s)\n", suite, src);
+    DEBUGMSG_CUTL(TRACE, "ccn_iribu_pkt_prependComponent(%d, %s)\n", suite, src);
 
     if (*offset < len)
         return -1;
@@ -177,7 +177,7 @@ ccnl_pkt_prependComponent(int suite, char *src, int *offset, unsigned char *buf)
     *offset -= len;
 
 #ifdef USE_SUITE_CCNTLV
-    if (suite == CCNL_SUITE_CCNTLV) {
+    if (suite == CCN_IRIBU_SUITE_CCNTLV) {
         unsigned short *sp = (unsigned short*) (buf + *offset) - 1;
         if (*offset < 4)
             return -1;

@@ -20,13 +20,13 @@
  * 2013-07-06  created
  */
 
-#include "ccnl-common.h"
-#include "ccnl-frag.h"
+#include "ccn-iribu-common.h"
+#include "ccn-iribu-frag.h"
 
 // ----------------------------------------------------------------------
 
 int
-ccnl_core_RX_i_or_c(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
+ccn_iribu_core_RX_i_or_c(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
                     unsigned char **data, int *datalen)
 {
     return 0;
@@ -39,7 +39,7 @@ static char noclobber = 0;
 static int cnt;
 
 int
-reassembly_done(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
+reassembly_done(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
                 unsigned char **data, int *len)
 {
     char fname[512];
@@ -67,17 +67,17 @@ reassembly_done(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
 
 
 void
-parseFrag(char *fname, unsigned char *data, int datalen, struct ccnl_face_s *f)
+parseFrag(char *fname, unsigned char *data, int datalen, struct ccn_iribu_face_s *f)
 {
     int num, typ;
 
     if (dehead(&data, &datalen, &num, &typ)
-                || typ != CCN_TT_DTAG || num != CCNL_DTAG_FRAGMENT2013) {
+                || typ != CCN_TT_DTAG || num != CCN_IRIBU_DTAG_FRAGMENT2013) {
         DEBUGMSG(ERROR, "** file %s not a CCNx2013 fragment, ignored\n", fname);
         return;
     }
 
-    ccnl_frag_RX_CCNx2013(reassembly_done, NULL, f, &data, &datalen);
+    ccn_iribu_frag_RX_CCNx2013(reassembly_done, NULL, f, &data, &datalen);
     exit(-1);
 }
 
@@ -88,7 +88,7 @@ main(int argc, char *argv[])
 {
     int opt;
     char *fname;
-    struct ccnl_face_s f;
+    struct ccn_iribu_face_s f;
 
     while ((opt = getopt(argc, argv, "f:hv:n:")) != -1) {
         switch (opt) {
@@ -103,7 +103,7 @@ main(int argc, char *argv[])
             if (isdigit(optarg[0]))
                 debug_level = (int)strtol(optarg, (char**)NULL, 10);
             else
-                debug_level = ccnl_debug_str2level(optarg);
+                debug_level = ccn_iribu_debug_str2level(optarg);
 #endif
         break;
 
@@ -126,7 +126,7 @@ usage:
 
 
     memset(&f, 0, sizeof(f));
-    f.frag = ccnl_frag_new(CCNL_FRAG_CCNx2013, 1200);
+    f.frag = ccn_iribu_frag_new(CCN_IRIBU_FRAG_CCNx2013, 1200);
 
     fname = argv[optind++];
     do {

@@ -1,5 +1,5 @@
 /*
- * @f ccnl-unix.c
+ * @f ccn-iribu-unix.c
  * @b CCN lite, core CCNx protocol logic
  *
  * Copyright (C) 2011-18 University of Basel
@@ -20,25 +20,25 @@
  * 2017-06-16 created
  */
 
-#include "ccnl-unix.h"
+#include "ccn-iribu-unix.h"
 
-#include "ccnl-os-includes.h"
+#include "ccn-iribu-os-includes.h"
 
-#include "ccnl-core.h"
-#include "ccnl-producer.h"
+#include "ccn-iribu-core.h"
+#include "ccn-iribu-producer.h"
 
-#include "ccnl-pkt-ccnb.h"
-#include "ccnl-pkt-ccntlv.h"
-#include "ccnl-pkt-ndntlv.h"
-#include "ccnl-pkt-switch.h"
-#include "ccnl-dispatch.h"
+#include "ccn-iribu-pkt-ccnb.h"
+#include "ccn-iribu-pkt-ccntlv.h"
+#include "ccn-iribu-pkt-ndntlv.h"
+#include "ccn-iribu-pkt-switch.h"
+#include "ccn-iribu-dispatch.h"
 #ifdef USE_HTTP_STATUS
-#include "ccnl-http-status.h"
+#include "ccn-iribu-http-status.h"
 #endif
 
 /**
  * TODO: The variables are never updated within the context of
- * ccnl_unix.c
+ * ccn_iribu_unix.c
  */
 static int lasthour = -1;
 #ifdef USE_SCHEDULER
@@ -48,12 +48,12 @@ static int inter_pkt_interval = 0; // in usec
 
 #ifdef USE_LINKLAYER
 int
-ccnl_open_ethdev(char *devname, struct sockaddr_ll *sll, uint16_t ethtype)
+ccn_iribu_open_ethdev(char *devname, struct sockaddr_ll *sll, uint16_t ethtype)
 {
     struct ifreq ifr;
     int s;
 
-    DEBUGMSG(TRACE, "ccnl_open_ethdev %s 0x%04x\n", devname, ethtype);
+    DEBUGMSG(TRACE, "ccn_iribu_open_ethdev %s 0x%04x\n", devname, ethtype);
 
     s = socket(AF_PACKET, SOCK_RAW, htons(ethtype));
     if (s < 0) {
@@ -88,12 +88,12 @@ ccnl_open_ethdev(char *devname, struct sockaddr_ll *sll, uint16_t ethtype)
 
 #ifdef USE_WPAN
 int
-ccnl_open_wpandev(char *devname, struct sockaddr_ieee802154 *swpan)
+ccn_iribu_open_wpandev(char *devname, struct sockaddr_ieee802154 *swpan)
 {
     struct ifreq ifr;
     int s;
 
-    DEBUGMSG(TRACE, "ccnl_open_wpandev %s\n", devname);
+    DEBUGMSG(TRACE, "ccn_iribu_open_wpandev %s\n", devname);
 
     s = socket(AF_IEEE802154, SOCK_DGRAM, 0);
     if (s < 0) {
@@ -123,7 +123,7 @@ ccnl_open_wpandev(char *devname, struct sockaddr_ieee802154 *swpan)
 
 #ifdef USE_UNIXSOCKET
 int
-ccnl_open_unixpath(char *path, struct sockaddr_un *ux)
+ccn_iribu_open_unixpath(char *path, struct sockaddr_un *ux)
 {
     int sock, bufsize;
 
@@ -143,7 +143,7 @@ ccnl_open_unixpath(char *path, struct sockaddr_un *ux)
         return -1;
     }
 
-    bufsize = 4 * CCNL_MAX_PACKET_SIZE;
+    bufsize = 4 * CCN_IRIBU_MAX_PACKET_SIZE;
     setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof(bufsize));
     setsockopt(sock, SOL_SOCKET, SO_SNDBUF, &bufsize, sizeof(bufsize));
 
@@ -155,7 +155,7 @@ ccnl_open_unixpath(char *path, struct sockaddr_un *ux)
 
 #ifdef USE_IPV4
 int
-ccnl_open_udpdev(uint16_t port, struct sockaddr_in *si)
+ccn_iribu_open_udpdev(uint16_t port, struct sockaddr_in *si)
 {
     int s, opt_value;
     socklen_t len;
@@ -189,7 +189,7 @@ ccnl_open_udpdev(uint16_t port, struct sockaddr_in *si)
 
 #ifdef USE_IPV6
 int
-ccnl_open_udp6dev(uint16_t port, struct sockaddr_in6 *sin)
+ccn_iribu_open_udp6dev(uint16_t port, struct sockaddr_in6 *sin)
 {
     int s;
     socklen_t len;
@@ -217,16 +217,16 @@ ccnl_open_udp6dev(uint16_t port, struct sockaddr_in6 *sin)
 
 #ifdef USE_LINKLAYER
 ssize_t
-ccnl_eth_sendto(int sock, uint8_t *dst, uint8_t *src,
+ccn_iribu_eth_sendto(int sock, uint8_t *dst, uint8_t *src,
                 uint8_t *data, size_t datalen)
 {
-    uint16_t type = htons(CCNL_ETH_TYPE);
+    uint16_t type = htons(CCN_IRIBU_ETH_TYPE);
     uint8_t buf[2000];
     size_t hdrlen;
 
 #ifdef USE_DEBUG
     strncpy((char*)buf, ll2ascii(dst, 6), sizeof(buf));
-    DEBUGMSG(TRACE, "ccnl_eth_sendto %zu bytes (src=%s, dst=%s)\n",
+    DEBUGMSG(TRACE, "ccn_iribu_eth_sendto %zu bytes (src=%s, dst=%s)\n",
              datalen, ll2ascii(src, 6), buf);
 #endif
 
@@ -246,7 +246,7 @@ ccnl_eth_sendto(int sock, uint8_t *dst, uint8_t *src,
 
 #ifdef USE_WPAN
 int
-ccnl_wpan_sendto(int sock, unsigned char *data, int datalen,
+ccn_iribu_wpan_sendto(int sock, unsigned char *data, int datalen,
                  struct sockaddr_ieee802154 *dst)
 {
     return sendto(sock, data, datalen, 0, (struct sockaddr *)dst,
@@ -257,23 +257,23 @@ ccnl_wpan_sendto(int sock, unsigned char *data, int datalen,
 
 #ifdef USE_SCHEDULER
 
-struct ccnl_sched_s*
-ccnl_relay_defaultFaceScheduler(struct ccnl_relay_s *ccnl,
+struct ccn_iribu_sched_s*
+ccn_iribu_relay_defaultFaceScheduler(struct ccn_iribu_relay_s *ccnl,
                                 void(*cb)(void*,void*))
 {
-    return ccnl_sched_pktrate_new(cb, ccnl, inter_ccn_interval);
+    return ccn_iribu_sched_pktrate_new(cb, ccnl, inter_ccn_interval);
 }
 
-struct ccnl_sched_s*
-ccnl_relay_defaultInterfaceScheduler(struct ccnl_relay_s *ccnl,
+struct ccn_iribu_sched_s*
+ccn_iribu_relay_defaultInterfaceScheduler(struct ccn_iribu_relay_s *ccnl,
                                      void(*cb)(void*,void*))
 {
-    return ccnl_sched_pktrate_new(cb, ccnl, inter_pkt_interval);
+    return ccn_iribu_sched_pktrate_new(cb, ccnl, inter_pkt_interval);
 }
 #endif // USE_SCHEDULER
 
 
-void ccnl_ageing(void *relay, void *aux)
+void ccn_iribu_ageing(void *relay, void *aux)
 {
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
@@ -283,15 +283,15 @@ void ccnl_ageing(void *relay, void *aux)
         lasthour = tm->tm_hour;
     }
 
-    ccnl_do_ageing(relay, aux);
-    ccnl_set_timer(1000000, ccnl_ageing, relay, 0);
+    ccn_iribu_do_ageing(relay, aux);
+    ccn_iribu_set_timer(1000000, ccn_iribu_ageing, relay, 0);
 }
 
 #if defined(USE_IPV4) || defined(USE_IPV6)
 void
-ccnl_relay_udp(struct ccnl_relay_s *relay, int32_t sport, int af, int suite)
+ccn_iribu_relay_udp(struct ccn_iribu_relay_s *relay, int32_t sport, int af, int suite)
 {
-    struct ccnl_if_s *i;
+    struct ccn_iribu_if_s *i;
     uint16_t port;
     if (sport < 0 || sport > UINT16_MAX) {
         return;
@@ -302,12 +302,12 @@ ccnl_relay_udp(struct ccnl_relay_s *relay, int32_t sport, int af, int suite)
     switch (af) {
 #ifdef USE_IPV4
     case AF_INET:
-	i->sock = ccnl_open_udpdev(port, &i->addr.ip4);
+	i->sock = ccn_iribu_open_udpdev(port, &i->addr.ip4);
 	break;
 #endif
 #ifdef USE_IPV6
     case AF_INET6:
-	i->sock = ccnl_open_udp6dev(port, &i->addr.ip6);
+	i->sock = ccn_iribu_open_udp6dev(port, &i->addr.ip6);
 	break;
 #endif
     default:
@@ -319,35 +319,35 @@ ccnl_relay_udp(struct ccnl_relay_s *relay, int32_t sport, int af, int suite)
         return;
     }
 
-//      i->frag = CCNL_DGRAM_FRAG_NONE;
+//      i->frag = CCN_IRIBU_DGRAM_FRAG_NONE;
 #ifdef USE_SUITE_CCNB
-    if (suite == CCNL_SUITE_CCNB) {
+    if (suite == CCN_IRIBU_SUITE_CCNB) {
         i->mtu = CCN_DEFAULT_MTU;
     }
 #endif
 #ifdef USE_SUITE_CCNTLV
-    if (suite == CCNL_SUITE_CCNTLV) {
+    if (suite == CCN_IRIBU_SUITE_CCNTLV) {
         i->mtu = CCN_DEFAULT_MTU;
     }
 #endif
 #ifdef USE_SUITE_NDNTLV
-    if (suite == CCNL_SUITE_NDNTLV) {
+    if (suite == CCN_IRIBU_SUITE_NDNTLV) {
         i->mtu = NDN_DEFAULT_MTU;
     }
 #endif
     i->fwdalli = 1;
     relay->ifcount++;
     DEBUGMSG(INFO, "UDP interface (%s) configured\n",
-             ccnl_addr2ascii(&i->addr));
+             ccn_iribu_addr2ascii(&i->addr));
     if (relay->defaultInterfaceScheduler)
         i->sched = relay->defaultInterfaceScheduler(relay,
-                                                        ccnl_interface_CTS);
+                                                        ccn_iribu_interface_CTS);
 }
 #endif
 
 void
-ccnl_ll_TX(struct ccnl_relay_s *ccnl, struct ccnl_if_s *ifc,
-           sockunion *dest, struct ccnl_buf_s *buf)
+ccn_iribu_ll_TX(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_if_s *ifc,
+           sockunion *dest, struct ccn_iribu_buf_s *buf)
 {
     ssize_t rc = -1;
     (void) ccnl;
@@ -388,7 +388,7 @@ ccnl_ll_TX(struct ccnl_relay_s *ccnl, struct ccnl_if_s *ifc,
 #endif
 #ifdef USE_LINKLAYER
     case AF_PACKET:
-        rc = ccnl_eth_sendto(ifc->sock,
+        rc = ccn_iribu_eth_sendto(ifc->sock,
                              dest->linklayer.sll_addr,
                              ifc->addr.linklayer.sll_addr,
                              buf->data, buf->datalen);
@@ -398,7 +398,7 @@ ccnl_ll_TX(struct ccnl_relay_s *ccnl, struct ccnl_if_s *ifc,
 #endif
 #ifdef USE_WPAN
     case AF_IEEE802154:
-        rc = ccnl_wpan_sendto(ifc->sock, buf->data, buf->datalen, &dest->wpan);
+        rc = ccn_iribu_wpan_sendto(ifc->sock, buf->data, buf->datalen, &dest->wpan);
         break;
 #endif
 #ifdef USE_UNIXSOCKET
@@ -418,7 +418,7 @@ ccnl_ll_TX(struct ccnl_relay_s *ccnl, struct ccnl_if_s *ifc,
 }
 
 void
-ccnl_relay_config(struct ccnl_relay_s *relay, char *ethdev, char *wpandev,
+ccn_iribu_relay_config(struct ccn_iribu_relay_s *relay, char *ethdev, char *wpandev,
                   int32_t udpport1, int32_t udpport2,
 		          int32_t udp6port1, int32_t udp6port2, int32_t httpport,
                   char *uxpath, int suite, int max_cache_entries,
@@ -429,7 +429,7 @@ ccnl_relay_config(struct ccnl_relay_s *relay, char *ethdev, char *wpandev,
     (void)httpport;
     (void)crypto_face_path;
 #if defined(USE_LINKLAYER) || defined(USE_WPAN) || defined(USE_UNIXSOCKET)
-    struct ccnl_if_s *i;
+    struct ccn_iribu_if_s *i;
 #endif
 
     DEBUGMSG(INFO, "configuring relay\n");
@@ -440,28 +440,28 @@ ccnl_relay_config(struct ccnl_relay_s *relay, char *ethdev, char *wpandev,
     relay->faces = NULL;
     relay->nonces = NULL;
     relay->max_cache_entries = max_cache_entries;
-    relay->max_pit_entries = CCNL_DEFAULT_MAX_PIT_ENTRIES;
-    relay->ccnl_ll_TX_ptr = &ccnl_ll_TX;
+    relay->max_pit_entries = CCN_IRIBU_DEFAULT_MAX_PIT_ENTRIES;
+    relay->ccn_iribu_ll_TX_ptr = &ccn_iribu_ll_TX;
 
 #ifdef USE_SCHEDULER
-    relay->defaultFaceScheduler = ccnl_relay_defaultFaceScheduler;
-    relay->defaultInterfaceScheduler = ccnl_relay_defaultInterfaceScheduler;
+    relay->defaultFaceScheduler = ccn_iribu_relay_defaultFaceScheduler;
+    relay->defaultInterfaceScheduler = ccn_iribu_relay_defaultInterfaceScheduler;
 #endif
 #ifdef USE_LINKLAYER
     // add (real) eth0 interface with index 0:
     if (ethdev) {
         i = &relay->ifs[relay->ifcount];
-        i->sock = ccnl_open_ethdev(ethdev, &i->addr.linklayer, CCNL_ETH_TYPE);
+        i->sock = ccn_iribu_open_ethdev(ethdev, &i->addr.linklayer, CCN_IRIBU_ETH_TYPE);
         i->mtu = 1500;
         i->reflect = 1;
         i->fwdalli = 1;
         if (i->sock >= 0) {
             relay->ifcount++;
             DEBUGMSG(INFO, "ETH interface (%s %s) configured\n",
-                     ethdev, ccnl_addr2ascii(&i->addr));
+                     ethdev, ccn_iribu_addr2ascii(&i->addr));
             if (relay->defaultInterfaceScheduler)
                 i->sched = relay->defaultInterfaceScheduler(relay,
-                                                        ccnl_interface_CTS);
+                                                        ccn_iribu_interface_CTS);
         } else
             DEBUGMSG(WARNING, "sorry, could not open eth device\n");
     }
@@ -470,50 +470,50 @@ ccnl_relay_config(struct ccnl_relay_s *relay, char *ethdev, char *wpandev,
 #ifdef USE_WPAN
     if (wpandev) {
         i = &relay->ifs[relay->ifcount];
-        i->sock = ccnl_open_wpandev(wpandev, &i->addr.wpan);
+        i->sock = ccn_iribu_open_wpandev(wpandev, &i->addr.wpan);
         i->mtu = 123;
         i->reflect = 1;
         i->fwdalli = 1;
         if (i->sock >= 0) {
             relay->ifcount++;
             DEBUGMSG(INFO, "WPAN interface (%s %s) configured\n",
-                     wpandev, ccnl_addr2ascii(&i->addr));
+                     wpandev, ccn_iribu_addr2ascii(&i->addr));
             if (relay->defaultInterfaceScheduler)
                 i->sched = relay->defaultInterfaceScheduler(relay,
-                                                        ccnl_interface_CTS);
+                                                        ccn_iribu_interface_CTS);
         } else
             DEBUGMSG(WARNING, "sorry could not open WPAN device\n");
     }
 #endif // USE_WPAN
     DEBUGMSG(INFO, "configuring relay2\n");
 #ifdef USE_IPV4
-    ccnl_relay_udp(relay, udpport1, AF_INET, suite);
-    ccnl_relay_udp(relay, udpport2, AF_INET, suite);
+    ccn_iribu_relay_udp(relay, udpport1, AF_INET, suite);
+    ccn_iribu_relay_udp(relay, udpport2, AF_INET, suite);
 #endif
     DEBUGMSG(INFO, "configuring relay3\n");
 #ifdef USE_IPV6
-    ccnl_relay_udp(relay, udp6port1, AF_INET6, suite);
-    ccnl_relay_udp(relay, udp6port2, AF_INET6, suite);
+    ccn_iribu_relay_udp(relay, udp6port1, AF_INET6, suite);
+    ccn_iribu_relay_udp(relay, udp6port2, AF_INET6, suite);
 #endif
 
 #ifdef USE_HTTP_STATUS
     if (httpport > 0) {
-        relay->http = ccnl_http_new(relay, httpport);
+        relay->http = ccn_iribu_http_new(relay, httpport);
     }
 #endif // USE_HTTP_STATUS
 
 #ifdef USE_UNIXSOCKET
     if (uxpath) {
         i = &relay->ifs[relay->ifcount];
-        i->sock = ccnl_open_unixpath(uxpath, &i->addr.ux);
+        i->sock = ccn_iribu_open_unixpath(uxpath, &i->addr.ux);
         i->mtu = 4096;
         if (i->sock >= 0) {
             relay->ifcount++;
             DEBUGMSG(INFO, "UNIX interface (%s) configured\n",
-                     ccnl_addr2ascii(&i->addr));
+                     ccn_iribu_addr2ascii(&i->addr));
             if (relay->defaultInterfaceScheduler)
                 i->sched = relay->defaultInterfaceScheduler(relay,
-                                                        ccnl_interface_CTS);
+                                                        ccn_iribu_interface_CTS);
         } else
             DEBUGMSG(WARNING, "sorry, could not open unix datagram device\n");
     }
@@ -522,16 +522,16 @@ ccnl_relay_config(struct ccnl_relay_s *relay, char *ethdev, char *wpandev,
         char h[1024];
         //sending interface + face
         i = &relay->ifs[relay->ifcount];
-        i->sock = ccnl_open_unixpath(crypto_face_path, &i->addr.ux);
+        i->sock = ccn_iribu_open_unixpath(crypto_face_path, &i->addr.ux);
         i->mtu = 4096;
         if (i->sock >= 0) {
             relay->ifcount++;
             DEBUGMSG(INFO, "new UNIX interface (%s) configured\n",
-                     ccnl_addr2ascii(&i->addr));
+                     ccn_iribu_addr2ascii(&i->addr));
             if (relay->defaultInterfaceScheduler)
                 i->sched = relay->defaultInterfaceScheduler(relay,
-                                                        ccnl_interface_CTS);
-            ccnl_crypto_create_ccnl_crypto_face(relay, crypto_face_path);
+                                                        ccn_iribu_interface_CTS);
+            ccn_iribu_crypto_create_ccn_iribu_crypto_face(relay, crypto_face_path);
             relay->crypto_path = crypto_face_path;
         } else
             DEBUGMSG(WARNING, "sorry, could not open unix datagram device\n");
@@ -540,62 +540,62 @@ ccnl_relay_config(struct ccnl_relay_s *relay, char *ethdev, char *wpandev,
         memset(h,0,sizeof(h));
         snprintf(h, sizeof(h), "%s-2",crypto_face_path);
         i = &relay->ifs[relay->ifcount];
-        i->sock = ccnl_open_unixpath(h, &i->addr.ux);
+        i->sock = ccn_iribu_open_unixpath(h, &i->addr.ux);
         i->mtu = 4096;
         if (i->sock >= 0) {
             relay->ifcount++;
             DEBUGMSG(INFO, "new UNIX interface (%s) configured\n",
-                     ccnl_addr2ascii(&i->addr));
+                     ccn_iribu_addr2ascii(&i->addr));
             if (relay->defaultInterfaceScheduler)
                 i->sched = relay->defaultInterfaceScheduler(relay,
-                                                        ccnl_interface_CTS);
-            //create_ccnl_crypto_face(relay, crypto_face_path);
+                                                        ccn_iribu_interface_CTS);
+            //create_ccn_iribu_crypto_face(relay, crypto_face_path);
         } else
             DEBUGMSG(WARNING, "sorry, could not open unix datagram device\n");
     }
 #endif //USE_SIGNATURES
 #endif // USE_UNIXSOCKET
 
-    ccnl_set_timer(1000000, ccnl_ageing, relay, 0);
+    ccn_iribu_set_timer(1000000, ccn_iribu_ageing, relay, 0);
 }
 
 int
-ccnl_io_loop(struct ccnl_relay_s *ccnl)
+ccn_iribu_io_loop(struct ccn_iribu_relay_s *ccnl)
 {
     int i, maxfd = -1, rc;
     size_t len;
     fd_set readfs, writefs;
-    unsigned char buf[CCNL_MAX_PACKET_SIZE];
+    unsigned char buf[CCN_IRIBU_MAX_PACKET_SIZE];
 
-    if (ccnl->ifcount == 0) {
+    if (ccn-iribu->ifcount == 0) {
         DEBUGMSG(ERROR, "no socket to work with, not good, quitting\n");
         exit(EXIT_FAILURE);
     }
-    for (i = 0; i < ccnl->ifcount; i++) {
-        if (ccnl->ifs[i].sock > maxfd) {
-            maxfd = ccnl->ifs[i].sock;
+    for (i = 0; i < ccn-iribu->ifcount; i++) {
+        if (ccn-iribu->ifs[i].sock > maxfd) {
+            maxfd = ccn-iribu->ifs[i].sock;
         }
     }
     maxfd++;
 
     DEBUGMSG(INFO, "starting main event and IO loop\n");
-    while (!ccnl->halt_flag) {
+    while (!ccn-iribu->halt_flag) {
         int usec;
 
         FD_ZERO(&readfs);
         FD_ZERO(&writefs);
 
 #ifdef USE_HTTP_STATUS
-        ccnl_http_anteselect(ccnl, ccnl->http, &readfs, &writefs, &maxfd);
+        ccn_iribu_http_anteselect(ccnl, ccn-iribu->http, &readfs, &writefs, &maxfd);
 #endif
-        for (i = 0; i < ccnl->ifcount; i++) {
-            FD_SET(ccnl->ifs[i].sock, &readfs);
-            if (ccnl->ifs[i].qlen > 0) {
-                FD_SET(ccnl->ifs[i].sock, &writefs);
+        for (i = 0; i < ccn-iribu->ifcount; i++) {
+            FD_SET(ccn-iribu->ifs[i].sock, &readfs);
+            if (ccn-iribu->ifs[i].qlen > 0) {
+                FD_SET(ccn-iribu->ifs[i].sock, &writefs);
             }
         }
 
-        usec = ccnl_run_events();
+        usec = ccn_iribu_run_events();
         if (usec >= 0) {
             struct timeval deadline;
             deadline.tv_sec = usec / 1000000;
@@ -611,33 +611,33 @@ ccnl_io_loop(struct ccnl_relay_s *ccnl)
         }
 
 #ifdef USE_HTTP_STATUS
-        ccnl_http_postselect(ccnl, ccnl->http, &readfs, &writefs);
+        ccn_iribu_http_postselect(ccnl, ccn-iribu->http, &readfs, &writefs);
 #endif
-        for (i = 0; i < ccnl->ifcount; i++) {
-            if (FD_ISSET(ccnl->ifs[i].sock, &readfs)) {
+        for (i = 0; i < ccn-iribu->ifcount; i++) {
+            if (FD_ISSET(ccn-iribu->ifs[i].sock, &readfs)) {
                 sockunion src_addr;
                 socklen_t addrlen = sizeof(sockunion);
                 ssize_t recvlen;
-                if ((recvlen = recvfrom(ccnl->ifs[i].sock, buf, sizeof(buf), 0,
+                if ((recvlen = recvfrom(ccn-iribu->ifs[i].sock, buf, sizeof(buf), 0,
                                 (struct sockaddr*) &src_addr, &addrlen)) > 0) {
                     len = (size_t) recvlen;
                     if (0) {}
 #ifdef USE_IPV4
                     else if (src_addr.sa.sa_family == AF_INET) {
-                        ccnl_core_RX(ccnl, i, buf, len,
+                        ccn_iribu_core_RX(ccnl, i, buf, len,
                                      &src_addr.sa, sizeof(src_addr.ip4));
                     }
 #endif
 #ifdef USE_IPV6
                     else if (src_addr.sa.sa_family == AF_INET6) {
-                        ccnl_core_RX(ccnl, i, buf, len,
+                        ccn_iribu_core_RX(ccnl, i, buf, len,
                                      &src_addr.sa, sizeof(src_addr.ip6));
                     }
 #endif
 #ifdef USE_LINKLAYER
                     else if (src_addr.sa.sa_family == AF_PACKET) {
                         if (len > 14) {
-                            ccnl_core_RX(ccnl, i, buf + 14, len - 14,
+                            ccn_iribu_core_RX(ccnl, i, buf + 14, len - 14,
                                          &src_addr.sa, sizeof(src_addr.linklayer));
                         }
                     }
@@ -645,22 +645,22 @@ ccnl_io_loop(struct ccnl_relay_s *ccnl)
 #ifdef USE_WPAN
                     else if (src_addr.sa.sa_family == AF_IEEE802154) {
                         if (len > 14) {
-                            ccnl_core_RX(ccnl, i, buf, len,
+                            ccn_iribu_core_RX(ccnl, i, buf, len,
                                          &src_addr.sa, sizeof(src_addr.linklayer));
                         }
                     }
 #endif
 #ifdef USE_UNIXSOCKET
                     else if (src_addr.sa.sa_family == AF_UNIX) {
-                        ccnl_core_RX(ccnl, i, buf, len,
+                        ccn_iribu_core_RX(ccnl, i, buf, len,
                                      &src_addr.sa, sizeof(src_addr.ux));
                     }
 #endif
                 }
             }
 
-            if (FD_ISSET(ccnl->ifs[i].sock, &writefs)) {
-              ccnl_interface_CTS(ccnl, ccnl->ifs + i);
+            if (FD_ISSET(ccn-iribu->ifs[i].sock, &writefs)) {
+              ccn_iribu_interface_CTS(ccnl, ccn-iribu->ifs + i);
             }
         }
     }
@@ -669,7 +669,7 @@ ccnl_io_loop(struct ccnl_relay_s *ccnl)
 }
 
 void
-ccnl_populate_cache(struct ccnl_relay_s *ccnl, char *path)
+ccn_iribu_populate_cache(struct ccn_iribu_relay_s *ccnl, char *path)
 {
     DIR *dir;
     struct dirent *de;
@@ -685,8 +685,8 @@ ccnl_populate_cache(struct ccnl_relay_s *ccnl, char *path)
     while ((de = readdir(dir))) {
         char fname[1000];
         struct stat s;
-        struct ccnl_buf_s *buf = 0; // , *nonce=0, *ppkd=0, *pkt = 0;
-        struct ccnl_content_s *c = 0;
+        struct ccn_iribu_buf_s *buf = 0; // , *nonce=0, *ppkd=0, *pkt = 0;
+        struct ccn_iribu_content_s *c = 0;
         int fd, suite;
         ssize_t recvlen;
         size_t datalen, skip, flen;
@@ -696,7 +696,7 @@ ccnl_populate_cache(struct ccnl_relay_s *ccnl, char *path)
         uint64_t typ;
         size_t len;
 #endif
-        struct ccnl_pkt_s *pk;
+        struct ccn_iribu_pkt_s *pk;
 
         if (de->d_name[0] == '.') {
             continue;
@@ -726,7 +726,7 @@ ccnl_populate_cache(struct ccnl_relay_s *ccnl, char *path)
             continue;
         }
 
-        buf = (struct ccnl_buf_s *) ccnl_malloc(sizeof(*buf) + s.st_size);
+        buf = (struct ccn_iribu_buf_s *) ccn_iribu_malloc(sizeof(*buf) + s.st_size);
         if (buf) {
             recvlen = read(fd, buf->data, flen);
         } else {
@@ -740,12 +740,12 @@ ccnl_populate_cache(struct ccnl_relay_s *ccnl, char *path)
             continue;
         }
         buf->datalen = datalen;
-        suite = ccnl_pkt2suite(buf->data, datalen, &skip);
+        suite = ccn_iribu_pkt2suite(buf->data, datalen, &skip);
 
         pk = NULL;
         switch (suite) {
 #ifdef USE_SUITE_CCNB
-        case CCNL_SUITE_CCNB: {
+        case CCN_IRIBU_SUITE_CCNB: {
             uint8_t *start;
 
             data = start = buf->data + skip;
@@ -757,39 +757,39 @@ ccnl_populate_cache(struct ccnl_relay_s *ccnl, char *path)
             data += 2;
             datalen -= 2;
 
-            pk = ccnl_ccnb_bytes2pkt(start, &data, &datalen);
+            pk = ccn_iribu_ccnb_bytes2pkt(start, &data, &datalen);
             break;
         }
 #endif
 #ifdef USE_SUITE_CCNTLV
-        case CCNL_SUITE_CCNTLV: {
+        case CCN_IRIBU_SUITE_CCNTLV: {
             size_t hdrlen;
             uint8_t *start;
 
             data = start = buf->data + skip;
             datalen -=  skip;
 
-            if (ccnl_ccntlv_getHdrLen(data, datalen, &hdrlen)) {
+            if (ccn_iribu_ccntlv_getHdrLen(data, datalen, &hdrlen)) {
                 goto notacontent;
             }
             data += hdrlen;
             datalen -= hdrlen;
 
-            pk = ccnl_ccntlv_bytes2pkt(start, &data, &datalen);
+            pk = ccn_iribu_ccntlv_bytes2pkt(start, &data, &datalen);
             break;
         }
 #endif
 #ifdef USE_SUITE_NDNTLV
-        case CCNL_SUITE_NDNTLV: {
+        case CCN_IRIBU_SUITE_NDNTLV: {
             uint8_t *olddata;
 
             data = olddata = buf->data + skip;
             datalen -= skip;
-            if (ccnl_ndntlv_dehead(&data, &datalen, &typ, &len) ||
+            if (ccn_iribu_ndntlv_dehead(&data, &datalen, &typ, &len) ||
                                                          typ != NDN_TLV_Data) {
                 goto notacontent;
             }
-            pk = ccnl_ndntlv_bytes2pkt(typ, olddata, &data, &datalen);
+            pk = ccn_iribu_ndntlv_bytes2pkt(typ, olddata, &data, &datalen);
             break;
         }
 #endif
@@ -801,21 +801,21 @@ ccnl_populate_cache(struct ccnl_relay_s *ccnl, char *path)
             DEBUGMSG(DEBUG, "  parsing error in %s\n", de->d_name);
             goto Done;
         }
-        c = ccnl_content_new(&pk);
+        c = ccn_iribu_content_new(&pk);
         if (!c) {
             DEBUGMSG(WARNING, "could not create content (%s)\n", de->d_name);
             goto Done;
         }
-        ccnl_content_add2cache(ccnl, c);
-        c->flags |= CCNL_CONTENT_FLAGS_STATIC;
+        ccn_iribu_content_add2cache(ccnl, c);
+        c->flags |= CCN_IRIBU_CONTENT_FLAGS_STATIC;
 Done:
-        ccnl_pkt_free(pk);
-        ccnl_free(buf);
+        ccn_iribu_pkt_free(pk);
+        ccn_iribu_free(buf);
         continue;
 #if defined(USE_SUITE_CCNB) || defined(USE_SUITE_NDNTLV)
 notacontent:
         DEBUGMSG(WARNING, "not a content object (%s)\n", de->d_name);
-        ccnl_free(buf);
+        ccn_iribu_free(buf);
 #endif
     }
 

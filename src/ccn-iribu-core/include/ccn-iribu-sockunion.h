@@ -1,5 +1,5 @@
 /*
- * @f ccnl-sockunion.h
+ * @f ccn-iribu-sockunion.h
  * @b CCN lite (CCNL), core header file (internal data structures)
  *
  * Copyright (C) 2011-17, University of Basel
@@ -20,17 +20,17 @@
  * 2017-06-16 created
  */
 
-#ifndef CCNL_SOCKET_UNION_H
-#define CCNL_SOCKET_UNION_H
+#ifndef CCN_IRIBU_SOCKET_UNION_H
+#define CCN_IRIBU_SOCKET_UNION_H
 
 //#define _DEFAULT_SOURCE
 
-#include "ccnl-defs.h"
-#ifndef CCNL_LINUXKERNEL
+#include "ccn-iribu-defs.h"
+#ifndef CCN_IRIBU_LINUXKERNEL
 #include <netinet/in.h>
 #include <net/ethernet.h>
 
-#ifndef CCNL_RIOT
+#ifndef CCN_IRIBU_RIOT
 #include <sys/un.h>
 #else
 #include "net/packet.h"
@@ -53,12 +53,12 @@
 #  endif
 #elif defined(__linux__)
 #  include <endian.h>
-#ifndef CCNL_RIOT
+#ifndef CCN_IRIBU_RIOT
 #  include <linux/if_ether.h>  // ETH_ALEN
 #  include <linux/if_packet.h> // sockaddr_ll
-#endif //CCNL_RIOT
+#endif //CCN_IRIBU_RIOT
 #endif
-#endif //!CCNL_LINUXKERNEL
+#endif //!CCN_IRIBU_LINUXKERNEL
 
 #ifdef USE_WPAN
 /* TODO: remove when af_ieee802154.h is in linux mainline */
@@ -95,8 +95,8 @@ typedef union {
 #endif
 #ifdef USE_LINKLAYER
 #if (!defined(__FreeBSD__) && !defined(__APPLE__)) || \
-    (defined(CCNL_RIOT) && defined(__FreeBSD__)) ||  \
-    (defined(CCNL_RIOT) && defined(__APPLE__)) 
+    (defined(CCN_IRIBU_RIOT) && defined(__FreeBSD__)) ||  \
+    (defined(CCN_IRIBU_RIOT) && defined(__APPLE__)) 
     struct sockaddr_ll linklayer;
 #endif
 #endif
@@ -109,7 +109,7 @@ typedef union {
 } sockunion;
 
 int
-ccnl_is_local_addr(sockunion *su);
+ccn_iribu_is_local_addr(sockunion *su);
 
 /**
  * @brief Returns a string representation of a given socket
@@ -117,7 +117,7 @@ ccnl_is_local_addr(sockunion *su);
  * This function checks if the given socket type is supported by CCN-lite and
  * returns its string representation. In no circumstance should one pass this
  * function without a check to the return type to a function expecting a
- * string, e.g. "printf("from: %s\n", ccnl_addr2ascii(some_type));"!
+ * string, e.g. "printf("from: %s\n", ccn_iribu_addr2ascii(some_type));"!
  *
  * @param[in] su The socket type to represent as string
  *
@@ -125,10 +125,10 @@ ccnl_is_local_addr(sockunion *su);
  * @return NULL if the given socket type is not supported
  * @return A string representation of \ref su
  */
-char* ccnl_addr2ascii(sockunion *su);
+char* ccn_iribu_addr2ascii(sockunion *su);
 
 int
-ccnl_addr_cmp(sockunion *s1, sockunion *s2);
+ccn_iribu_addr_cmp(sockunion *s1, sockunion *s2);
 
 char*
 ll2ascii(unsigned char *addr, size_t len);
