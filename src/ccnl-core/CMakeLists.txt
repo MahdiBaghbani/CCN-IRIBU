@@ -1,18 +1,48 @@
-cmake_minimum_required(VERSION 2.8)
-project(ccnl-core)
+# CMake version.
+cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+# Project name.
+project(ccn-iribu-core)
 
-include_directories(include ../ccnl-pkt/include ../ccnl-unix/include ../ccnl-fwd/include ../ccnl-test/include ../ccnl-utils/include)
+set(
+        CMAKE_ARCHIVE_OUTPUT_DIRECTORY
+        ${CMAKE_BINARY_DIR}/lib
+)
 
-if(DEFINED CCNL_RIOT)
-    include_directories(include ../ccnl-riot/include)
+include_directories(
+        include
+        ../ccn-iribu-pkt/include
+        ../ccn-iribu-fwd/include
+        ../ccn-iribu-unix/include
+        ../ccn-iribu-test/include
+        ../ccn-iribu-utils/include
+)
+
+if(DEFINED CCN_IRIBU_RIOT)
+    include_directories(
+            include
+            ../ccn-iribu-riot/include
+    )
 endif()
 
-file(GLOB SOURCES "src/*.c")
-file(GLOB HEADERS "include/*.h")
+file(
+        GLOB
+        SOURCES
+        "src/*.c"
+)
 
-add_library(${PROJECT_NAME} STATIC ${SOURCES} ${HEADERS})
+file(
+        GLOB
+        HEADERS
+        "include/*.h"
+)
+
+add_library(
+        ${PROJECT_NAME}
+        STATIC
+        ${SOURCES}
+        ${HEADERS}
+)
 
 
 

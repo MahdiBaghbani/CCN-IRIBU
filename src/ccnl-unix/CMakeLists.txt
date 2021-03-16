@@ -1,11 +1,37 @@
-cmake_minimum_required(VERSION 2.8)
-project(ccnl-unix)
- 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+# CMake version.
+cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
 
-include_directories(include ../ccnl-addons/include ../ccnl-pkt/include ../ccnl-fwd/include ../ccnl-core/include)
+# Project name.
+project(ccn-iribu-unix)
  
-file(GLOB SOURCES "src/*.c")
-file(GLOB HEADERS "include/*.h")
+set(
+        CMAKE_ARCHIVE_OUTPUT_DIRECTORY
+        ${CMAKE_BINARY_DIR}/lib
+)
 
-add_library(${PROJECT_NAME} STATIC ${SOURCES} ${HEADERS})
+include_directories(
+        include
+        ../ccn-iribu-pkt/include
+        ../ccn-iribu-fwd/include
+        ../ccn-iribu-core/include
+        ../ccn-iribu-addons/include
+)
+ 
+file(
+        GLOB
+        SOURCES
+        "src/*.c"
+)
+
+file(
+        GLOB
+        HEADERS
+        "include/*.h"
+)
+
+add_library(
+        ${PROJECT_NAME}
+        STATIC
+        ${SOURCES}
+        ${HEADERS}
+)

@@ -1,3 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+# CMake version.
+cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
 
-add_subdirectory(ccnl-core)
+add_subdirectory(ccn-iribu-core)
