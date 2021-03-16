@@ -56,29 +56,29 @@ ccn_iribu_buf_new(void *data, size_t len)
 }
 
 void
-ccn_iribu_core_cleanup(struct ccn_iribu_relay_s *ccnl)
+ccn_iribu_core_cleanup(struct ccn_iribu_relay_s *ccn_iribu)
 {
     int k;
 
-    DEBUGMSG_CORE(TRACE, "ccn_iribu_core_cleanup %p\n", (void *) ccnl);
+    DEBUGMSG_CORE(TRACE, "ccn_iribu_core_cleanup %p\n", (void *) ccn_iribu);
 
-    while (ccn-iribu->pit)
-        ccn_iribu_interest_remove(ccnl, ccn-iribu->pit);
-    while (ccn-iribu->faces)
-        ccn_iribu_face_remove(ccnl, ccn-iribu->faces); // removes allmost all FWD entries
-    while (ccn-iribu->fib) {
-        struct ccn_iribu_forward_s *fwd = ccn-iribu->fib->next;
-        ccn_iribu_prefix_free(ccn-iribu->fib->prefix);
-        ccn_iribu_free(ccn-iribu->fib);
-        ccn-iribu->fib = fwd;
+    while (ccn_iribu->pit)
+        ccn_iribu_interest_remove(ccn_iribu, ccn_iribu->pit);
+    while (ccn_iribu->faces)
+        ccn_iribu_face_remove(ccn_iribu, ccn_iribu->faces); // removes allmost all FWD entries
+    while (ccn_iribu->fib) {
+        struct ccn_iribu_forward_s *fwd = ccn_iribu->fib->next;
+        ccn_iribu_prefix_free(ccn_iribu->fib->prefix);
+        ccn_iribu_free(ccn_iribu->fib);
+        ccn_iribu->fib = fwd;
     }
-    while (ccn-iribu->contents)
-        ccn_iribu_content_remove(ccnl, ccn-iribu->contents);
-    while (ccn-iribu->nonces) {
-        struct ccn_iribu_buf_s *tmp = ccn-iribu->nonces->next;
-        ccn_iribu_free(ccn-iribu->nonces);
-        ccn-iribu->nonces = tmp;
+    while (ccn_iribu->contents)
+        ccn_iribu_content_remove(ccn_iribu, ccn_iribu->contents);
+    while (ccn_iribu->nonces) {
+        struct ccn_iribu_buf_s *tmp = ccn_iribu->nonces->next;
+        ccn_iribu_free(ccn_iribu->nonces);
+        ccn_iribu->nonces = tmp;
     }
-    for (k = 0; k < ccn-iribu->ifcount; k++)
-        ccn_iribu_interface_cleanup(ccn-iribu->ifs + k);
+    for (k = 0; k < ccn_iribu->ifcount; k++)
+        ccn_iribu_interface_cleanup(ccn_iribu->ifs + k);
 }

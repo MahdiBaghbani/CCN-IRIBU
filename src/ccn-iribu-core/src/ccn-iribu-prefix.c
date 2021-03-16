@@ -171,7 +171,7 @@ ccn_iribu_prefix_appendCmp(struct ccn_iribu_prefix_s *prefix, uint8_t *cmp,
 }
 
 // TODO: This function should probably be moved to another file to indicate that it should only be used by application level programs
-// and not in the ccnl core. Chunknumbers for NDNTLV are only a convention and there no specification on the packet encoding level.
+// and not in the ccn iribu core. Chunknumbers for NDNTLV are only a convention and there no specification on the packet encoding level.
 int
 ccn_iribu_prefix_addChunkNum(struct ccn_iribu_prefix_s *prefix, uint32_t chunknum)
 {

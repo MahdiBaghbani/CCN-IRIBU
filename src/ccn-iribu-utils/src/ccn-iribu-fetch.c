@@ -1,5 +1,5 @@
 /*
- * @f util/ccn-lite-fetch.c
+ * @f util/ccn-iribu-fetch.c
  * @b request content: send an interest, wait for reply, output to stdout
  *
  * Copyright (C) 2013-14, Basil Kohler, University of Basel

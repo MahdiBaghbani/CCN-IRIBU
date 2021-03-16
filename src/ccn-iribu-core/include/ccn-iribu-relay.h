@@ -74,28 +74,28 @@ typedef int (*ccn_iribu_cache_strategy_func)(struct ccn_iribu_relay_s *relay,
 /**
  * @brief Broadcast an interest message to all available interfaces
  *
- * @param[in] ccnl          The CCN-lite relay used to send the interest
- * @param[in] interest      The interest which should be sent
+ * @param[in] ccn_iribu          The CCN-IRIBU relay used to send the interest
+ * @param[in] interest          The interest which should be sent
  */
-void ccn_iribu_interest_broadcast(struct ccn_iribu_relay_s *ccnl,
+void ccn_iribu_interest_broadcast(struct ccn_iribu_relay_s *ccn_iribu,
                              struct ccn_iribu_interest_s *interest);
 
-void ccn_iribu_face_CTS(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *f);
+void ccn_iribu_face_CTS(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_face_s *f);
 
 struct ccn_iribu_face_s*
-ccn_iribu_get_face_or_create(struct ccn_iribu_relay_s *ccnl, int ifndx,
+ccn_iribu_get_face_or_create(struct ccn_iribu_relay_s *ccn_iribu, int ifndx,
                         struct sockaddr *sa, size_t addrlen);
 
 struct ccn_iribu_face_s*
-ccn_iribu_face_remove(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *f);
+ccn_iribu_face_remove(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_face_s *f);
 
 void
 ccn_iribu_interface_enqueue(void (tx_done)(void*, int, int), struct ccn_iribu_face_s *f,
-                       struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_if_s *ifc,
+                       struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_if_s *ifc,
                        struct ccn_iribu_buf_s *buf, sockunion *dest);
 
 struct ccn_iribu_buf_s*
-ccn_iribu_face_dequeue(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *f);
+ccn_iribu_face_dequeue(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_face_s *f);
 
 void
 ccn_iribu_face_CTS_done(void *ptr, int cnt, int len);
@@ -103,84 +103,84 @@ ccn_iribu_face_CTS_done(void *ptr, int cnt, int len);
 /**
  * @brief Send a packet to the face @p to
  *
- * @param[in] ccnl  pointer to current ccnl relay
- * @param[in] to    face to send to
- * @param[in] pkt   packet to be sent
+ * @param[in] ccn_iribu     pointer to current ccn iribu relay
+ * @param[in] to            face to send to
+ * @param[in] pkt           packet to be sent
  *
  * @return   0 on success
  * @return   < 0 on failure
 */
 int
-ccn_iribu_send_pkt(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *to,
+ccn_iribu_send_pkt(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_face_s *to,
                 struct ccn_iribu_pkt_s *pkt);
 
 /**
  * @brief Send a buffer to the face @p to 
  *
- * @param[in] ccnl  pointer to current ccnl relay
- * @param[in] to    face to send to
- * @param[in] buf   buffer to be sent
+ * @param[in] ccn_iribu     pointer to current ccn iribu relay
+ * @param[in] to            face to send to
+ * @param[in] buf           buffer to be sent
  *
  * @return   0 on success
  * @return   < 0 on failure
 */
 int
-ccn_iribu_face_enqueue(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *to,
+ccn_iribu_face_enqueue(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_face_s *to,
                  struct ccn_iribu_buf_s *buf);
 
 
 struct ccn_iribu_interest_s*
-ccn_iribu_interest_remove(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_interest_s *i);
+ccn_iribu_interest_remove(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_interest_s *i);
 
 /**
  * @brief Forwards interest message according to FIB rules 
  *
- * @param[in] ccnl  pointer to current ccnl relay
- * @param[in] i     interest message to be forwarded
+ * @param[in] ccn_iribu     pointer to current ccn iribu relay
+ * @param[in] i             interest message to be forwarded
 */
 void
-ccn_iribu_interest_propagate(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_interest_s *i);
+ccn_iribu_interest_propagate(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_interest_s *i);
 
 
 struct ccn_iribu_content_s*
-ccn_iribu_content_remove(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_content_s *c);
+ccn_iribu_content_remove(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_content_s *c);
 
 /**
  * @brief add content @p c to the content store
  *
  * @note adding content with this function bypasses pending interests
  *
- * @param[in] ccnl  pointer to current ccnl relay
- * @param[in] c     content to be added to the content store
+ * @param[in] ccn_iribu     pointer to current ccn iribu relay
+ * @param[in] c             content to be added to the content store
  *
  * @return   reference to the content @p c
  * @return   NULL, if @p c cannot be added
 */
 struct ccn_iribu_content_s*
-ccn_iribu_content_add2cache(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_content_s *c);
+ccn_iribu_content_add2cache(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_content_s *c);
 
 /**
  * @brief deliver new content @p c to all clients with (loosely) matching interest 
  *
- * @param[in] ccnl  pointer to current ccnl relay
- * @param[in] c     content to be sent
+ * @param[in] ccn_iribu     pointer to current ccn iribu relay
+ * @param[in] c             content to be sent
  *
  * @return   number of faces to which the content was sent to
 */
 int
-ccn_iribu_content_serve_pending(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_content_s *c);
+ccn_iribu_content_serve_pending(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_content_s *c);
 
 void
 ccn_iribu_do_ageing(void *ptr, void *dummy);
 
 int
-ccn_iribu_nonce_find_or_append(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *nonce);
+ccn_iribu_nonce_find_or_append(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *nonce);
 
 int
 ccn_iribu_nonce_isDup(struct ccn_iribu_relay_s *relay, struct ccn_iribu_pkt_s *pkt);
 
 void
-ccn_iribu_core_cleanup(struct ccn_iribu_relay_s *ccnl);
+ccn_iribu_core_cleanup(struct ccn_iribu_relay_s *ccn_iribu);
 
 #ifdef NEEDS_PREFIX_MATCHING
 /**
@@ -223,10 +223,10 @@ ccn_iribu_fib_show(struct ccn_iribu_relay_s *relay);
 /**
  * @brief Prints the content of the content store
  *
- * @par[in] ccnl Local relay struct
+ * @par[in] ccn_iribu Local relay struct
  */
 void
-ccn_iribu_cs_dump(struct ccn_iribu_relay_s *ccnl);
+ccn_iribu_cs_dump(struct ccn_iribu_relay_s *ccn_iribu);
 
 void
 ccn_iribu_interface_CTS(void *aux1, void *aux2);
@@ -244,48 +244,48 @@ ccn_iribu_interface_CTS(void *aux1, void *aux2);
   } while(0)
 
 #ifdef CCN_IRIBU_APP_RX
-int ccn_iribu_app_RX(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_content_s *c);
+int ccn_iribu_app_RX(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_content_s *c);
 #endif
 
 /**
  * @brief Add content @p c to the Content Store and serve pending Interests
  *
- * @param[in] ccnl  pointer to current ccnl relay
- * @param[in] c     content to add to the content store
+ * @param[in] ccn_iribu     pointer to current ccn iribu relay
+ * @param[in] c             content to add to the content store
  *
  * @return   0,  if @p c was added to the content store
  * @return   -1, otherwise
 */
 int
-ccn_iribu_cs_add(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_content_s *c);
+ccn_iribu_cs_add(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_content_s *c);
 
 /**
  * @brief Remove content with @p prefix from the Content Store
  *
- * @param[in] ccnl      pointer to current ccnl relay
- * @param[in] prefix    prefix of the content to remove from the Content Store
+ * @param[in] ccn_iribu         pointer to current ccn iribu relay
+ * @param[in] prefix            prefix of the content to remove from the Content Store
  *
  * @return    0, if content with @p prefix was removed
- * @return   -1, if @p ccnl or @p prefix are NULL
+ * @return   -1, if @p ccn_iribu or @p prefix are NULL
  * @return   -2, if no memory could be allocated
  * @return   -3, if no content with @p prefix was found to be removed
 */
 int
-ccn_iribu_cs_remove(struct ccn_iribu_relay_s *ccnl, char *prefix);
+ccn_iribu_cs_remove(struct ccn_iribu_relay_s *ccn_iribu, char *prefix);
 
 /**
  * @brief Lookup content from the Content Store with prefix @p prefix
  *
- * @param[in] ccnl      pointer to current ccnl relay
- * @param[in] prefix    prefix of the content to lookup from the Content Store
+ * @param[in] ccn_iribu     pointer to current ccn iribu relay
+ * @param[in] prefix        prefix of the content to lookup from the Content Store
  *
  * @return              pointer to the content, if found
- * @return              NULL, if @p ccnl or @p prefix are NULL
+ * @return              NULL, if @p ccn_iribu or @p prefix are NULL
  * @return              NULL, on memory allocation failure
  * @return              NULL, if not found
 */
 struct ccn_iribu_content_s *
-ccn_iribu_cs_lookup(struct ccn_iribu_relay_s *ccnl, char *prefix);
+ccn_iribu_cs_lookup(struct ccn_iribu_relay_s *ccn_iribu, char *prefix);
 
 /**
  * @brief Set a function to control the cache replacement strategy

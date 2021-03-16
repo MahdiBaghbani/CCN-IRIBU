@@ -1,5 +1,5 @@
 /*
- * @f ccn-lite-simu.c
+ * @f ccn-iribu-simu.c
  * @b prog with multiple CCNL relays, running a standalone simulation
  *
  * Copyright (C) 2011-13, Christian Tschudin, University of Basel
@@ -59,7 +59,7 @@
 #include "ccn-iribu-os-time.c"
 #include "ccn-iribu-ext-logging.c"
 
-int ccn_iribu_app_RX(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_content_s *c);
+int ccn_iribu_app_RX(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_content_s *c);
 
 struct ccn_iribu_prefix_s* ccn_iribu_prefix_new(int suite, int cnt);
 int ccn_iribu_pkt_prependComponent(int suite, char *src, int *offset, unsigned char *buf);
@@ -252,7 +252,7 @@ ccn_iribu_simu_ethernet(void *dummy, void *dummy2)
 // the two functions called by the CCNL's core and frag code:
 
 int
-ccn_iribu_app_RX(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_content_s *c)
+ccn_iribu_app_RX(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_content_s *c)
 {
     int i;
     char tmp[200], tmp2[10];
@@ -335,7 +335,7 @@ static int inter_packet_interval = 0; // in usec
 
 #ifdef USE_SCHEDULER
 struct ccn_iribu_sched_s*
-ccn_iribu_simu_defaultFaceScheduler(struct ccn_iribu_relay_s *ccnl,
+ccn_iribu_simu_defaultFaceScheduler(struct ccn_iribu_relay_s *ccn_iribu,
                                     void(*cb)(void*,void*))
 {
     return ccn_iribu_sched_pktrate_new(cb, ccnl, inter_ccn_interval);
@@ -620,7 +620,7 @@ main(int argc, char **argv)
 
     ccn_iribu_core_init();
 
-    DEBUGMSG(INFO, "This is ccn-lite-simu, starting at %s",
+    DEBUGMSG(INFO, "This is ccn-iribu-simu, starting at %s",
              ctime(&relays[0].startup_time) + 4);
     DEBUGMSG(INFO, "  ccn-iribu-core: %s\n", CCN_IRIBU_VERSION);
     DEBUGMSG(INFO, "  compile time: %s %s\n", __DATE__, __TIME__);

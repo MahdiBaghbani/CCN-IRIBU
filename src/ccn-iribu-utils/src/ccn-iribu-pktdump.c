@@ -1,5 +1,5 @@
 /*
- * @f util/ccn-lite-pktdump.c
+ * @f util/ccn-iribu-pktdump.c
  * @b CCN lite - dumps CCNB, CCN-TLV and NDN-TLV encoded packets
  *               as well as RPC data structures
  *
@@ -1312,7 +1312,7 @@ help:
     }
 
     if (format == 0) {
-        printf("# ccn-lite-pktdump, parsing %zu byte%s\n", len, len != 1 ? "s" : "");
+        printf("# ccn-iribu-pktdump, parsing %zu byte%s\n", len, len != 1 ? "s" : "");
     }
 
     return dump_content(0, data, data, len, format, suite, out);

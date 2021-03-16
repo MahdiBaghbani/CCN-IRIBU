@@ -1,5 +1,5 @@
 /*
- * @f util/ccn-lite-mkC.c
+ * @f util/ccn-iribu-mkC.c
  * @b CLI mkContent, write to Stdout
  *
  * Copyright (C) 2013-15, Christian Tschudin, University of Basel

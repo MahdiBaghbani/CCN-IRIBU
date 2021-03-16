@@ -87,7 +87,7 @@ void ccn_iribu_sched_cleanup(void)
 
 struct ccn_iribu_sched_s*
 ccn_iribu_sched_dummy_new(void (cts)(void *aux1, void *aux2),
-                     struct ccn_iribu_relay_s *ccnl)
+                     struct ccn_iribu_relay_s *ccn_iribu)
 {
     struct ccn_iribu_sched_s *s;
 
@@ -96,14 +96,14 @@ ccn_iribu_sched_dummy_new(void (cts)(void *aux1, void *aux2),
     s = (struct ccn_iribu_sched_s*) ccn_iribu_calloc(1, sizeof(struct ccn_iribu_sched_s));
     if (s) {
     s->cts = cts;
-    s->ccnl = ccnl;
+    s->ccn_iribu = ccn_iribu;
     }
     return s;
 }
 
 struct ccn_iribu_sched_s*
 ccn_iribu_sched_pktrate_new(void (cts)(void *aux1, void *aux2),
-                       struct ccn_iribu_relay_s *ccnl, int inter_packet_interval)
+                       struct ccn_iribu_relay_s *ccn_iribu, int inter_packet_interval)
 {
     struct ccn_iribu_sched_s *s;
 
@@ -114,7 +114,7 @@ ccn_iribu_sched_pktrate_new(void (cts)(void *aux1, void *aux2),
         return NULL;
     s->mode = 1;
     s->cts = cts;
-    s->ccnl = ccnl;
+    s->ccn_iribu = ccn_iribu;
 #ifdef USE_CHEMFLOW
     if (cfnl_sched_create_default_rnet(s, inter_packet_interval)) {
         ccn_iribu_free(s);
@@ -195,7 +195,7 @@ ccn_iribu_sched_RTS(struct ccn_iribu_sched_s *s, int cnt, int len,
         return;
     }
     DEBUGMSG(VERBOSE, "since=%ld\n", since);
-//    ccn_iribu_set_timer(since, (void(*)(void*,int))signal_cts, ccnl, ifndx);
+//    ccn_iribu_set_timer(since, (void(*)(void*,int))signal_cts, ccn_iribu, ifndx);
     s->pendingTimer = ccn_iribu_set_timer(since, s->cts, aux1, aux2);
     s->nextTX.tv_sec += s->ipi / 1000000;;
     s->nextTX.tv_usec += s->ipi % 1000000;;
@@ -248,7 +248,7 @@ ccn_iribu_sched_CTS_done(struct ccn_iribu_sched_s *s, int cnt, int len)
         return;
     }
     DEBUGMSG(VERBOSE, "since=%ld\n", since);
-//    ccn_iribu_set_timer(since, (void(*)(void*,int))signal_cts, ccnl, ifndx);
+//    ccn_iribu_set_timer(since, (void(*)(void*,int))signal_cts, ccn_iribu, ifndx);
     s->pendingTimer = ccn_iribu_set_timer(since, s->cts, s->aux1, s->aux2);
     s->nextTX.tv_sec += s->ipi / 1000000;;
     s->nextTX.tv_usec += s->ipi % 1000000;;
@@ -258,9 +258,9 @@ ccn_iribu_sched_CTS_done(struct ccn_iribu_sched_s *s, int cnt, int len)
 }
 
 void
-ccn_iribu_sched_RX_ok(struct ccn_iribu_relay_s *ccnl, int ifndx, int cnt)
+ccn_iribu_sched_RX_ok(struct ccn_iribu_relay_s *ccn_iribu, int ifndx, int cnt)
 {
-    (void)ccnl;
+    (void)ccn_iribu;
     (void)ifndx;
     (void)cnt;
     DEBUGMSG(TRACE, "ccn_iribu_sched_X_ok()\n");
@@ -269,9 +269,9 @@ ccn_iribu_sched_RX_ok(struct ccn_iribu_relay_s *ccnl, int ifndx, int cnt)
 
 
 void
-ccn_iribu_sched_RX_loss(struct ccn_iribu_relay_s *ccnl, int ifndx, int cnt)
+ccn_iribu_sched_RX_loss(struct ccn_iribu_relay_s *ccn_iribu, int ifndx, int cnt)
 {
-    (void)ccnl;
+    (void)ccn_iribu;
     (void)ifndx;
     (void)cnt;
     DEBUGMSG(TRACE, "ccn_iribu_sched_RX_loss()\n");

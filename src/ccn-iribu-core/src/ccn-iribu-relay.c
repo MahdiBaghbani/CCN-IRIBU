@@ -30,7 +30,7 @@
 #endif //CCN_IRIBU_LINUXKERNEL
 
 #ifdef CCN_IRIBU_RIOT
-#include "ccn-lite-riot.h"
+#include "ccn-iribu-riot.h"
 #endif
 
 
@@ -46,7 +46,7 @@ static ccn_iribu_cache_strategy_func _cs_remove_func = NULL;
 static ccn_iribu_cache_strategy_func _cs_decision_func = NULL;
 
 struct ccn_iribu_face_s*
-ccn_iribu_get_face_or_create(struct ccn_iribu_relay_s *ccnl, int ifndx,
+ccn_iribu_get_face_or_create(struct ccn_iribu_relay_s *ccn_iribu, int ifndx,
                         struct sockaddr *sa, size_t addrlen)
 // sa==NULL means: local(=in memory) client, search for existing ifndx being -1
 // sa!=NULL && ifndx==-1: search suitable interface for given sa_family
@@ -59,7 +59,7 @@ ccn_iribu_get_face_or_create(struct ccn_iribu_relay_s *ccnl, int ifndx,
     DEBUGMSG_CORE(TRACE, "ccn_iribu_get_face_or_create src=%s\n",
              ccn_iribu_addr2ascii((sockunion*)sa));
 
-    for (f = ccn-iribu->faces; f; f = f->next) {
+    for (f = ccn_iribu->faces; f; f = f->next) {
         if (!sa) {
             if (f->ifndx == -1)
                 return f;
@@ -76,8 +76,8 @@ ccn_iribu_get_face_or_create(struct ccn_iribu_relay_s *ccnl, int ifndx,
     }
 
     if (sa && ifndx == -1) {
-        for (i = 0; i < ccn-iribu->ifcount; i++) {
-            if (sa->sa_family != ccn-iribu->ifs[i].addr.sa.sa_family) {
+        for (i = 0; i < ccn_iribu->ifcount; i++) {
+            if (sa->sa_family != ccn_iribu->ifs[i].addr.sa.sa_family) {
                 continue;
             }
             ifndx = i;
@@ -99,14 +99,14 @@ ccn_iribu_get_face_or_create(struct ccn_iribu_relay_s *ccnl, int ifndx,
     f->ifndx = ifndx;
 
     if (ifndx >= 0) {
-        if (ccn-iribu->defaultFaceScheduler) {
-            f->sched = ccn-iribu->defaultFaceScheduler(ccnl,
+        if (ccn_iribu->defaultFaceScheduler) {
+            f->sched = ccn_iribu->defaultFaceScheduler(ccn_iribu,
                                                   (void (*)(void *, void *)) ccn_iribu_face_CTS);
         }
-        if (ccn-iribu->ifs[ifndx].reflect) {
+        if (ccn_iribu->ifs[ifndx].reflect) {
             f->flags |= CCN_IRIBU_FACE_FLAGS_REFLECT;
         }
-        if (ccn-iribu->ifs[ifndx].fwdalli) {
+        if (ccn_iribu->ifs[ifndx].fwdalli) {
             f->flags |= CCN_IRIBU_FACE_FLAGS_FWDALLI;
         }
     }
@@ -117,7 +117,7 @@ ccn_iribu_get_face_or_create(struct ccn_iribu_relay_s *ccnl, int ifndx,
         f->ifndx = -1;
     }
     f->last_used = CCN_IRIBU_NOW();
-    DBL_LINKED_LIST_ADD(ccn-iribu->faces, f);
+    DBL_LINKED_LIST_ADD(ccn_iribu->faces, f);
 
     TRACEOUT();
 
@@ -129,21 +129,21 @@ ccn_iribu_get_face_or_create(struct ccn_iribu_relay_s *ccnl, int ifndx,
 }
 
 struct ccn_iribu_face_s*
-ccn_iribu_face_remove(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *f)
+ccn_iribu_face_remove(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_face_s *f)
 {
     struct ccn_iribu_face_s *f2;
     struct ccn_iribu_interest_s *pit;
     struct ccn_iribu_forward_s **ppfwd;
 
     DEBUGMSG_CORE(DEBUG, "face_remove relay=%p face=%p\n",
-             (void*)ccnl, (void*)f);
+             (void*)ccn_iribu, (void*)f);
 
     ccn_iribu_sched_destroy(f->sched);
 #ifdef USE_FRAG
     ccn_iribu_frag_destroy(f->frag);
 #endif
     DEBUGMSG_CORE(TRACE, "face_remove: cleaning PIT\n");
-    for (pit = ccn-iribu->pit; pit; ) {
+    for (pit = ccn_iribu->pit; pit; ) {
         struct ccn_iribu_pendint_s **ppend, *pend;
         if (pit->from == f) {
             pit->from = NULL;
@@ -162,11 +162,11 @@ ccn_iribu_face_remove(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *f
         } else {
             DEBUGMSG_CORE(TRACE, "before interest_remove 0x%p\n",
                           (void*)pit);
-            pit = ccn_iribu_interest_remove(ccnl, pit);
+            pit = ccn_iribu_interest_remove(ccn_iribu, pit);
         }
     }
     DEBUGMSG_CORE(TRACE, "face_remove: cleaning fwd table\n");
-    for (ppfwd = &ccn-iribu->fib; *ppfwd;) {
+    for (ppfwd = &ccn_iribu->fib; *ppfwd;) {
         if ((*ppfwd)->face == f) {
             struct ccn_iribu_forward_s *pfwd = *ppfwd;
             ccn_iribu_prefix_free(pfwd->prefix);
@@ -186,7 +186,7 @@ ccn_iribu_face_remove(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *f
              (void*)f->next, (void*)f->prev);
     f2 = f->next;
     DEBUGMSG_CORE(TRACE, "face_remove: unlinking2\n");
-    DBL_LINKED_LIST_REMOVE(ccn-iribu->faces, f);
+    DBL_LINKED_LIST_REMOVE(ccn_iribu->faces, f);
     DEBUGMSG_CORE(TRACE, "face_remove: unlinking3\n");
     ccn_iribu_free(f);
 
@@ -196,7 +196,7 @@ ccn_iribu_face_remove(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *f
 
 void
 ccn_iribu_interface_enqueue(void (tx_done)(void*, int, int), struct ccn_iribu_face_s *f,
-                       struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_if_s *ifc,
+                       struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_if_s *ifc,
                        struct ccn_iribu_buf_s *buf, sockunion *dest)
 {
     if (ifc) {
@@ -224,19 +224,19 @@ ccn_iribu_interface_enqueue(void (tx_done)(void*, int, int), struct ccn_iribu_fa
         ifc->qlen++;
 
 #ifdef USE_SCHEDULER
-        ccn_iribu_sched_RTS(ifc->sched, 1, buf->datalen, ccnl, ifc);
+        ccn_iribu_sched_RTS(ifc->sched, 1, buf->datalen, ccn_iribu, ifc);
 #else 
-        ccn_iribu_interface_CTS(ccnl, ifc);
+        ccn_iribu_interface_CTS(ccn_iribu, ifc);
 #endif
     }
 }
 
 struct ccn_iribu_buf_s*
-ccn_iribu_face_dequeue(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *f)
+ccn_iribu_face_dequeue(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_face_s *f)
 {
     struct ccn_iribu_buf_s *pkt;
     DEBUGMSG_CORE(TRACE, "dequeue face=%p (id=%d.%d)\n",
-             (void *) f, ccn-iribu->id, f->faceid);
+             (void *) f, ccn_iribu->id, f->faceid);
 
     if (!f->outq) {
         return NULL;
@@ -262,16 +262,16 @@ ccn_iribu_face_CTS_done(void *ptr, int cnt, int len)
 }
 
 void
-ccn_iribu_face_CTS(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *f)
+ccn_iribu_face_CTS(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_face_s *f)
 {
     struct ccn_iribu_buf_s *buf;
     DEBUGMSG_CORE(TRACE, "CTS face=%p sched=%p\n", (void*)f, (void*)f->sched);
 
     if (!f->frag || f->frag->protocol == CCN_IRIBU_FRAG_NONE) {
-        buf = ccn_iribu_face_dequeue(ccnl, f);
+        buf = ccn_iribu_face_dequeue(ccn_iribu, f);
         if (buf) {
             ccn_iribu_interface_enqueue(ccn_iribu_face_CTS_done, f,
-                                   ccnl, ccn-iribu->ifs + f->ifndx, buf, &f->peer);
+                                   ccn_iribu, ccn_iribu->ifs + f->ifndx, buf, &f->peer);
         }
     }
 #ifdef USE_FRAG
@@ -280,15 +280,15 @@ ccn_iribu_face_CTS(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *f)
         int ifndx = f->ifndx;
         buf = ccn_iribu_frag_getnext(f->frag, &ifndx, &dst);
         if (!buf) {
-            buf = ccn_iribu_face_dequeue(ccnl, f);
+            buf = ccn_iribu_face_dequeue(ccn_iribu, f);
             ccn_iribu_frag_reset(f->frag, buf, f->ifndx, &f->peer);
             buf = ccn_iribu_frag_getnext(f->frag, &ifndx, &dst);
         }
         if (buf) {
             ccn_iribu_interface_enqueue(ccn_iribu_face_CTS_done, f,
-                                   ccnl, ccn-iribu->ifs + ifndx, buf, &dst);
+                                   ccn_iribu, ccn_iribu->ifs + ifndx, buf, &dst);
 #ifndef USE_SCHEDULER
-            ccn_iribu_face_CTS(ccnl, f); // loop to push more fragments
+            ccn_iribu_face_CTS(ccn_iribu, f); // loop to push more fragments
 #endif
         }
     }
@@ -296,14 +296,14 @@ ccn_iribu_face_CTS(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *f)
 }
 
 int
-ccn_iribu_send_pkt(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *to,
+ccn_iribu_send_pkt(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_face_s *to,
                 struct ccn_iribu_pkt_s *pkt)
 {
-    return ccn_iribu_face_enqueue(ccnl, to, buf_dup(pkt->buf));
+    return ccn_iribu_face_enqueue(ccn_iribu, to, buf_dup(pkt->buf));
 }
 
 int
-ccn_iribu_face_enqueue(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *to,
+ccn_iribu_face_enqueue(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_face_s *to,
                  struct ccn_iribu_buf_s *buf)
 {
     struct ccn_iribu_buf_s *msg;
@@ -312,7 +312,7 @@ ccn_iribu_face_enqueue(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *
         return -1;
     }
     DEBUGMSG_CORE(TRACE, "enqueue face=%p (id=%d.%d) buf=%p len=%zd\n",
-             (void*) to, ccn-iribu->id, to->faceid, (void*) buf, buf ? buf->datalen : 0);
+             (void*) to, ccn_iribu->id, to->faceid, (void*) buf, buf ? buf->datalen : 0);
 
     for (msg = to->outq; msg; msg = msg->next) { // already in the queue?
         if (buf_equal(msg, buf)) {
@@ -335,11 +335,11 @@ ccn_iribu_face_enqueue(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *
 #else
         int len = buf->datalen, cnt = 1;
 #endif
-        ccn_iribu_sched_RTS(to->sched, cnt, len, ccnl, to);
+        ccn_iribu_sched_RTS(to->sched, cnt, len, ccn_iribu, to);
     } else
-        ccn_iribu_face_CTS(ccnl, to);
+        ccn_iribu_face_CTS(ccn_iribu, to);
 #else
-    ccn_iribu_face_CTS(ccnl, to);
+    ccn_iribu_face_CTS(ccn_iribu, to);
 #endif
 
     return 0;
@@ -347,7 +347,7 @@ ccn_iribu_face_enqueue(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *
 
 
 struct ccn_iribu_interest_s*
-ccn_iribu_interest_remove(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_interest_s *i)
+ccn_iribu_interest_remove(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_interest_s *i)
 {
     struct ccn_iribu_interest_s *i2;
 
@@ -368,9 +368,9 @@ ccn_iribu_interest_remove(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_inter
     }
     i2 = i->next;
 
-    ccn-iribu->pitcnt--;
+    ccn_iribu->pitcnt--;
 
-    DBL_LINKED_LIST_REMOVE(ccn-iribu->pit, i);
+    DBL_LINKED_LIST_REMOVE(ccn_iribu->pit, i);
 
     if (i->pkt) {
         ccn_iribu_pkt_free(i->pkt);
@@ -382,7 +382,7 @@ ccn_iribu_interest_remove(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_inter
 }
 
 void
-ccn_iribu_interest_propagate(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_interest_s *i)
+ccn_iribu_interest_propagate(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_interest_s *i)
 {
     struct ccn_iribu_forward_s *fwd;
     int rc = 0;
@@ -402,7 +402,7 @@ ccn_iribu_interest_propagate(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_in
     // transmit an Interest Message on all listed dest faces in sequence."
     // CCNL strategy: we forward on all FWD entries with a prefix match
 
-    for (fwd = ccn-iribu->fib; fwd; fwd = fwd->next) {
+    for (fwd = ccn_iribu->fib; fwd; fwd = fwd->next) {
         if (!fwd->prefix) {
             continue;
         }
@@ -440,10 +440,10 @@ ccn_iribu_interest_propagate(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_in
 
             // DEBUGMSG(DEBUG, "%p %p %p\n", (void*)i, (void*)i->pkt, (void*)i->pkt->buf);
             if (fwd->tap) {
-                (fwd->tap)(ccnl, i->from, i->pkt->pfx, i->pkt->buf);
+                (fwd->tap)(ccn_iribu, i->from, i->pkt->pfx, i->pkt->buf);
             }
             if (fwd->face) {
-                ccn_iribu_send_pkt(ccnl, fwd->face, i->pkt);
+                ccn_iribu_send_pkt(ccn_iribu, fwd->face, i->pkt);
             }
 #if defined(USE_RONR)
             matching_face = 1;
@@ -455,7 +455,7 @@ ccn_iribu_interest_propagate(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_in
 
 #ifdef USE_RONR
     if (!matching_face) {
-        ccn_iribu_interest_broadcast(ccnl, i);
+        ccn_iribu_interest_broadcast(ccn_iribu, i);
     }
 #endif
 
@@ -463,14 +463,14 @@ ccn_iribu_interest_propagate(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_in
 }
 
 void
-ccn_iribu_interest_broadcast(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_interest_s *interest)
+ccn_iribu_interest_broadcast(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_interest_s *interest)
 {
     sockunion sun;
     struct ccn_iribu_face_s *fibface = NULL;
     extern int ccn_iribu_suite2defaultPort(int suite);
     unsigned i = 0;
     for (i = 0; i < CCN_IRIBU_MAX_INTERFACES; i++) {
-        switch (ccn-iribu->ifs[i].addr.sa.sa_family) {
+        switch (ccn_iribu->ifs[i].addr.sa.sa_family) {
 #ifdef USE_LINKLAYER 
 #if !(defined(__FreeBSD__) || defined(__APPLE__))
             case (AF_PACKET): {
@@ -483,7 +483,7 @@ ccn_iribu_interest_broadcast(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_in
                 sun.linklayer.sll_halen = CCN_IRIBU_MAX_ADDRESS_LEN;
                 sun.linklayer.sll_protocol = htons(CCN_IRIBU_ETH_TYPE);
 
-                fibface = ccn_iribu_get_face_or_create(ccnl, i, &sun.sa, sizeof(sun.linklayer));
+                fibface = ccn_iribu_get_face_or_create(ccn_iribu, i, &sun.sa, sizeof(sun.linklayer));
                 break;
                               }
 #endif
@@ -496,7 +496,7 @@ ccn_iribu_interest_broadcast(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_in
                 sun.wpan.addr.pan_id = 0xffff;
                 sun.wpan.addr.addr.short_addr = 0xffff;
 
-                fibface = ccn_iribu_get_face_or_create(ccnl, i, &sun.sa, sizeof(sun.wpan));
+                fibface = ccn_iribu_get_face_or_create(ccn_iribu, i, &sun.sa, sizeof(sun.wpan));
                 break;
                               }
 #endif
@@ -505,7 +505,7 @@ ccn_iribu_interest_broadcast(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_in
                 sun.sa.sa_family = AF_INET;
                 sun.ip4.sin_addr.s_addr = INADDR_BROADCAST;
                 sun.ip4.sin_port = htons(ccn_iribu_suite2defaultPort(interest->pkt->suite));
-                fibface = ccn_iribu_get_face_or_create(ccnl, i, &sun.sa, sizeof(sun.ip4));
+                fibface = ccn_iribu_get_face_or_create(ccn_iribu, i, &sun.sa, sizeof(sun.ip4));
                 break;
 #endif
 #ifdef USE_IPV6
@@ -513,25 +513,25 @@ ccn_iribu_interest_broadcast(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_in
                 sun.sa.sa_family = AF_INET6;
                 sun.ip6.sin6_addr = in6addr_any;
                 sun.ip6.sin6_port = ccn_iribu_suite2defaultPort(interest->pkt->suite);
-                fibface = ccn_iribu_get_face_or_create(ccnl, i, &sun.sa, sizeof(sun.ip6));
+                fibface = ccn_iribu_get_face_or_create(ccn_iribu, i, &sun.sa, sizeof(sun.ip6));
                 break;
 #endif
         }
         if (fibface) {
-            ccn_iribu_send_pkt(ccnl, fibface, interest->pkt);
+            ccn_iribu_send_pkt(ccn_iribu, fibface, interest->pkt);
             DEBUGMSG_CORE(DEBUG, "  broadcasting interest (%s)\n", ccn_iribu_addr2ascii(&sun));
         }
     }
 }
 
 struct ccn_iribu_content_s*
-ccn_iribu_content_remove(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_content_s *c)
+ccn_iribu_content_remove(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_content_s *c)
 {
     struct ccn_iribu_content_s *c2;
     DEBUGMSG_CORE(TRACE, "ccn_iribu_content_remove\n");
 
     c2 = c->next;
-    DBL_LINKED_LIST_REMOVE(ccn-iribu->contents, c);
+    DBL_LINKED_LIST_REMOVE(ccn_iribu->contents, c);
 
 //    free_content(c);
     if (c->pkt) {
@@ -542,7 +542,7 @@ ccn_iribu_content_remove(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_conten
     //    ccn_iribu_prefix_free(c->name);
     ccn_iribu_free(c);
 
-    ccn-iribu->contentcnt--;
+    ccn_iribu->contentcnt--;
 #ifdef CCN_IRIBU_RIOT
     evtimer_del((evtimer_t *)(&ccn_iribu_evtimer), (evtimer_event_t *)&c->evtmsg_cstimeout);
 #endif
@@ -550,29 +550,29 @@ ccn_iribu_content_remove(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_conten
 }
 
 struct ccn_iribu_content_s*
-ccn_iribu_content_add2cache(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_content_s *c)
+ccn_iribu_content_add2cache(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_content_s *c)
 {
     struct ccn_iribu_content_s *cit;
     char s[CCN_IRIBU_MAX_PREFIX_SIZE];
     (void) s;
 
     DEBUGMSG_CORE(DEBUG, "ccn_iribu_content_add2cache (%d/%d) --> %p = %s [%d]\n",
-                  ccn-iribu->contentcnt, ccn-iribu->max_cache_entries,
+                  ccn_iribu->contentcnt, ccn_iribu->max_cache_entries,
                   (void*)c, ccn_iribu_prefix_to_str(c->pkt->pfx,s,CCN_IRIBU_MAX_PREFIX_SIZE), (c->pkt->pfx->chunknum)? (signed) *(c->pkt->pfx->chunknum) : -1);
 
-    for (cit = ccn-iribu->contents; cit; cit = cit->next) {
+    for (cit = ccn_iribu->contents; cit; cit = cit->next) {
         if (ccn_iribu_prefix_cmp(c->pkt->pfx, NULL, cit->pkt->pfx, CMP_EXACT) == 0) {
             DEBUGMSG_CORE(DEBUG, "--- Already in cache ---\n");
             return NULL;
         }
     }
 
-    if (ccn-iribu->max_cache_entries > 0 &&
-        ccn-iribu->contentcnt >= ccn-iribu->max_cache_entries && !cache_strategy_remove(ccnl, c)) {
+    if (ccn_iribu->max_cache_entries > 0 &&
+        ccn_iribu->contentcnt >= ccn_iribu->max_cache_entries && !cache_strategy_remove(ccn_iribu, c)) {
         // remove oldest content
         struct ccn_iribu_content_s *c2, *oldest = NULL;
         uint32_t age = 0;
-        for (c2 = ccn-iribu->contents; c2; c2 = c2->next) {
+        for (c2 = ccn_iribu->contents; c2; c2 = c2->next) {
              if (!(c2->flags & CCN_IRIBU_CONTENT_FLAGS_STATIC)) {
                  if ((age == 0) || c2->last_used < age) {
                      age = c2->last_used;
@@ -582,13 +582,13 @@ ccn_iribu_content_add2cache(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_con
          }
          if (oldest) {
              DEBUGMSG_CORE(DEBUG, " remove old entry from cache\n");
-             ccn_iribu_content_remove(ccnl, oldest);
+             ccn_iribu_content_remove(ccn_iribu, oldest);
          }
     }
-    if ((ccn-iribu->max_cache_entries <= 0) ||
-         (ccn-iribu->contentcnt <= ccn-iribu->max_cache_entries)) {
-            DBL_LINKED_LIST_ADD(ccn-iribu->contents, c);
-            ccn-iribu->contentcnt++;
+    if ((ccn_iribu->max_cache_entries <= 0) ||
+         (ccn_iribu->contentcnt <= ccn_iribu->max_cache_entries)) {
+            DBL_LINKED_LIST_ADD(ccn_iribu->contents, c);
+            ccn_iribu->contentcnt++;
 #ifdef CCN_IRIBU_RIOT
             /* set cache timeout timer if content is not static */
             if (!(c->flags & CCN_IRIBU_CONTENT_FLAGS_STATIC)) {
@@ -601,7 +601,7 @@ ccn_iribu_content_add2cache(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_con
 }
 
 int
-ccn_iribu_content_serve_pending(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_content_s *c)
+ccn_iribu_content_serve_pending(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_content_s *c)
 {
     struct ccn_iribu_interest_s *i;
     struct ccn_iribu_face_s *f;
@@ -609,10 +609,10 @@ ccn_iribu_content_serve_pending(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu
     DEBUGMSG_CORE(TRACE, "ccn_iribu_content_serve_pending\n");
     char s[CCN_IRIBU_MAX_PREFIX_SIZE];
 
-    for (f = ccn-iribu->faces; f; f = f->next){
+    for (f = ccn_iribu->faces; f; f = f->next){
                 f->flags &= ~CCN_IRIBU_FACE_FLAGS_SERVED; // reply on a face only once
     }
-    for (i = ccn-iribu->pit; i;) {
+    for (i = ccn_iribu->pit; i;) {
         struct ccn_iribu_pendint_s *pi;
         if (!i->pkt->pfx) {
             continue;
@@ -657,7 +657,7 @@ ccn_iribu_content_serve_pending(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu
         if(i && ! i->pending){
             DEBUGMSG_CORE(WARNING, "releasing interest 0x%p OK?\n", (void*)i);
             c->flags |= CCN_IRIBU_CONTENT_FLAGS_STATIC;
-            i = ccn_iribu_interest_remove(ccnl, i);
+            i = ccn_iribu_interest_remove(ccn_iribu, i);
 
             c->served_cnt++;
             cnt++;
@@ -695,18 +695,18 @@ ccn_iribu_content_serve_pending(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu
                 DEBUGMSG_CORE(VERBOSE, "    Serve to face: %d (pkt=%p)\n",
                          pi->face->faceid, (void*) c->pkt);
 
-                ccn_iribu_send_pkt(ccnl, pi->face, c->pkt);
+                ccn_iribu_send_pkt(ccn_iribu, pi->face, c->pkt);
 
 
             } else {// upcall to deliver content to local client
 #ifdef CCN_IRIBU_APP_RX
-                ccn_iribu_app_RX(ccnl, c);
+                ccn_iribu_app_RX(ccn_iribu, c);
 #endif
             }
             c->served_cnt++;
             cnt++;
         }
-        i = ccn_iribu_interest_remove(ccnl, i);
+        i = ccn_iribu_interest_remove(ccn_iribu, i);
     }
 
     return cnt;
@@ -781,13 +781,13 @@ ccn_iribu_do_ageing(void *ptr, void *dummy)
 }
 
 int
-ccn_iribu_nonce_find_or_append(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *nonce)
+ccn_iribu_nonce_find_or_append(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *nonce)
 {
     struct ccn_iribu_buf_s *n, *n2 = 0;
     int i;
     DEBUGMSG_CORE(TRACE, "ccn_iribu_nonce_find_or_append\n");
 
-    for (n = ccn-iribu->nonces, i = 0; n; n = n->next, i++) {
+    for (n = ccn_iribu->nonces, i = 0; n; n = n->next, i++) {
         if (buf_equal(n, nonce)) {
             return -1;
         }
@@ -797,8 +797,8 @@ ccn_iribu_nonce_find_or_append(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_
     }
     n = ccn_iribu_buf_new(nonce->data, nonce->datalen);
     if (n) {
-        n->next = ccn-iribu->nonces;
-        ccn-iribu->nonces = n;
+        n->next = ccn_iribu->nonces;
+        ccn_iribu->nonces = n;
         if (i >= CCN_IRIBU_MAX_NONCES && n2) {
             ccn_iribu_free(n2->next);
             n2->next = 0;
@@ -954,10 +954,10 @@ ccn_iribu_fib_show(struct ccn_iribu_relay_s *relay)
 }
 
 void
-ccn_iribu_cs_dump(struct ccn_iribu_relay_s *ccnl)
+ccn_iribu_cs_dump(struct ccn_iribu_relay_s *ccn_iribu)
 {
 #ifndef CCN_IRIBU_LINUXKERNEL
-    struct ccn_iribu_content_s *c = ccn-iribu->contents;
+    struct ccn_iribu_content_s *c = ccn_iribu->contents;
     unsigned i = 0;
     char s[CCN_IRIBU_MAX_PREFIX_SIZE];
     (void) s;
@@ -975,7 +975,7 @@ ccn_iribu_cs_dump(struct ccn_iribu_relay_s *ccnl)
 void
 ccn_iribu_interface_CTS(void *aux1, void *aux2)
 {
-    struct ccn_iribu_relay_s *ccnl = (struct ccn_iribu_relay_s *)aux1;
+    struct ccn_iribu_relay_s *ccn_iribu = (struct ccn_iribu_relay_s *)aux1;
     struct ccn_iribu_if_s *ifc = (struct ccn_iribu_if_s *)aux2;
     struct ccn_iribu_txrequest_s *r, req;
 
@@ -995,9 +995,9 @@ ccn_iribu_interface_CTS(void *aux1, void *aux2)
     ifc->qfront = (ifc->qfront + 1) % CCN_IRIBU_MAX_IF_QLEN;
     ifc->qlen--;
 #ifndef CCN_IRIBU_LINUXKERNEL
-    assert(ccn-iribu->ccn_iribu_ll_TX_ptr != 0);
+    assert(ccn_iribu->ccn_iribu_ll_TX_ptr != 0);
 #endif
-    ccn-iribu->ccn_iribu_ll_TX_ptr(ccnl, ifc, &req.dst, req.buf);
+    ccn_iribu->ccn_iribu_ll_TX_ptr(ccn_iribu, ifc, &req.dst, req.buf);
 #ifdef USE_SCHEDULER
     ccn_iribu_sched_CTS_done(ifc->sched, 1, req.buf->datalen);
     if (req.txdone)
@@ -1007,13 +1007,13 @@ ccn_iribu_interface_CTS(void *aux1, void *aux2)
 }
 
 int
-ccn_iribu_cs_add(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_content_s *c)
+ccn_iribu_cs_add(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_content_s *c)
 {
     struct ccn_iribu_content_s *content;
 
-    content = ccn_iribu_content_add2cache(ccnl, c);
+    content = ccn_iribu_content_add2cache(ccn_iribu, c);
     if (content) {
-        ccn_iribu_content_serve_pending(ccnl, content);
+        ccn_iribu_content_serve_pending(ccn_iribu, content);
         return 0;
     }
 
@@ -1021,22 +1021,22 @@ ccn_iribu_cs_add(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_content_s *c)
 }
 
 int
-ccn_iribu_cs_remove(struct ccn_iribu_relay_s *ccnl, char *prefix)
+ccn_iribu_cs_remove(struct ccn_iribu_relay_s *ccn_iribu, char *prefix)
 {
     struct ccn_iribu_content_s *c;
 
-    if (!ccnl || !prefix) {
+    if (!ccn_iribu || !prefix) {
         return -1;
     }
 
-    for (c = ccn-iribu->contents; c; c = c->next) {
+    for (c = ccn_iribu->contents; c; c = c->next) {
         char *spref = ccn_iribu_prefix_to_path(c->pkt->pfx);
         if (!spref) {
             return -2;
         }
         if (memcmp(prefix, spref, strlen(spref)) == 0) {
             ccn_iribu_free(spref);
-            ccn_iribu_content_remove(ccnl, c);
+            ccn_iribu_content_remove(ccn_iribu, c);
             return 0;
         }
         ccn_iribu_free(spref);
@@ -1045,15 +1045,15 @@ ccn_iribu_cs_remove(struct ccn_iribu_relay_s *ccnl, char *prefix)
 }
 
 struct ccn_iribu_content_s *
-ccn_iribu_cs_lookup(struct ccn_iribu_relay_s *ccnl, char *prefix)
+ccn_iribu_cs_lookup(struct ccn_iribu_relay_s *ccn_iribu, char *prefix)
 {
     struct ccn_iribu_content_s *c;
 
-    if (!ccnl || !prefix) {
+    if (!ccn_iribu || !prefix) {
         return NULL;
     }
 
-    for (c = ccn-iribu->contents; c; c = c->next) {
+    for (c = ccn_iribu->contents; c; c = c->next) {
         char *spref = ccn_iribu_prefix_to_path(c->pkt->pfx);
         if (!spref) {
             return NULL;

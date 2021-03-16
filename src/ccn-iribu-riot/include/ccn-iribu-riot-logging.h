@@ -18,7 +18,7 @@
 #define CCN_IRIBU_RIOT_LOGGING
 
 /**
- * Define the log level of the CCN-Lite stack
+ * Define the log level of the CCN-IRIBU stack
  */
 #ifndef LOG_LEVEL
 #define LOG_LEVEL LOG_DEBUG
@@ -27,12 +27,12 @@
 #include "log.h"
 
  /**
- * Closing an interface or socket from CCN-Lite
+ * Closing an interface or socket from CCN-IRIBU
  */
 #define ccn_iribu_close_socket(s)            close(s)
 
 /**
- * @name Log levels used by CCN-Lite debugging
+ * @name Log levels used by CCN-IRIBU debugging
  *
  * @{
  */
@@ -48,7 +48,7 @@
  */
 
 /**
- * @name CCN-Lite's debugging macros
+ * @name CCN-IRIBU's debugging macros
  *
  * @{
  */

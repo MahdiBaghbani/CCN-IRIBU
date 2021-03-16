@@ -1,7 +1,7 @@
-# ccn-lite/src/py/pubfunc/myNamedFunctions.py
+# ccn-iribu/src/py/pubfunc/myNamedFunctions.py
 
 import cStringIO
-import ccnlite.ndn2013 as ndn
+import ccniribu.ndn2013 as ndn
 
 '''
 how to publish a named function under "/myNamedFunctions/"

@@ -18,7 +18,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * File history:
- * 2018-01-23 created (based on ccn-lite-riot.h)
+ * 2018-01-23 created (based on ccn-iribu-riot.h)
  */
 #ifndef CCN_IRIBU_PRODUCER_H
 #define CCN_IRIBU_PRODUCER_H
@@ -49,7 +49,7 @@ void ccn_iribu_set_local_producer(ccn_iribu_producer_func func);
  * \ref ccn_iribu_set_local_producer as a function pointer. If the function pointer 
  * is not, set the function simply returns '0'. 
  *
- * @param[in] relay The active ccn-lite relay
+ * @param[in] relay The active ccn-iribu relay
  * @param[in] from  The face the packet was received over
  * @param[in] pkt   The actual received packet 
  *

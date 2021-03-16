@@ -54,7 +54,7 @@ struct ccn_iribu_suite_s {
 /**
  * @brief       Helper to process one CCNB packet
  * 
- * @param[in] relay     pointer to current ccnl relay
+ * @param[in] relay     pointer to current ccn iribu relay
  * @param[in] from      face on which the message was received
  * @param[in] data      data which were received
  * @param[in] datalen   length of the received data
@@ -69,7 +69,7 @@ ccn_iribu_ccnb_fwd(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *fro
 /**
  * @brief       process one CCNB packet (CCNB forwarding pipeline)
  * 
- * @param[in] relay     pointer to current ccnl relay
+ * @param[in] relay     pointer to current ccn iribu relay
  * @param[in] from      face on which the message was received
  * @param[in] data      data which were received
  * @param[in] datalen   length of the received data
@@ -85,7 +85,7 @@ ccn_iribu_ccnb_forwarder(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_
 /**
  * @brief       process one CCNTLV packet (CCNTLV forwarding pipeline)
  * 
- * @param[in] relay     pointer to current ccnl relay
+ * @param[in] relay     pointer to current ccn iribu relay
  * @param[in] from      face on which the message was received
  * @param[in] data      data which were received
  * @param[in] datalen   length of the received data
@@ -101,7 +101,7 @@ ccn_iribu_ccntlv_forwarder(struct ccn_iribu_relay_s *relay, struct ccn_iribu_fac
 /**
  * @brief       process one NDNTLV packet (NDN forwarding pipeline)
  * 
- * @param[in] relay     pointer to current ccnl relay
+ * @param[in] relay     pointer to current ccn iribu relay
  * @param[in] from      face on which the message was received
  * @param[in] data      data which were received
  * @param[in] datalen   length of the received data
@@ -116,7 +116,7 @@ ccn_iribu_ndntlv_forwarder(struct ccn_iribu_relay_s *relay, struct ccn_iribu_fac
 /**
  * @brief Handle and incomming Interest Message
  *
- * @param[in] relay   pointer to current ccnl relay
+ * @param[in] relay   pointer to current ccn iribu relay
  * @param[in] from    face on which the interest was received
  * @param[in] pkt     packet which was received   
  * @param[in] cMatch  matching strategy for the Content Store 
@@ -132,7 +132,7 @@ ccn_iribu_fwd_handleInterest(struct ccn_iribu_relay_s *relay, struct ccn_iribu_f
 /**
  * @brief Handle and incomming Content Message
  *
- * @param[in] relay   pointer to current ccnl relay
+ * @param[in] relay   pointer to current ccn iribu relay
  * @param[in] from    face on which the interest was received
  * @param[in] pkt     packet which was received   
  *

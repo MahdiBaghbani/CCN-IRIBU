@@ -1,6 +1,6 @@
 /**
  * @addtogroup CCNL-core
- * @brief core library of CCN-Lite, contains important datastructures
+ * @brief core library of CCN-IRIBU, contains important datastructures
  * @{
  * @file ccn-iribu-prefix.h
  * @brief CCN lite, core CCNx protocol logic

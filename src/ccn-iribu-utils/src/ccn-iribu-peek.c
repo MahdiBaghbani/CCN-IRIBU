@@ -1,5 +1,5 @@
 /*
- * @f util/ccn-lite-peek.c
+ * @f util/ccn-iribu-peek.c
  * @b request content: send an interest, wait for reply, output to stdout
  *
  * Copyright (C) 2013-15, Christian Tschudin, University of Basel

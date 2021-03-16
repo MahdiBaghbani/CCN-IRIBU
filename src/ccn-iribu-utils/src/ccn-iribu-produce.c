@@ -1,5 +1,5 @@
 /*
- * @f util/ccn-lite-produce.c
+ * @f util/ccn-iribu-produce.c
  * @b CLI produce, produce segmented content for file
  *
  * Copyright (C) 2013, Basil Kohler, University of Basel

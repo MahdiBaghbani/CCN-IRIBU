@@ -37,7 +37,7 @@ ccn_iribu_core_init(void);
 /**
  * @brief       Processing of Local RPC messages
  * 
- * @param[in] relay     pointer to current ccnl relay
+ * @param[in] relay     pointer to current ccn iribu relay
  * @param[in] ifndx     index of the interface from which the data were received
  * @param[in] data      data which were received
  * @param[in] datalen   length of the received data

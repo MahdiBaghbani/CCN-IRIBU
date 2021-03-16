@@ -54,7 +54,7 @@ void ccn_iribu_set_cb_tx_on_data(ccn_iribu_cb_on_data func);
 /**
  * @brief Callback for inbound on-data events
  *
- * @param[in] relay The active ccn-lite relay
+ * @param[in] relay The active ccn-iribu relay
  * @param[in] from  The face the packet was received over
  * @param[in] pkt   The actual received packet 
  *
@@ -71,7 +71,7 @@ int ccn_iribu_callback_rx_on_data(struct ccn_iribu_relay_s *relay,
 /**
  * @brief Callback for outbound on-data events
  *
- * @param[in] relay The active ccn-lite relay
+ * @param[in] relay The active ccn-iribu relay
  * @param[in] from  The face the packet is sent over
  * @param[in] pkt   The actual packet to send
  *

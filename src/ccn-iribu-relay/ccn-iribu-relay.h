@@ -1,5 +1,5 @@
 /*
- * @f ccn-lite-relay.c
+ * @f ccn-iribu-relay.c
  * @b user space CCN relay
  *
  * Copyright (C) 2011-15, Christian Tschudin, University of Basel

@@ -1,5 +1,5 @@
 /*
- * @f util/ccn-lite-cryptoserver.c
+ * @f util/ccn-iribu-cryptoserver.c
  * @b cryptoserver for functions for the CCN-lite
  *
  * Copyright (C) 2013, Christopher Scherb, University of Basel

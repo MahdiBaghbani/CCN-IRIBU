@@ -1,5 +1,5 @@
 /*
- * @f util/ccn-lite-ccnb2xml.c
+ * @f util/ccn-iribu-ccnb2xml.c
  * @b pretty print CCNB content to XML
  *
  * Copyright (C) 2013, Christopher Scherb, University of Basel
@@ -324,7 +324,7 @@ main(int argc, char *argv[])
         case 'h':
         default:
             fprintf(stderr, "usage: %s [option]\n"
-                            "Parses ccn-lite-ctrl/ccn-iribu-ext-mgmt messages (CCNB) and shows them in XML format.\n"
+                            "Parses ccn-iribu-ctrl/ccn-iribu-ext-mgmt messages (CCNB) and shows them in XML format.\n"
                             "  -b include blob tags in the XML tree\n"
                             "  -h print this message\n"
                           , argv[0]);

@@ -1,4 +1,4 @@
-# ccn-lite/src/py/ccnlite/client.py
+# ccn-iribu/src/py/ccniribu/client.py
 
 '''
 CCN-lite module for Python:

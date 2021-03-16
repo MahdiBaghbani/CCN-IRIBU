@@ -258,17 +258,17 @@ ccn_iribu_wpan_sendto(int sock, unsigned char *data, int datalen,
 #ifdef USE_SCHEDULER
 
 struct ccn_iribu_sched_s*
-ccn_iribu_relay_defaultFaceScheduler(struct ccn_iribu_relay_s *ccnl,
+ccn_iribu_relay_defaultFaceScheduler(struct ccn_iribu_relay_s *ccn_iribu,
                                 void(*cb)(void*,void*))
 {
-    return ccn_iribu_sched_pktrate_new(cb, ccnl, inter_ccn_interval);
+    return ccn_iribu_sched_pktrate_new(cb, ccn_iribu, inter_ccn_interval);
 }
 
 struct ccn_iribu_sched_s*
-ccn_iribu_relay_defaultInterfaceScheduler(struct ccn_iribu_relay_s *ccnl,
+ccn_iribu_relay_defaultInterfaceScheduler(struct ccn_iribu_relay_s *ccn_iribu,
                                      void(*cb)(void*,void*))
 {
-    return ccn_iribu_sched_pktrate_new(cb, ccnl, inter_pkt_interval);
+    return ccn_iribu_sched_pktrate_new(cb, ccn_iribu, inter_pkt_interval);
 }
 #endif // USE_SCHEDULER
 
@@ -346,11 +346,11 @@ ccn_iribu_relay_udp(struct ccn_iribu_relay_s *relay, int32_t sport, int af, int 
 #endif
 
 void
-ccn_iribu_ll_TX(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_if_s *ifc,
+ccn_iribu_ll_TX(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_if_s *ifc,
            sockunion *dest, struct ccn_iribu_buf_s *buf)
 {
     ssize_t rc = -1;
-    (void) ccnl;
+    (void) ccn_iribu;
     switch(dest->sa.sa_family) {
 #ifdef USE_IPV4
     case AF_INET:
@@ -560,38 +560,38 @@ ccn_iribu_relay_config(struct ccn_iribu_relay_s *relay, char *ethdev, char *wpan
 }
 
 int
-ccn_iribu_io_loop(struct ccn_iribu_relay_s *ccnl)
+ccn_iribu_io_loop(struct ccn_iribu_relay_s *ccn_iribu)
 {
     int i, maxfd = -1, rc;
     size_t len;
     fd_set readfs, writefs;
     unsigned char buf[CCN_IRIBU_MAX_PACKET_SIZE];
 
-    if (ccn-iribu->ifcount == 0) {
+    if (ccn_iribu->ifcount == 0) {
         DEBUGMSG(ERROR, "no socket to work with, not good, quitting\n");
         exit(EXIT_FAILURE);
     }
-    for (i = 0; i < ccn-iribu->ifcount; i++) {
-        if (ccn-iribu->ifs[i].sock > maxfd) {
-            maxfd = ccn-iribu->ifs[i].sock;
+    for (i = 0; i < ccn_iribu->ifcount; i++) {
+        if (ccn_iribu->ifs[i].sock > maxfd) {
+            maxfd = ccn_iribu->ifs[i].sock;
         }
     }
     maxfd++;
 
     DEBUGMSG(INFO, "starting main event and IO loop\n");
-    while (!ccn-iribu->halt_flag) {
+    while (!ccn_iribu->halt_flag) {
         int usec;
 
         FD_ZERO(&readfs);
         FD_ZERO(&writefs);
 
 #ifdef USE_HTTP_STATUS
-        ccn_iribu_http_anteselect(ccnl, ccn-iribu->http, &readfs, &writefs, &maxfd);
+        ccn_iribu_http_anteselect(ccn_iribu, ccn_iribu->http, &readfs, &writefs, &maxfd);
 #endif
-        for (i = 0; i < ccn-iribu->ifcount; i++) {
-            FD_SET(ccn-iribu->ifs[i].sock, &readfs);
-            if (ccn-iribu->ifs[i].qlen > 0) {
-                FD_SET(ccn-iribu->ifs[i].sock, &writefs);
+        for (i = 0; i < ccn_iribu->ifcount; i++) {
+            FD_SET(ccn_iribu->ifs[i].sock, &readfs);
+            if (ccn_iribu->ifs[i].qlen > 0) {
+                FD_SET(ccn_iribu->ifs[i].sock, &writefs);
             }
         }
 
@@ -611,33 +611,33 @@ ccn_iribu_io_loop(struct ccn_iribu_relay_s *ccnl)
         }
 
 #ifdef USE_HTTP_STATUS
-        ccn_iribu_http_postselect(ccnl, ccn-iribu->http, &readfs, &writefs);
+        ccn_iribu_http_postselect(ccn_iribu, ccn_iribu->http, &readfs, &writefs);
 #endif
-        for (i = 0; i < ccn-iribu->ifcount; i++) {
-            if (FD_ISSET(ccn-iribu->ifs[i].sock, &readfs)) {
+        for (i = 0; i < ccn_iribu->ifcount; i++) {
+            if (FD_ISSET(ccn_iribu->ifs[i].sock, &readfs)) {
                 sockunion src_addr;
                 socklen_t addrlen = sizeof(sockunion);
                 ssize_t recvlen;
-                if ((recvlen = recvfrom(ccn-iribu->ifs[i].sock, buf, sizeof(buf), 0,
+                if ((recvlen = recvfrom(ccn_iribu->ifs[i].sock, buf, sizeof(buf), 0,
                                 (struct sockaddr*) &src_addr, &addrlen)) > 0) {
                     len = (size_t) recvlen;
                     if (0) {}
 #ifdef USE_IPV4
                     else if (src_addr.sa.sa_family == AF_INET) {
-                        ccn_iribu_core_RX(ccnl, i, buf, len,
+                        ccn_iribu_core_RX(ccn_iribu, i, buf, len,
                                      &src_addr.sa, sizeof(src_addr.ip4));
                     }
 #endif
 #ifdef USE_IPV6
                     else if (src_addr.sa.sa_family == AF_INET6) {
-                        ccn_iribu_core_RX(ccnl, i, buf, len,
+                        ccn_iribu_core_RX(ccn_iribu, i, buf, len,
                                      &src_addr.sa, sizeof(src_addr.ip6));
                     }
 #endif
 #ifdef USE_LINKLAYER
                     else if (src_addr.sa.sa_family == AF_PACKET) {
                         if (len > 14) {
-                            ccn_iribu_core_RX(ccnl, i, buf + 14, len - 14,
+                            ccn_iribu_core_RX(ccn_iribu, i, buf + 14, len - 14,
                                          &src_addr.sa, sizeof(src_addr.linklayer));
                         }
                     }
@@ -645,22 +645,22 @@ ccn_iribu_io_loop(struct ccn_iribu_relay_s *ccnl)
 #ifdef USE_WPAN
                     else if (src_addr.sa.sa_family == AF_IEEE802154) {
                         if (len > 14) {
-                            ccn_iribu_core_RX(ccnl, i, buf, len,
+                            ccn_iribu_core_RX(ccn_iribu, i, buf, len,
                                          &src_addr.sa, sizeof(src_addr.linklayer));
                         }
                     }
 #endif
 #ifdef USE_UNIXSOCKET
                     else if (src_addr.sa.sa_family == AF_UNIX) {
-                        ccn_iribu_core_RX(ccnl, i, buf, len,
+                        ccn_iribu_core_RX(ccn_iribu, i, buf, len,
                                      &src_addr.sa, sizeof(src_addr.ux));
                     }
 #endif
                 }
             }
 
-            if (FD_ISSET(ccn-iribu->ifs[i].sock, &writefs)) {
-              ccn_iribu_interface_CTS(ccnl, ccn-iribu->ifs + i);
+            if (FD_ISSET(ccn_iribu->ifs[i].sock, &writefs)) {
+              ccn_iribu_interface_CTS(ccn_iribu, ccn_iribu->ifs + i);
             }
         }
     }
@@ -669,7 +669,7 @@ ccn_iribu_io_loop(struct ccn_iribu_relay_s *ccnl)
 }
 
 void
-ccn_iribu_populate_cache(struct ccn_iribu_relay_s *ccnl, char *path)
+ccn_iribu_populate_cache(struct ccn_iribu_relay_s *ccn_iribu, char *path)
 {
     DIR *dir;
     struct dirent *de;
@@ -806,7 +806,7 @@ ccn_iribu_populate_cache(struct ccn_iribu_relay_s *ccnl, char *path)
             DEBUGMSG(WARNING, "could not create content (%s)\n", de->d_name);
             goto Done;
         }
-        ccn_iribu_content_add2cache(ccnl, c);
+        ccn_iribu_content_add2cache(ccn_iribu, c);
         c->flags |= CCN_IRIBU_CONTENT_FLAGS_STATIC;
 Done:
         ccn_iribu_pkt_free(pk);

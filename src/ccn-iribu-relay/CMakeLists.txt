@@ -53,8 +53,8 @@ target_link_libraries(
 
 target_link_libraries(
         ccn-iribu-relay
+        ccn-iribu-core
         ccn-iribu-pkt
         ccn-iribu-fwd
-        ccn-iribu-core
         ccn-iribu-unix
 )

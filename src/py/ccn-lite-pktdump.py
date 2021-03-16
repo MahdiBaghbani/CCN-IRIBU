@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# ccn-lite/src/py/ccn-lite-pktdump.py
+# ccn-iribu/src/py/ccn-iribu-pktdump.py
 
 '''
 ICN packet dump utility (currently for NDN, other formats to follow)
@@ -26,8 +26,8 @@ File history:
 import argparse
 import sys
 
-import ccnlite.ndn2013  as ndn
-import ccnlite.util     as util
+import ccniribu.ndn2013  as ndn
+import ccniribu.util     as util
 
 # ----------------------------------------------------------------------
 # process argv
@@ -72,7 +72,7 @@ if __name__ == "__main__":
         if infile != sys.stdin:
             infile.close()
 
-    print "# ccn-lite-dump.py"
+    print "# ccn-iribu-dump.py"
 
     if len(args.fnames) == 0:
         dumpFile(None)

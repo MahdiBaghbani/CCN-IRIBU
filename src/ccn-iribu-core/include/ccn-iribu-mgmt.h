@@ -35,7 +35,7 @@ struct ccn_iribu_prefix_s;
 struct ccn_iribu_face_s;
 
 int8_t
-ccn_iribu_mgmt(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
+ccn_iribu_mgmt(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
           struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from);
 
 #endif // USE_MGMT

@@ -17,7 +17,7 @@
 #        UNSET_VARS    (optional) #define variables that need to be unset.
 #
 #   "pkt-format"
-#      Executes the packet format tests by compiling ccn-lite-pktdump and let pktdump parse all available test packets from the specified packet format.
+#      Executes the packet format tests by compiling ccn-iribu-pktdump and let pktdump parse all available test packets from the specified packet format.
 #      Parameters:
 #        PKT_FORMAT    Name of the packet format to test.
 #
@@ -56,7 +56,7 @@ build-test-modify-defines() {
     done
 }
 
-# Builds ccn-lite and logs the output in a specified log file.
+# Builds ccn-iribu and logs the output in a specified log file.
 #
 # Parameters:
 #     $1    log file
@@ -79,7 +79,7 @@ build-test-make() {
 }
 
 # Tests a specific packet format by feeding all available test files to
-# ccn-lite-pktdump.
+# ccn-iribu-pktdump.
 #
 # Parameters:
 #     $1    log file
@@ -88,8 +88,8 @@ build-test-packet-format() {
     local logfile=$1;
     local pktFormat=$2;
 
-    echo "$ make -j$NO_CORES -C util ccn-lite-pktdump" >> "$logfile"
-    make -j$NO_CORES -C util ccn-lite-pktdump >> "$logfile"
+    echo "$ make -j$NO_CORES -C util ccn-iribu-pktdump" >> "$logfile"
+    make -j$NO_CORES -C util ccn-iribu-pktdump >> "$logfile"
     if [ $? -ne 0 ]; then
         return 1
     fi
@@ -100,8 +100,8 @@ build-test-packet-format() {
 
     files=$(find ../test/$pktFormat -iname "*.$pktFormat")
     for file in $files; do
-        echo "$ ccn-lite-pktdump < $file" >> "$logfile"
-        ./util/ccn-lite-pktdump < $file >> "$logfile" 2>&1
+        echo "$ ccn-iribu-pktdump < $file" >> "$logfile"
+        ./util/ccn-iribu-pktdump < $file >> "$logfile" 2>&1
         if [ $? -ne 0 ]; then
             rc=1
         fi

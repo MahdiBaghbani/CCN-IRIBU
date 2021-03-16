@@ -78,10 +78,10 @@ ccn_iribu_wpan_sendto(int sock, unsigned char *data, int datalen,
 
 #ifdef USE_SCHEDULER
 struct ccn_iribu_sched_s*
-ccn_iribu_relay_defaultFaceScheduler(struct ccn_iribu_relay_s *ccnl,
+ccn_iribu_relay_defaultFaceScheduler(struct ccn_iribu_relay_s *ccn_iribu,
                                 void(*cb)(void*,void*));
 struct ccn_iribu_sched_s*
-ccn_iribu_relay_defaultInterfaceScheduler(struct ccn_iribu_relay_s *ccnl,
+ccn_iribu_relay_defaultInterfaceScheduler(struct ccn_iribu_relay_s *ccn_iribu,
                                      void(*cb)(void*,void*));
 #endif // USE_SCHEDULER
 
@@ -94,7 +94,7 @@ ccn_iribu_relay_udp(struct ccn_iribu_relay_s *relay, int32_t port, int af, int s
 #endif
 
 void
-ccn_iribu_ll_TX(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_if_s *ifc,
+ccn_iribu_ll_TX(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_if_s *ifc,
            sockunion *dest, struct ccn_iribu_buf_s *buf);
 
 void
@@ -105,9 +105,9 @@ ccn_iribu_relay_config(struct ccn_iribu_relay_s *relay, char *ethdev, char *wpan
                   char *crypto_face_path);
 
 int
-ccn_iribu_io_loop(struct ccn_iribu_relay_s *ccnl);
+ccn_iribu_io_loop(struct ccn_iribu_relay_s *ccn_iribu);
 
 void
-ccn_iribu_populate_cache(struct ccn_iribu_relay_s *ccnl, char *path);
+ccn_iribu_populate_cache(struct ccn_iribu_relay_s *ccn_iribu, char *path);
 
 #endif // CCN_IRIBU_UNIX_H

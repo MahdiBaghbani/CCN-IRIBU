@@ -1,5 +1,5 @@
 /*
- * @f util/ccn-lite-mkF.c
+ * @f util/ccn-iribu-mkF.c
  * @b CLI mkFragment: split a large file into a fragment series
  *
  * Copyright (C) 2013-15, Christian Tschudin, University of Basel

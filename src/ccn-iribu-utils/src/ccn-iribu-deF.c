@@ -1,5 +1,5 @@
 /*
- * @f util/ccn-lite-deF.c
+ * @f util/ccn-iribu-deF.c
  * @b CLI deFragment: merge a fragment series into a sequence of ccnb objs
  *
  * Copyright (C) 2013, Christian Tschudin, University of Basel

@@ -1,5 +1,5 @@
 /*
- * @f util/ccn-lite-mkI.c
+ * @f util/ccn-iribu-mkI.c
  * @b CLI mkInterest, write to Stdout
  *
  * Copyright (C) 2013-18, Christian Tschudin, University of Basel

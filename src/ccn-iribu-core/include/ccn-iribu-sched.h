@@ -34,7 +34,7 @@ struct ccn_iribu_sched_s {
     void (*rts)(struct ccn_iribu_sched_s* s, int cnt, int len, void *aux1, void *aux2);
     // private:
     void (*cts)(void *aux1, void *aux2);
-    struct ccn_iribu_relay_s *ccnl;
+    struct ccn_iribu_relay_s *ccn_iribu;
     void *aux1, *aux2;
     int cnt;
 #ifdef USE_CHEMFLOW
@@ -55,11 +55,11 @@ void
 ccn_iribu_sched_cleanup(void);
 
 struct ccn_iribu_sched_s*
-ccn_iribu_sched_dummy_new(void (cts)(void *aux1, void *aux2),struct ccn_iribu_relay_s *ccnl);
+ccn_iribu_sched_dummy_new(void (cts)(void *aux1, void *aux2),struct ccn_iribu_relay_s *ccn_iribu);
 
 struct ccn_iribu_sched_s*
 ccn_iribu_sched_pktrate_new(void (cts)(void *aux1, void *aux2),
-        struct ccn_iribu_relay_s *ccnl, int inter_packet_interval);
+        struct ccn_iribu_relay_s *ccn_iribu, int inter_packet_interval);
 
 void
 ccn_iribu_sched_destroy(struct ccn_iribu_sched_s *s);
@@ -72,10 +72,10 @@ void
 ccn_iribu_sched_CTS_done(struct ccn_iribu_sched_s *s, int cnt, int len);
 
 void
-ccn_iribu_sched_RX_ok(struct ccn_iribu_relay_s *ccnl, int ifndx, int cnt);
+ccn_iribu_sched_RX_ok(struct ccn_iribu_relay_s *ccn_iribu, int ifndx, int cnt);
 
 void
-ccn_iribu_sched_RX_loss(struct ccn_iribu_relay_s *ccnl, int ifndx, int cnt);
+ccn_iribu_sched_RX_loss(struct ccn_iribu_relay_s *ccn_iribu, int ifndx, int cnt);
 
 struct ccn_iribu_sched_s*
 ccn_iribu_sched_packetratelimiter_new(int inter_packet_interval,

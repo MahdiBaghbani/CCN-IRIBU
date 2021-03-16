@@ -103,7 +103,7 @@ int ccn_iribu_pkt_prependComponent(int suite, char *src, int *offset, unsigned c
 #include "net/packet.h"
 #include <unistd.h>
 #include "sys/socket.h"
-#include "ccn-lite-riot.h"
+#include "ccn-iribu-riot.h"
 #include "ccn-iribu-headers.h"
 #include "ccn-iribu-pkt-ndntlv.h"
 #include "ccn-iribu-pkt-ccntlv.h"

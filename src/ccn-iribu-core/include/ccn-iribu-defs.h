@@ -31,7 +31,7 @@
 #define CCN_IRIBU_ETH_TYPE                   ETHTYPE_PARC_CCNX
 //#define CCN_IRIBU_ETH_TYPE                 0x88b5
 
-#define CCN_IRIBU_DEFAULT_UNIXSOCKNAME       "/tmp/.ccnl.sock"
+#define CCN_IRIBU_DEFAULT_UNIXSOCKNAME       "/tmp/.ccn_iribu.sock"
 
 /* assuming that all broadcast addresses consist of a sequence of equal octets */
 #define CCN_IRIBU_BROADCAST_OCTET            0xFF

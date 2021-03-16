@@ -1,6 +1,6 @@
 /*
- * @f util/ccn-lite-ctrl.c
- * @b control utility to steer a ccn-lite relay via UNIX sockets
+ * @f util/ccn-iribu-ctrl.c
+ * @b control utility to steer a ccn-iribu relay via UNIX sockets
  *
  * Copyright (C) 2012-15, Christian Tschudin, University of Basel
  *
@@ -1137,7 +1137,7 @@ mkAddToRelayCacheRequest(uint8_t *out, size_t outlen, char *fname,
     DEBUGMSG(DEBUG, "  prefix in file: <%s>\n", ccn_iribu_prefix_to_path(prefix));
     prefix_string = ccn_iribu_prefix_to_path_detailed(prefix, 0, 1, 1);
 
-    //Create ccn-lite-ctrl interest object with signature to add content...
+    //Create ccn-iribu-ctrl interest object with signature to add content...
     //out = (unsigned char *) malloc(sizeof(unsigned char)*fsize + 5000);
     out1 = (uint8_t*) ccn_iribu_malloc(sizeof(uint8_t) * 5000);
     if (!out1) {

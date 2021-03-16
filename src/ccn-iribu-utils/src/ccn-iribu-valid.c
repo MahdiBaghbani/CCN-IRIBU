@@ -1,5 +1,5 @@
 /*
- * @f util/ccn-lite-valid.c
+ * @f util/ccn-iribu-valid.c
  * @b demo app (UNIX filter) for validating a packet's signature
  *
  * Copyright (C) 2015, Christian Tschudin, University of Basel

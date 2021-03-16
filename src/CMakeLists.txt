@@ -149,30 +149,18 @@ endif()
 if (NOT CCN_IRIBU_RIOT)
     set(
             CMAKE_C_FLAGS
-            "${CMAKE_C_FLAGS}
-            -Wextra
-            -Wall
-            -Werror
-            -std=c99
-            -g
-            -pedantic"
+            "${CMAKE_C_FLAGS} -Wextra -Wall -Werror -std=c99 -g -pedantic"
     ) #TODO: add -fsanitize=address
 else()
     set(
             CMAKE_C_FLAGS
-            "${CMAKE_C_FLAGS}
-            -Wextra
-            -Wall
-            -Werror
-            -std=c99
-            -g"
+            "${CMAKE_C_FLAGS} -Wextra -Wall -Werror -std=c99 -g"
     )
 endif()
 
 set(
         CMAKE_C_FLAGS_DEBUG
-        "${CMAKE_C_FLAGS}
-        -g"
+        "${CMAKE_C_FLAGS} -g"
 )
 
 if (NOT DEFINED CCN_IRIBU_LINUXKERNEL AND NOT CCN_IRIBU_RIOT)
@@ -186,10 +174,12 @@ endif()
 #if (CCN_IRIBU_RIOT)
   #  set(CMAKE_C_FLAGS ${RIOT_CFLAGS})
 #endif()
+
 if (NOT DEFINED CCN_IRIBU_LINUXKERNEL)
     add_subdirectory(ccn-iribu-core)
     add_subdirectory(ccn-iribu-pkt)
     add_subdirectory(ccn-iribu-fwd)
+
     if (NOT CCN_IRIBU_RIOT)
         add_subdirectory(ccn-iribu-unix)
         add_subdirectory(ccn-iribu-relay)

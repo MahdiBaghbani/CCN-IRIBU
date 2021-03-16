@@ -1,5 +1,5 @@
 /*
- * @f ccn-lite-relay.c
+ * @f ccn-iribu-relay.c
  * @b user space CCN relay
  *
  * Copyright (C) 2011-15, Christian Tschudin, University of Basel
@@ -66,7 +66,7 @@
 #define NEEDS_PREFIX_MATCHING
 */
 
-#include "ccn-lite-relay.h"
+#include "ccn-iribu-relay.h"
 #include "ccn-iribu-unix.h"
 
 static int lasthour = -1;
@@ -335,7 +335,7 @@ usage:
 
     ccn_iribu_core_init();
 
-    DEBUGMSG(INFO, "This is ccn-lite-relay, starting at %s",
+    DEBUGMSG(INFO, "This is ccn-iribu-relay, starting at %s",
              ctime(&theRelay->startup_time) + 4);
     DEBUGMSG(INFO, "  ccn-iribu-core: %s\n", CCN_IRIBU_VERSION);
     DEBUGMSG(INFO, "  compile time: %s %s\n", __DATE__, __TIME__);

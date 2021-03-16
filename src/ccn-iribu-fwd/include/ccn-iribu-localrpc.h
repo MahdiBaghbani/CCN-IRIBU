@@ -35,7 +35,7 @@
 /**
  * @brief       Processing of Local RPC messages
  * 
- * @param[in] relay     pointer to current ccnl relay
+ * @param[in] relay     pointer to current ccn iribu relay
  * @param[in] from      face on which the message was received
  * @param[in] buf       data which were received
  * @param[in] buflen   length of the received data

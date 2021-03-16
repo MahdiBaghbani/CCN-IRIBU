@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 '''
-util/ccn-lite-ndnstream.py
+util/ccn-iribu-ndnstream.py
 
 A Python script to extract the content (to stdout) of a stream of NDN bytes
 (c) 2014 christian.tschudin@unibas.ch

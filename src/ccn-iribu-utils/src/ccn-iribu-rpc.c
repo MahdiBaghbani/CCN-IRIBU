@@ -1,5 +1,5 @@
 /*
- * @f util/ccn-lite-rpc.c
+ * @f util/ccn-iribu-rpc.c
  * @b RPC command line interface
  *
  * Copyright (C) 2014, Christian Tschudin, University of Basel
@@ -25,14 +25,14 @@
 /*
   use examples:
 
-  ccn-lite-rpc '/rpc/builtin/syslog "hello syslog"' | ccn-lite-pktdump
-  ccn-lite-rpc '/rpc/builtin/lookup /rpc/config/compileString' | ccn-lite-pktdump
-  ccn-lite-rpc '/rpc/builtin/lookup /rpc/config/localTime' | ccn-lite-pktdump
-  ccn-lite-rpc -n '(/rpc/builtin/forward /rpc/const/ndn2013 &1' thePktFile
+  ccn-iribu-rpc '/rpc/builtin/syslog "hello syslog"' | ccn-iribu-pktdump
+  ccn-iribu-rpc '/rpc/builtin/lookup /rpc/config/compileString' | ccn-iribu-pktdump
+  ccn-iribu-rpc '/rpc/builtin/lookup /rpc/config/localTime' | ccn-iribu-pktdump
+  ccn-iribu-rpc -n '(/rpc/builtin/forward /rpc/const/ndn2013 &1' thePktFile
 
 Not working yet:
-  ccn-lite-rpc '/rpc/builtin/lookup /rpc/config/thisface/defaultSuite'
-  ccn-lite-rpc '/rpc/builtin/set /rpc/config/thisface/defaultSuite /rpc/const/encoding/ndn2013'
+  ccn-iribu-rpc '/rpc/builtin/lookup /rpc/config/thisface/defaultSuite'
+  ccn-iribu-rpc '/rpc/builtin/set /rpc/config/thisface/defaultSuite /rpc/const/encoding/ndn2013'
 
  */
 

@@ -19,7 +19,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  * File history:
- * 2018-01-24 created (based on ccn-lite-riot.c)
+ * 2018-01-24 created (based on ccn-iribu-riot.c)
  */
 
 #include "ccn-iribu-producer.h"

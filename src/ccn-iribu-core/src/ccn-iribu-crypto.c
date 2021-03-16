@@ -48,7 +48,7 @@ ccn_iribu_crypto_strtoint(char *str){
 
 
 int
-ccn_iribu_mgmt_handle(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
+ccn_iribu_mgmt_handle(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
           struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from,
         char *cmd, int verified);
 
@@ -291,7 +291,7 @@ ccn_iribu_crypto_add_signature(unsigned char *out, char *sig, int siglen)
 
 /**
  *
- * @param ccnl
+ * @param ccn_iribu
  * @param content
  * @param content_len
  * @param sig
@@ -301,7 +301,7 @@ ccn_iribu_crypto_add_signature(unsigned char *out, char *sig, int siglen)
  * @return
  */
 int
-ccn_iribu_crypto_sign(struct ccn_iribu_relay_s *ccnl, char *content, int content_len,
+ccn_iribu_crypto_sign(struct ccn_iribu_relay_s *ccn_iribu, char *content, int content_len,
         char *callback, int seqnum)
 {
 
@@ -325,7 +325,7 @@ ccn_iribu_crypto_sign(struct ccn_iribu_relay_s *ccnl, char *content, int content
     //send ccn_msg to crytoserver
     retbuf = ccn_iribu_buf_new((char *)msg, len);
 
-    ccn_iribu_face_enqueue(ccnl, ccn-iribu->crypto_face, retbuf);
+    ccn_iribu_face_enqueue(ccn_iribu, ccn-iribu->crypto_face, retbuf);
 
 
 
@@ -335,7 +335,7 @@ ccn_iribu_crypto_sign(struct ccn_iribu_relay_s *ccnl, char *content, int content
 
 /**
  *
- * @param ccnl
+ * @param ccn_iribu
  * @param content
  * @param content_len
  * @param sig
@@ -345,7 +345,7 @@ ccn_iribu_crypto_sign(struct ccn_iribu_relay_s *ccnl, char *content, int content
  * @return
  */
 int
-ccn_iribu_crypto_verify(struct ccn_iribu_relay_s *ccnl, char *content, int content_len,
+ccn_iribu_crypto_verify(struct ccn_iribu_relay_s *ccn_iribu, char *content, int content_len,
         char *sig, int sig_len, char* callback, int sequnum)
 {
     char *msg = 0;
@@ -368,14 +368,14 @@ ccn_iribu_crypto_verify(struct ccn_iribu_relay_s *ccnl, char *content, int conte
     }
     //send ccn_msg to crytoserver
     retbuf = ccn_iribu_buf_new((char *)msg, len);
-    ccn_iribu_face_enqueue(ccnl, ccn-iribu->crypto_face, retbuf);
+    ccn_iribu_face_enqueue(ccn_iribu, ccn-iribu->crypto_face, retbuf);
 
     if(msg) ccn_iribu_free(msg);
     return ret;
 }
 
 int
-ccn_iribu_mgmt_crypto(struct ccn_iribu_relay_s *ccnl, char *type, unsigned char *buf, int buflen)
+ccn_iribu_mgmt_crypto(struct ccn_iribu_relay_s *ccn_iribu, char *type, unsigned char *buf, int buflen)
 {
 
    struct ccn_iribu_face_s *from;
@@ -418,7 +418,7 @@ ccn_iribu_mgmt_crypto(struct ccn_iribu_relay_s *ccnl, char *type, unsigned char 
       } else
             strcpy(cmd, "cmd-is-too-long-to-display");
       msg2_buf = ccn_iribu_buf_new((char *)msg2, len2);
-      ccn_iribu_mgmt_handle(ccnl, msg2_buf, p, from, cmd, verified);
+      ccn_iribu_mgmt_handle(ccn_iribu, msg2_buf, p, from, cmd, verified);
       ccn_iribu_free(msg2_buf);
    }else if(!strcmp(type, "sign")){
       char *sig = (char *) ccn_iribu_malloc(sizeof(char)* CCN_IRIBU_MAX_PACKET_SIZE);
@@ -448,7 +448,7 @@ ccn_iribu_mgmt_crypto(struct ccn_iribu_relay_s *ccnl, char *type, unsigned char 
 
       retbuf = ccn_iribu_buf_new((char *)out, len1);
       if(seqnum >= 0){
-          ccn_iribu_face_enqueue(ccnl, from, retbuf);
+          ccn_iribu_face_enqueue(ccn_iribu, from, retbuf);
       }else{
           struct ccn_iribu_prefix_s *prefix_a = 0;
           struct ccn_iribu_content_s *c = 0;
@@ -475,12 +475,12 @@ ccn_iribu_mgmt_crypto(struct ccn_iribu_relay_s *ccnl, char *type, unsigned char 
           prefix_a->complen = (int *) ccn_iribu_malloc(sizeof(int)*2);
           prefix_a->complen[0] = strlen("mgmt");
           prefix_a->complen[1] = strlen(ht);
-          c = ccn_iribu_content_new(ccnl, CCN_IRIBU_SUITE_CCNB, &pkt, &prefix_a, &ppkd,
+          c = ccn_iribu_content_new(ccn_iribu, CCN_IRIBU_SUITE_CCNB, &pkt, &prefix_a, &ppkd,
                                 content, contlen);
           if (!c) goto Done;
 
-          ccn_iribu_content_serve_pending(ccnl, c);
-          ccn_iribu_content_add2cache(ccnl, c);
+          ccn_iribu_content_serve_pending(ccn_iribu, c);
+          ccn_iribu_content_add2cache(ccn_iribu, c);
       }
       Done:
       ccn_iribu_free(out);
@@ -489,7 +489,7 @@ ccn_iribu_mgmt_crypto(struct ccn_iribu_relay_s *ccnl, char *type, unsigned char 
 }
 
 int
-ccn_iribu_crypto(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
+ccn_iribu_crypto(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
           struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from)
 {
 
@@ -504,7 +504,7 @@ ccn_iribu_crypto(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
     DEBUGMSG(DEBUG,"Callback: %s Type: %s\n", callback, type);
 
     if(!strcmp(callback, "ccn_iribu_mgmt_crypto"))
-        ccn_iribu_mgmt_crypto(ccnl, type, buf, buflen);
+        ccn_iribu_mgmt_crypto(ccn_iribu, type, buf, buflen);
     /**
      * Add here further callback functions
      * else if(!strcmp(callback, "")){

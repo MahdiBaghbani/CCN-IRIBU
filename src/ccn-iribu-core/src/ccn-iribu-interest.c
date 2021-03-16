@@ -40,11 +40,11 @@
 #endif
 
 #ifdef CCN_IRIBU_RIOT
-#include "ccn-lite-riot.h"
+#include "ccn-iribu-riot.h"
 #endif
 
 struct ccn_iribu_interest_s*
-ccn_iribu_interest_new(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *from,
+ccn_iribu_interest_new(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_face_s *from,
                   struct ccn_iribu_pkt_s **pkt)
 {
     char s[CCN_IRIBU_MAX_PREFIX_SIZE];
@@ -70,15 +70,15 @@ ccn_iribu_interest_new(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *
     /** default value for max_pit_entries is defined in ccn-iribu-defs.h as CCN_IRIBU_DEFAULT_MAX_PIT_ENTRIES */
     /** it is set to -1 (means infinity) for anything other than arduino, riot or android */
     /** this code checks if max_pit_entries isn't defaulted to -1 and then compares its value against pitcnt value */
-    if ((ccn-iribu->max_pit_entries != -1) && (ccn-iribu->pitcnt >= ccn-iribu->max_pit_entries)) {
+    if ((ccn_iribu->max_pit_entries != -1) && (ccn_iribu->pitcnt >= ccn_iribu->max_pit_entries)) {
         ccn_iribu_pkt_free(i->pkt);
         ccn_iribu_free(i);
         return NULL;
     }
 
-    DBL_LINKED_LIST_ADD(ccn-iribu->pit, i);
+    DBL_LINKED_LIST_ADD(ccn_iribu->pit, i);
 
-    ccn-iribu->pitcnt++;
+    ccn_iribu->pitcnt++;
 
 #ifdef CCN_IRIBU_RIOT
     ccn_iribu_evtimer_reset_interest_retrans(i);

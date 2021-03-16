@@ -45,6 +45,6 @@ ccn_iribu_buf_new(void *data, size_t len);
                          !memcmp(X->data,Y->data,X->datalen))
 
 void
-ccn_iribu_core_cleanup(struct ccn_iribu_relay_s *ccnl);
+ccn_iribu_core_cleanup(struct ccn_iribu_relay_s *ccn_iribu);
     
 #endif //CCN_IRIBU_BUF_H

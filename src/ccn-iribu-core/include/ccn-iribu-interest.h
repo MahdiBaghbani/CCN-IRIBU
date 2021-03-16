@@ -63,14 +63,14 @@ struct ccn_iribu_interest_s {
 /**
  * Creates a new interest of type \ref ccn_iribu_interest_s 
  * 
- * @param[in] ccnl
+ * @param[in] ccn_iribu
  * @param[in] from
  * @param[in] pkt
  *
  * @return Upon success a new interest of type \ref ccn_iribu_interest_s, otherwise NULL
  */
 struct ccn_iribu_interest_s*
-ccn_iribu_interest_new(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_face_s *from,
+ccn_iribu_interest_new(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_face_s *from,
                   struct ccn_iribu_pkt_s **pkt);
 
 /**

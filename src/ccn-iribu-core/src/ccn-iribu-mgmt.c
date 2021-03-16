@@ -153,7 +153,7 @@ ccn_iribu_mgmt_parse_eth_address(uint8_t *sll_addr, const char *str) {
 // ----------------------------------------------------------------------
 
 int8_t
-ccn_iribu_mgmt_send_return_split(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
+ccn_iribu_mgmt_send_return_split(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
                 struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from,
                 size_t len, uint8_t *buf)
 {
@@ -203,8 +203,8 @@ ccn_iribu_mgmt_send_return_split(struct ccn_iribu_relay_s *ccnl, struct ccn_irib
 
 #ifdef USE_SIGNATURES
         if (!ccn_iribu_is_local_addr(&from->peer)) {
-            //                ccn_iribu_crypto_sign(ccnl, packet, len4, "ccn_iribu_mgmt_crypto", id);
-            ccn_iribu_crypto_sign(ccnl, packet, len4, "ccn_iribu_mgmt_crypto",
+            //                ccn_iribu_crypto_sign(ccn_iribu, packet, len4, "ccn_iribu_mgmt_crypto", id);
+            ccn_iribu_crypto_sign(ccn_iribu, packet, len4, "ccn_iribu_mgmt_crypto",
                              it ? -it : from->faceid);
         } else {
 #endif
@@ -234,7 +234,7 @@ ccn_iribu_mgmt_send_return_split(struct ccn_iribu_relay_s *ccnl, struct ccn_irib
                 if (!retbuf) {
                     goto Bail;
                 }
-                ccn_iribu_face_enqueue(ccnl, from, retbuf);
+                ccn_iribu_face_enqueue(ccn_iribu, from, retbuf);
             } else {
                 char uri[50];
                 size_t contentpos;
@@ -259,8 +259,8 @@ ccn_iribu_mgmt_send_return_split(struct ccn_iribu_relay_s *ccnl, struct ccn_irib
                 if (!c) {
                     goto Bail;
                 }
-                ccn_iribu_content_serve_pending(ccnl, c);
-                ccn_iribu_content_add2cache(ccnl, c);
+                ccn_iribu_content_serve_pending(ccn_iribu, c);
+                ccn_iribu_content_add2cache(ccn_iribu, c);
 /*
                 //put to cache
                 struct ccn_iribu_prefix_s *prefix_a = 0;
@@ -284,12 +284,12 @@ ccn_iribu_mgmt_send_return_split(struct ccn_iribu_relay_s *ccnl, struct ccn_irib
                 prefix_a->complen = (int *) ccn_iribu_malloc(sizeof(int)*2);
                 prefix_a->complen[0] = strlen("mgmt");
                 prefix_a->complen[1] = strlen((char*)ht);
-                c = ccn_iribu_content_new(ccnl, CCN_IRIBU_SUITE_CCNB, &pkt, &prefix_a,
+                c = ccn_iribu_content_new(ccn_iribu, CCN_IRIBU_SUITE_CCNB, &pkt, &prefix_a,
                                      NULL, content, contlen);
                 //if (!c) goto Done;
 
-                ccn_iribu_content_serve_pending(ccnl, c);
-                ccn_iribu_content_add2cache(ccnl, c);
+                ccn_iribu_content_serve_pending(ccn_iribu, c);
+                ccn_iribu_content_add2cache(ccn_iribu, c);
                 //Done:
                 //continue;
 */
@@ -362,7 +362,7 @@ Bail:
 
 
 int8_t
-ccn_iribu_mgmt_return_ccn_msg(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
+ccn_iribu_mgmt_return_ccn_msg(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
                          struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from,
                          char *component_type, char* answer)
 {
@@ -396,7 +396,7 @@ ccn_iribu_mgmt_return_ccn_msg(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_b
         return -1;
     }
 
-    if (ccn_iribu_mgmt_send_return_split(ccnl, orig, prefix, from, len, (unsigned char *) out1)) {
+    if (ccn_iribu_mgmt_send_return_split(ccn_iribu, orig, prefix, from, len, (unsigned char *) out1)) {
         return -1;
     }
     return 0;
@@ -726,7 +726,7 @@ ccn_iribu_mgmt_create_content_stmt(size_t num_contents, long *content, long *con
 }
 
 int8_t
-ccn_iribu_mgmt_debug(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
+ccn_iribu_mgmt_debug(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
                 struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from)
 {
     unsigned char *buf = NULL, *action = NULL, *debugaction = NULL;
@@ -765,7 +765,7 @@ ccn_iribu_mgmt_debug(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *ori
     size_t len = 0, len3 = 0;
 
     //Alloc memory storage for face answer
-    num_faces = (size_t) get_num_faces(ccnl);
+    num_faces = (size_t) get_num_faces(ccn_iribu);
     facepeer = (char**) ccn_iribu_calloc(num_faces, sizeof(char*));
     if (!facepeer) {
         goto Bail;
@@ -810,7 +810,7 @@ ccn_iribu_mgmt_debug(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *ori
     }
 
     //Alloc memory storage for fwd answer
-    num_fwds = (size_t) get_num_fwds(ccnl);
+    num_fwds = (size_t) get_num_fwds(ccn_iribu);
     fwd = (long*) ccn_iribu_malloc(num_fwds*sizeof(long));
     if (!fwd) {
         goto Bail;
@@ -847,7 +847,7 @@ ccn_iribu_mgmt_debug(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *ori
     }
 
     //Alloc memory storage for interface answer
-    num_interfaces = (size_t) get_num_interface(ccnl);
+    num_interfaces = (size_t) get_num_interface(ccn_iribu);
     interfaceaddr = (char**) ccn_iribu_calloc(num_interfaces, sizeof(char*));
     if (!interfaceaddr) {
         goto Bail;
@@ -876,7 +876,7 @@ ccn_iribu_mgmt_debug(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *ori
     }
 
     //Alloc memory storage for interest answer
-    num_interests = (size_t) get_num_interests(ccnl);
+    num_interests = (size_t) get_num_interests(ccn_iribu);
     interest = (long*) ccn_iribu_malloc(num_interests*sizeof(long));
     if (!interest) {
         goto Bail;
@@ -925,7 +925,7 @@ ccn_iribu_mgmt_debug(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *ori
     }
 
     //Alloc memory storage for content answer
-    num_contents = (size_t) get_num_contents(ccnl);
+    num_contents = (size_t) get_num_contents(ccn_iribu);
     content = (long*)ccn_iribu_malloc(num_contents*sizeof(long));
     if (!content) {
         goto Bail;
@@ -1020,39 +1020,39 @@ ccn_iribu_mgmt_debug(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *ori
         cp = "debug cmd worked";
         DEBUGMSG(TRACE, "  debugaction is %s\n", debugaction);
         if (!strcmp((char*) debugaction, "dump")) {
-            ccn_iribu_dump(0, CCN_IRIBU_RELAY, ccnl);
+            ccn_iribu_dump(0, CCN_IRIBU_RELAY, ccn_iribu);
 
-            get_faces_dump(0, ccnl, faceid, facenext, faceprev, faceifndx,
+            get_faces_dump(0, ccn_iribu, faceid, facenext, faceprev, faceifndx,
                            faceflags, facepeer, facetype, facefrag);
-            get_fwd_dump(0, ccnl, fwd, fwdnext, fwdface, fwdfaceid, suite,
+            get_fwd_dump(0, ccn_iribu, fwd, fwdnext, fwdface, fwdfaceid, suite,
                          fwdprefixlen, fwdprefix);
-            get_interface_dump(0, ccnl, interfaceifndx, interfaceaddr,
+            get_interface_dump(0, ccn_iribu, interfaceifndx, interfaceaddr,
                              interfacedev, interfacedevtype, interfacereflect);
-            get_interest_dump(0,ccnl, interest, interestnext, interestprev,
+            get_interest_dump(0,ccn_iribu, interest, interestnext, interestprev,
                               interestlast, interestmin, interestmax,
                               interestretries, interestpublisher,
                               interestprefixlen, interestprefix);
-            get_content_dump(0, ccnl, content, contentnext, contentprev,
+            get_content_dump(0, ccn_iribu, content, contentnext, contentprev,
                     contentlast_use, contentserved_cnt, cprefixlen, cprefix);
         } else if (!strcmp((char*) debugaction, "halt")){
-            ccn-iribu->halt_flag = 1;
+            ccn_iribu->halt_flag = 1;
         } else if (!strcmp((char*) debugaction, "dump+halt")) {
-            ccn_iribu_dump(0, CCN_IRIBU_RELAY, ccnl);
+            ccn_iribu_dump(0, CCN_IRIBU_RELAY, ccn_iribu);
 
-            get_faces_dump(0, ccnl, faceid, facenext, faceprev, faceifndx,
+            get_faces_dump(0, ccn_iribu, faceid, facenext, faceprev, faceifndx,
                            faceflags, facepeer, facetype, facefrag);
-            get_fwd_dump(0, ccnl, fwd, fwdnext, fwdface, fwdfaceid, suite,
+            get_fwd_dump(0, ccn_iribu, fwd, fwdnext, fwdface, fwdfaceid, suite,
                          fwdprefixlen, fwdprefix);
-            get_interface_dump(0, ccnl, interfaceifndx, interfaceaddr,
+            get_interface_dump(0, ccn_iribu, interfaceifndx, interfaceaddr,
                              interfacedev, interfacedevtype, interfacereflect);
-            get_interest_dump(0,ccnl, interest, interestnext, interestprev,
+            get_interest_dump(0,ccn_iribu, interest, interestnext, interestprev,
                               interestlast, interestmin, interestmax,
                               interestretries, interestpublisher,
                               interestprefixlen, interestprefix);
-            get_content_dump(0, ccnl, content, contentnext, contentprev,
+            get_content_dump(0, ccn_iribu, content, contentnext, contentprev,
                     contentlast_use, contentserved_cnt, cprefixlen, cprefix);
 
-            ccn-iribu->halt_flag = 1;
+            ccn_iribu->halt_flag = 1;
         } else {
             cp = "unknown debug action, ignored";
         }
@@ -1159,7 +1159,7 @@ SoftBail:
         goto Bail;
     }
 
-    if (ccn_iribu_mgmt_send_return_split(ccnl, orig, prefix, from, len, out)) {
+    if (ccn_iribu_mgmt_send_return_split(ccn_iribu, orig, prefix, from, len, out)) {
         goto Bail;
     }
 
@@ -1248,12 +1248,12 @@ Bail:
     }
     ccn_iribu_free(fwdprefix);
 
-    //ccn_iribu_mgmt_return_msg(ccnl, orig, from, cp);
+    //ccn_iribu_mgmt_return_msg(ccn_iribu, orig, from, cp);
     return rc;
 }
 
 int8_t
-ccn_iribu_mgmt_newface(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
+ccn_iribu_mgmt_newface(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
                 struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from)
 {
     uint8_t *buf;
@@ -1350,7 +1350,7 @@ ccn_iribu_mgmt_newface(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *o
             goto SoftBail;
         }
         // if (!strcmp(macsrc, "any")) // honouring macsrc not implemented yet
-        f = ccn_iribu_get_face_or_create(ccnl, -1, &su.sa, sizeof(su.linklayer));
+        f = ccn_iribu_get_face_or_create(ccn_iribu, -1, &su.sa, sizeof(su.linklayer));
     } else
 #endif
 #endif
@@ -1375,7 +1375,7 @@ ccn_iribu_mgmt_newface(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *o
     #endif
             su.ip4.sin_port = htons((uint16_t) lport);
             // not implmented yet: honor the requested ip4src parameter
-            f = ccn_iribu_get_face_or_create(ccnl, -1, // from->ifndx,
+            f = ccn_iribu_get_face_or_create(ccn_iribu, -1, // from->ifndx,
                                         &su.sa, sizeof(struct sockaddr_in));
         }
 #endif
@@ -1387,7 +1387,7 @@ ccn_iribu_mgmt_newface(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *o
             su.sa.sa_family = AF_INET6;
             inet_pton(AF_INET6, (const char*)host, &su.ip6.sin6_addr.s6_addr);
             su.ip6.sin6_port = htons((uint16_t) lport);
-            f = ccn_iribu_get_face_or_create(ccnl, -1, // from->ifndx,
+            f = ccn_iribu_get_face_or_create(ccn_iribu, -1, // from->ifndx,
                                         &su.sa, sizeof(struct sockaddr_in6));
         }
 #endif //CCN_IRIBU_LINUXKERNEL
@@ -1400,7 +1400,7 @@ ccn_iribu_mgmt_newface(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *o
             su.wpan.addr.addr_type = IEEE802154_ADDR_SHORT;
             su.wpan.addr.pan_id = strtol((const char*)wpanpanid, NULL, 0);
             su.wpan.addr.addr.short_addr = strtol((const char*)wpanaddr, NULL, 0);
-            f = ccn_iribu_get_face_or_create(ccnl, -1, &su.sa, sizeof(su.wpan));
+            f = ccn_iribu_get_face_or_create(ccn_iribu, -1, &su.sa, sizeof(su.wpan));
         }
 #endif
     }
@@ -1413,7 +1413,7 @@ ccn_iribu_mgmt_newface(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *o
         if (su.ux.sun_path[sizeof(su.ux.sun_path) - 1] != 0) {
             goto SoftBail;
         }
-        f = ccn_iribu_get_face_or_create(ccnl, -1, // from->ifndx,
+        f = ccn_iribu_get_face_or_create(ccn_iribu, -1, // from->ifndx,
                                     &su.sa, sizeof(struct sockaddr_un));
     }
 #endif
@@ -1440,8 +1440,8 @@ ccn_iribu_mgmt_newface(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *o
                 ccn_iribu_frag_destroy(f->frag);
                 f->frag = NULL;
             }
-            if (f->ifndx >= 0 && ccn-iribu->ifs[f->ifndx].mtu > 0) {
-                mtu = ccn-iribu->ifs[f->ifndx].mtu;
+            if (f->ifndx >= 0 && ccn_iribu->ifs[f->ifndx].mtu > 0) {
+                mtu = ccn_iribu->ifs[f->ifndx].mtu;
             }
             errno = 0;
             lfrag = strtol((const char*) frag, NULL, 0);
@@ -1555,7 +1555,7 @@ SoftBail:
         goto Bail;
     }
 
-    if (ccn_iribu_mgmt_send_return_split(ccnl, orig, prefix, from, len, (unsigned char*)out_buf)) {
+    if (ccn_iribu_mgmt_send_return_split(ccn_iribu, orig, prefix, from, len, (unsigned char*)out_buf)) {
         goto Bail;
     }
 
@@ -1575,12 +1575,12 @@ Bail:
     ccn_iribu_free(flags);
     ccn_iribu_free(path);
 
-    //ccn_iribu_mgmt_return_msg(ccnl, orig, from, cp);
+    //ccn_iribu_mgmt_return_msg(ccn_iribu, orig, from, cp);
     return rc;
 }
 
 int8_t
-ccn_iribu_mgmt_setfrag(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
+ccn_iribu_mgmt_setfrag(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
                 struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from)
 {
     uint8_t *buf;
@@ -1650,7 +1650,7 @@ ccn_iribu_mgmt_setfrag(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *o
         long lmtu = 0;
         (void) lmtu;
 
-        for (f = ccn-iribu->faces; f && f->faceid != fi; f = f->next);
+        for (f = ccn_iribu->faces; f && f->faceid != fi; f = f->next);
         if (!f) {
             goto Error;
         }
@@ -1733,7 +1733,7 @@ SoftBail:
         goto Bail;
     }
 
-    if (ccn_iribu_mgmt_send_return_split(ccnl, orig, prefix, from, len, (unsigned char*)out_buf)) {
+    if (ccn_iribu_mgmt_send_return_split(ccn_iribu, orig, prefix, from, len, (unsigned char*)out_buf)) {
         goto Bail;
     }
 
@@ -1746,12 +1746,12 @@ Bail:
     ccn_iribu_free(frag);
     ccn_iribu_free(mtu);
 
-    //ccn_iribu_mgmt_return_msg(ccnl, orig, from, cp);
+    //ccn_iribu_mgmt_return_msg(ccn_iribu, orig, from, cp);
     return rc;
 }
 
 int8_t
-ccn_iribu_mgmt_destroyface(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
+ccn_iribu_mgmt_destroyface(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
                       struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from)
 {
     uint8_t *buf;
@@ -1822,12 +1822,12 @@ ccn_iribu_mgmt_destroyface(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_
             goto SoftBail;
         }
         fi = (int) lfi;
-        for (f = ccn-iribu->faces; f && f->faceid != fi; f = f->next);
+        for (f = ccn_iribu->faces; f && f->faceid != fi; f = f->next);
         if (!f) {
             DEBUGMSG(TRACE, "  could not find face=%s\n", faceid);
             goto SoftBail;
         }
-        ccn_iribu_face_remove(ccnl, f);
+        ccn_iribu_face_remove(ccn_iribu, f);
         DEBUGMSG(TRACE, "  face %s destroyed\n", faceid);
         cp = "facedestroy cmd worked";
     } else {
@@ -1837,7 +1837,7 @@ ccn_iribu_mgmt_destroyface(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_
 SoftBail:
     /*ANSWER*/
     if (!faceid) {
-        ccn_iribu_mgmt_return_ccn_msg(ccnl, orig, prefix, from, "destroyface", cp);
+        ccn_iribu_mgmt_return_ccn_msg(ccn_iribu, orig, prefix, from, "destroyface", cp);
         goto Bail;
     }
 
@@ -1878,7 +1878,7 @@ SoftBail:
         goto Bail;
     }
 
-    if (ccn_iribu_mgmt_send_return_split(ccnl, orig, prefix, from, len, (unsigned char*)out_buf)) {
+    if (ccn_iribu_mgmt_send_return_split(ccn_iribu, orig, prefix, from, len, (unsigned char*)out_buf)) {
         goto Bail;
     }
 
@@ -1889,12 +1889,12 @@ Bail:
     /*END ANWER*/
     ccn_iribu_free(action);
     ccn_iribu_free(faceid);
-    //ccn_iribu_mgmt_return_msg(ccnl, orig, from, cp);
+    //ccn_iribu_mgmt_return_msg(ccn_iribu, orig, from, cp);
     return rc;
 }
 
 int8_t
-ccn_iribu_mgmt_newdev(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
+ccn_iribu_mgmt_newdev(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
                  struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from)
 {
     uint8_t *buf;
@@ -1963,7 +1963,7 @@ ccn_iribu_mgmt_newdev(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *or
 
     // should (re)verify that action=="newdev"
 
-    if (ccn-iribu->ifcount >= CCN_IRIBU_MAX_INTERFACES) {
+    if (ccn_iribu->ifcount >= CCN_IRIBU_MAX_INTERFACES) {
       DEBUGMSG(TRACE, "  too many interfaces, no new interface created\n");
       goto SoftBail;
     }
@@ -1989,7 +1989,7 @@ ccn_iribu_mgmt_newdev(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *or
         // check if it already exists, bail
 
         // create a new ifs-entry
-        i = &ccn-iribu->ifs[ccn-iribu->ifcount];
+        i = &ccn_iribu->ifs[ccn_iribu->ifcount];
 #ifdef CCN_IRIBU_LINUXKERNEL
         {
             struct net_device *nd;
@@ -1999,8 +1999,8 @@ ccn_iribu_mgmt_newdev(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *or
                 DEBUGMSG(TRACE, "  could not open device %s\n", devname);
                 goto SoftBail;
             }
-            for (j = 0; j < ccn-iribu->ifcount; j++) {
-                if (ccn-iribu->ifs[j].netdev == nd) {
+            for (j = 0; j < ccn_iribu->ifcount; j++) {
+                if (ccn_iribu->ifs[j].netdev == nd) {
                     dev_put(nd);
                     DEBUGMSG(TRACE, "  device %s already open\n", devname);
                     goto SoftBail;
@@ -2027,10 +2027,10 @@ ccn_iribu_mgmt_newdev(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *or
         i->reflect = 1;
         i->fwdalli = 1;
 
-        if (ccn-iribu->defaultInterfaceScheduler) {
-            i->sched = ccn-iribu->defaultInterfaceScheduler(ccnl, ccn_iribu_interface_CTS);
+        if (ccn_iribu->defaultInterfaceScheduler) {
+            i->sched = ccn_iribu->defaultInterfaceScheduler(ccn_iribu, ccn_iribu_interface_CTS);
         }
-        ccn-iribu->ifcount++;
+        ccn_iribu->ifcount++;
 
         goto SoftBail;
     }
@@ -2052,7 +2052,7 @@ ccn_iribu_mgmt_newdev(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *or
             // check if it already exists, bail
 
             // create a new ifs-entry
-            i = &ccn-iribu->ifs[ccn-iribu->ifcount];
+            i = &ccn_iribu->ifs[ccn_iribu->ifcount];
             i->sock = ccn_iribu_open_udpdev((uint16_t) lport, &i->addr.ip4);
             if (!i->sock) {
                 DEBUGMSG(TRACE, "  could not open UDP device %s/%s\n", ip4src, port);
@@ -2077,7 +2077,7 @@ ccn_iribu_mgmt_newdev(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *or
             // check if it already exists, bail
 
             // create a new ifs-entry
-            i = &ccn-iribu->ifs[ccn-iribu->ifcount];
+            i = &ccn_iribu->ifs[ccn_iribu->ifcount];
             i->sock = ccn_iribu_open_udp6dev((uint16_t) port_l, &i->addr.ip6);
             if (!i->sock) {
                 DEBUGMSG(TRACE, "  could not open UDP device %s/%s\n", ip6src, port);
@@ -2090,8 +2090,8 @@ ccn_iribu_mgmt_newdev(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *or
 #ifdef CCN_IRIBU_LINUXKERNEL
         {
             int j;
-            for (j = 0; j < ccn-iribu->ifcount; j++) {
-                if (!ccn_iribu_addr_cmp(&ccn-iribu->ifs[j].addr, &i->addr)) {
+            for (j = 0; j < ccn_iribu->ifcount; j++) {
+                if (!ccn_iribu_addr_cmp(&ccn_iribu->ifs[j].addr, &i->addr)) {
                     sock_release(i->sock);
 #ifdef USE_IPV4
                     DEBUGMSG(TRACE, "  UDP device %s/%s already open\n",
@@ -2131,10 +2131,10 @@ ccn_iribu_mgmt_newdev(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *or
         i->reflect = 0;
         i->fwdalli = 1;
 
-        if (ccn-iribu->defaultInterfaceScheduler) {
-            i->sched = ccn-iribu->defaultInterfaceScheduler(ccnl, ccn_iribu_interface_CTS);
+        if (ccn_iribu->defaultInterfaceScheduler) {
+            i->sched = ccn_iribu->defaultInterfaceScheduler(ccn_iribu, ccn_iribu_interface_CTS);
         }
-        ccn-iribu->ifcount++;
+        ccn_iribu->ifcount++;
 
         //cp = "newdevice cmd worked";
         goto SoftBail;
@@ -2245,7 +2245,7 @@ SoftBail:
         goto Bail;
     }
 
-    if (ccn_iribu_mgmt_send_return_split(ccnl, orig, prefix, from, len, (unsigned char*)out_buf)) {
+    if (ccn_iribu_mgmt_send_return_split(ccn_iribu, orig, prefix, from, len, (unsigned char*)out_buf)) {
         goto Bail;
     }
 
@@ -2258,19 +2258,19 @@ Bail:
     ccn_iribu_free(frag);
     ccn_iribu_free(action);
 
-    //ccn_iribu_mgmt_return_msg(ccnl, orig, from, cp);
+    //ccn_iribu_mgmt_return_msg(ccn_iribu, orig, from, cp);
     return rc;
 }
 
 
 int8_t
-ccn_iribu_mgmt_destroydev(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
+ccn_iribu_mgmt_destroydev(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
                      struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from)
 {
 
     DEBUGMSG(TRACE, "mgmt_destroydev not implemented yet\n");
     /*ANSWER*/
-    ccn_iribu_mgmt_return_ccn_msg(ccnl, orig, prefix, from, "mgmt_destroy", "mgmt_destroydev not implemented yet");
+    ccn_iribu_mgmt_return_ccn_msg(ccn_iribu, orig, prefix, from, "mgmt_destroy", "mgmt_destroydev not implemented yet");
 
     /*END ANSWER*/
     return -1;
@@ -2279,7 +2279,7 @@ ccn_iribu_mgmt_destroydev(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s
 #ifdef USE_ECHO
 
 int8_t
-ccn_iribu_mgmt_echo(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
+ccn_iribu_mgmt_echo(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
                struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from)
 {
     uint8_t *buf;
@@ -2382,7 +2382,7 @@ ccn_iribu_mgmt_echo(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig
         p->suite = *suite;
         DEBUGMSG(TRACE, "mgmt: activating echo server for %s, suite=%s\n",
                  ccn_iribu_prefix_to_str(p,s,CCN_IRIBU_MAX_PREFIX_SIZE), ccn_iribu_suite2str(*suite));
-        ccn_iribu_echo_add(ccnl, ccn_iribu_prefix_clone(p));
+        ccn_iribu_echo_add(ccn_iribu, ccn_iribu_prefix_clone(p));
         cp = "echoserver cmd worked";
     } else {
         DEBUGMSG(TRACE, "mgmt: ignored echoserver\n");
@@ -2391,7 +2391,7 @@ ccn_iribu_mgmt_echo(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig
 SoftBail:
     /*ANSWER*/
     if (!action || !p) {
-        if (ccn_iribu_mgmt_return_ccn_msg(ccnl, orig, prefix, from, "echoserver", cp)) {
+        if (ccn_iribu_mgmt_return_ccn_msg(ccn_iribu, orig, prefix, from, "echoserver", cp)) {
             goto Bail;
         }
     }
@@ -2439,7 +2439,7 @@ SoftBail:
         goto Bail;
     }
 
-    if (ccn_iribu_mgmt_send_return_split(ccnl, orig, prefix, from, len, (unsigned char*)out_buf)) {
+    if (ccn_iribu_mgmt_send_return_split(ccn_iribu, orig, prefix, from, len, (unsigned char*)out_buf)) {
         goto Bail;
     }
 
@@ -2453,14 +2453,14 @@ Bail:
     ccn_iribu_free(action);
     ccn_iribu_prefix_free(p);
 
-    //ccn_iribu_mgmt_return_msg(ccnl, orig, from, cp);
+    //ccn_iribu_mgmt_return_msg(ccn_iribu, orig, from, cp);
     return rc;
 }
 
 #endif // USE_ECHO
 
 int8_t
-ccn_iribu_mgmt_prefixreg(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
+ccn_iribu_mgmt_prefixreg(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
                     struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from)
 {
     uint8_t *buf;
@@ -2576,7 +2576,7 @@ ccn_iribu_mgmt_prefixreg(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s 
         DEBUGMSG(TRACE, "mgmt: adding prefix %s to faceid=%s, suite=%s\n",
                  ccn_iribu_prefix_to_str(p,s,CCN_IRIBU_MAX_PREFIX_SIZE), faceid, ccn_iribu_suite2str(suite[0]));
 
-        for (f = ccn-iribu->faces; f && f->faceid != fi; f = f->next);
+        for (f = ccn_iribu->faces; f && f->faceid != fi; f = f->next);
         if (!f) {
             goto SoftBail;
         }
@@ -2592,7 +2592,7 @@ ccn_iribu_mgmt_prefixreg(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s 
             fwd->suite = suite[0];
         }
 
-        fwd2 = &ccn-iribu->fib;
+        fwd2 = &ccn_iribu->fib;
         while (*fwd2) {
             fwd2 = &((*fwd2)->next);
         }
@@ -2605,7 +2605,7 @@ ccn_iribu_mgmt_prefixreg(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s 
 SoftBail:
     /*ANSWER*/
     if (!action || !p || ! faceid) {
-        ccn_iribu_mgmt_return_ccn_msg(ccnl, orig, prefix, from, "prefixreg", cp);
+        ccn_iribu_mgmt_return_ccn_msg(ccn_iribu, orig, prefix, from, "prefixreg", cp);
         goto Bail;
     }
     if (ccn_iribu_ccnb_mkHeader(out_buf+len, out_buf + OUT_BUF_SIZE, CCN_DTAG_NAME, CCN_TT_DTAG, &len)) { // name
@@ -2651,7 +2651,7 @@ SoftBail:
         goto Bail;
     }
 
-    if (ccn_iribu_mgmt_send_return_split(ccnl, orig, prefix, from, len, (unsigned char*)out_buf)) {
+    if (ccn_iribu_mgmt_send_return_split(ccn_iribu, orig, prefix, from, len, (unsigned char*)out_buf)) {
         goto Bail;
     }
 
@@ -2669,12 +2669,12 @@ Bail:
         ccn_iribu_free(fwd);
     }
 
-    //ccn_iribu_mgmt_return_msg(ccnl, orig, from, cp);
+    //ccn_iribu_mgmt_return_msg(ccn_iribu, orig, from, cp);
     return rc;
 }
 
 int8_t
-ccn_iribu_mgmt_addcacheobject(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
+ccn_iribu_mgmt_addcacheobject(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
                     struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from)
 {
     uint8_t *buf;
@@ -2793,7 +2793,7 @@ ccn_iribu_mgmt_addcacheobject(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_b
     if (ret < 0 || (unsigned) ret >= 300) {
         goto Bail;
     }
-    if (ccn_iribu_mgmt_return_ccn_msg(ccnl, orig, prefix, from, "addcacheobject", (char *)h)) {
+    if (ccn_iribu_mgmt_return_ccn_msg(ccn_iribu, orig, prefix, from, "addcacheobject", (char *)h)) {
         ccn_iribu_free(h);
         goto Bail;
     }
@@ -2832,13 +2832,13 @@ ccn_iribu_mgmt_addcacheobject(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_b
             goto Bail;
         }
 
-        interest = ccn_iribu_interest_new(ccnl, from, &pkt);
+        interest = ccn_iribu_interest_new(ccn_iribu, from, &pkt);
         if (!interest) {
             goto Bail;
         }
 
         //Send interest to from!
-        ccn_iribu_face_enqueue(ccnl, from, buffer);
+        ccn_iribu_face_enqueue(ccn_iribu, from, buffer);
     }
 //    ccn_iribu_prefix_free(prefix_new);
 
@@ -2849,7 +2849,7 @@ Bail:
 }
 
 int8_t
-ccn_iribu_mgmt_removecacheobject(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
+ccn_iribu_mgmt_removecacheobject(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
                     struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from)
 {
 
@@ -2922,7 +2922,7 @@ ccn_iribu_mgmt_removecacheobject(struct ccn_iribu_relay_s *ccnl, struct ccn_irib
         }
     }
 
-    for (c2 = ccn-iribu->contents; c2; c2 = c2->next) {
+    for (c2 = ccn_iribu->contents; c2; c2 = c2->next) {
         if (c2->pkt->pfx->compcnt != num_of_components) {
             continue;
         }
@@ -2937,7 +2937,7 @@ ccn_iribu_mgmt_removecacheobject(struct ccn_iribu_relay_s *ccnl, struct ccn_irib
     }
     if (i == num_of_components){
         DEBUGMSG(TRACE, "Content found\n");
-        ccn_iribu_content_remove(ccnl, c2);
+        ccn_iribu_content_remove(ccn_iribu, c2);
     } else {
        DEBUGMSG(TRACE, "Ignore request since content not found\n");
        goto SoftBail;
@@ -2946,7 +2946,7 @@ ccn_iribu_mgmt_removecacheobject(struct ccn_iribu_relay_s *ccnl, struct ccn_irib
 
 SoftBail:
     //send answer
-    if (ccn_iribu_mgmt_return_ccn_msg(ccnl, orig, prefix, from, "removecacheobject", answer)) {
+    if (ccn_iribu_mgmt_return_ccn_msg(ccn_iribu, orig, prefix, from, "removecacheobject", answer)) {
         goto Bail;
     }
 
@@ -2959,7 +2959,7 @@ Bail:
 
 #ifdef USE_SIGNATURES
 int8_t
-ccn_iribu_mgmt_validate_signature(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
+ccn_iribu_mgmt_validate_signature(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
                     struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from, char *cmd)
 {
 
@@ -3015,66 +3015,66 @@ ccn_iribu_mgmt_validate_signature(struct ccn_iribu_relay_s *ccnl, struct ccn_iri
     datalen = buflen - 2;
     data = buf;
 
-    if (ccn_iribu_crypto_verify(ccnl, data, datalen, (char *)sig, siglen, "ccn_iribu_mgmt_crypto", from->faceid)) {
+    if (ccn_iribu_crypto_verify(ccn_iribu, data, datalen, (char *)sig, siglen, "ccn_iribu_mgmt_crypto", from->faceid)) {
         goto Bail;
     }
 
     return 0;
 
 Bail:
-    ccn_iribu_mgmt_return_ccn_msg(ccnl, orig, prefix, from, cmd,
+    ccn_iribu_mgmt_return_ccn_msg(ccn_iribu, orig, prefix, from, cmd,
                 "refused: signature could not be validated");
     return -1;
 }
 #endif /*USE_SIGNATURES*/
 
 int8_t
-ccn_iribu_mgmt_handle(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
+ccn_iribu_mgmt_handle(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
                  struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from,
                  char *cmd, int8_t verified) {
     DEBUGMSG(TRACE, "ccn_iribu_mgmt_handle \"%s\"\n", cmd);
     if (!verified) {
-        ccn_iribu_mgmt_return_ccn_msg(ccnl, orig, prefix, from, cmd,
+        ccn_iribu_mgmt_return_ccn_msg(ccn_iribu, orig, prefix, from, cmd,
                                  "refused: error signature not verified");
         return -1;
     }
 
     if (!strcmp(cmd, "newdev")) {
-        return ccn_iribu_mgmt_newdev(ccnl, orig, prefix, from);
+        return ccn_iribu_mgmt_newdev(ccn_iribu, orig, prefix, from);
     } else if (!strcmp(cmd, "setfrag")) {
-        return ccn_iribu_mgmt_setfrag(ccnl, orig, prefix, from);
+        return ccn_iribu_mgmt_setfrag(ccn_iribu, orig, prefix, from);
     } else if (!strcmp(cmd, "destroydev")) {
-        return ccn_iribu_mgmt_destroydev(ccnl, orig, prefix, from);
+        return ccn_iribu_mgmt_destroydev(ccn_iribu, orig, prefix, from);
 #ifdef USE_ECHO
     } else if (!strcmp(cmd, "echoserver")) {
-        return ccn_iribu_mgmt_echo(ccnl, orig, prefix, from);
+        return ccn_iribu_mgmt_echo(ccn_iribu, orig, prefix, from);
 #endif
     } else if (!strcmp(cmd, "newface")) {
-        return ccn_iribu_mgmt_newface(ccnl, orig, prefix, from);
+        return ccn_iribu_mgmt_newface(ccn_iribu, orig, prefix, from);
     } else if (!strcmp(cmd, "destroyface")) {
-        return ccn_iribu_mgmt_destroyface(ccnl, orig, prefix, from);
+        return ccn_iribu_mgmt_destroyface(ccn_iribu, orig, prefix, from);
     } else if (!strcmp(cmd, "prefixreg")) {
-        return ccn_iribu_mgmt_prefixreg(ccnl, orig, prefix, from);
-//  TODO: Add ccn_iribu_mgmt_prefixunreg(ccnl, orig, prefix, from)
+        return ccn_iribu_mgmt_prefixreg(ccn_iribu, orig, prefix, from);
+//  TODO: Add ccn_iribu_mgmt_prefixunreg(ccn_iribu, orig, prefix, from)
 //  } else if (!strcmp(cmd, "prefixunreg")) {
-//      return ccn_iribu_mgmt_prefixunreg(ccnl, orig, prefix, from);
+//      return ccn_iribu_mgmt_prefixunreg(ccn_iribu, orig, prefix, from);
 #ifdef USE_DEBUG
     } else if (!strcmp(cmd, "addcacheobject")) {
-        return ccn_iribu_mgmt_addcacheobject(ccnl, orig, prefix, from);
+        return ccn_iribu_mgmt_addcacheobject(ccn_iribu, orig, prefix, from);
     } else if (!strcmp(cmd, "removecacheobject")) {
-        return ccn_iribu_mgmt_removecacheobject(ccnl, orig, prefix, from);
+        return ccn_iribu_mgmt_removecacheobject(ccn_iribu, orig, prefix, from);
     } else if (!strcmp(cmd, "debug")) {
-        return ccn_iribu_mgmt_debug(ccnl, orig, prefix, from);
+        return ccn_iribu_mgmt_debug(ccn_iribu, orig, prefix, from);
 #endif
     }
 
     DEBUGMSG(TRACE, "unknown mgmt command %s\n", cmd);
-    ccn_iribu_mgmt_return_ccn_msg(ccnl, orig, prefix, from, cmd, "unknown mgmt command");
+    ccn_iribu_mgmt_return_ccn_msg(ccn_iribu, orig, prefix, from, cmd, "unknown mgmt command");
     return -1;
 }
 
 int8_t
-ccn_iribu_mgmt(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
+ccn_iribu_mgmt(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
           struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from)
 {
     char cmd[1000];
@@ -3092,19 +3092,19 @@ ccn_iribu_mgmt(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_buf_s *orig,
     }
 
 #ifdef USE_SIGNATURES
-    return ccn_iribu_mgmt_validate_signature(ccnl, orig, prefix, from, cmd);
+    return ccn_iribu_mgmt_validate_signature(ccn_iribu, orig, prefix, from, cmd);
 #endif /*USE_SIGNATURES*/
 
     DEBUGMSG(TRACE, "  rejecting because src=%s is not a local addr\n",
             ccn_iribu_addr2ascii(&from->peer));
-    if (ccn_iribu_mgmt_return_ccn_msg(ccnl, orig, prefix, from, cmd,
+    if (ccn_iribu_mgmt_return_ccn_msg(ccn_iribu, orig, prefix, from, cmd,
                 "refused: origin of mgmt cmd is not local")) {
         return -1;
     }
     return -1;
 
 MGMT:
-    return ccn_iribu_mgmt_handle(ccnl, orig, prefix, from, cmd, 1);
+    return ccn_iribu_mgmt_handle(ccn_iribu, orig, prefix, from, cmd, 1);
 }
 
 #endif // USE_MGMT

@@ -1,4 +1,4 @@
-# ccn-lite/src/py/ccnlite/ndn2013.py
+# ccn-iribu/src/py/ccniribu/ndn2013.py
 
 '''
 CCN-lite module for Python:

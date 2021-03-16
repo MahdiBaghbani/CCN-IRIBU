@@ -10,12 +10,12 @@
 #define CCN_LITE_RIOT_H
 
 /**
- * @defgroup    pkg_ccnlite CCN-Lite stack
+ * @defgroup    pkg_ccniribu CCN-IRIBU stack
  * @ingroup     pkg
  * @ingroup     net
  * @brief       Provides a NDN implementation
  *
- * This package provides the CCN-Lite stack as a port of NDN for RIOT.
+ * This package provides the CCN-IRIBU stack as a port of NDN for RIOT.
  *
  * @{
  */
@@ -42,7 +42,7 @@ extern "C" {
 #endif
 
 /**
- * @name Dynamic memory allocation used in CCN-Lite
+ * @name Dynamic memory allocation used in CCN-IRIBU
  *
  * @{
  */
@@ -60,14 +60,14 @@ extern "C" {
 #define CONSTSTR(s)                     s
 
 /**
- * Stack size for CCN-Lite event loop
+ * Stack size for CCN-IRIBU event loop
  */
 #ifndef CCN_IRIBU_STACK_SIZE
 #define CCN_IRIBU_STACK_SIZE (THREAD_STACKSIZE_MAIN)
 #endif
 
 /**
- * Size of the message queue of CCN-Lite's event loop
+ * Size of the message queue of CCN-IRIBU's event loop
  */
 #ifndef CCN_IRIBU_QUEUE_SIZE
 #define CCN_IRIBU_QUEUE_SIZE     (8)
@@ -154,24 +154,24 @@ extern kernel_pid_t ccn_iribu_event_loop_pid;
 #endif
 
 /**
- * Struct holding CCN-Lite's central relay information
+ * Struct holding CCN-IRIBU's central relay information
  */
 extern struct ccn_iribu_relay_s ccn_iribu_relay;
 
 /**
- * Struct Evtimer for various ccnl events
+ * Struct Evtimer for various ccn iribu events
  */
 extern evtimer_msg_t ccn_iribu_evtimer;
 
 /**
- * @brief   Start the main CCN-Lite event-loop
+ * @brief   Start the main CCN-IRIBU event-loop
  *
  * @return  The PID of the event-loop's thread
  */
 kernel_pid_t ccn_iribu_start(void);
 
 /**
- * @brief Opens a @ref net_gnrc_netif device for use with CCN-Lite
+ * @brief Opens a @ref net_gnrc_netif device for use with CCN-IRIBU
  *
  * @param[in] if_pid        The pid of the @ref net_gnrc_netif device driver
  * @param[in] netreg_type   The @ref net_gnrc_nettype @p if_pid should be

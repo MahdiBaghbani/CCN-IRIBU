@@ -33,19 +33,19 @@ struct ccn_iribu_http_s {
 
 
 struct ccn_iribu_http_s*
-ccn_iribu_http_new(struct ccn_iribu_relay_s *ccnl, int serverport);
+ccn_iribu_http_new(struct ccn_iribu_relay_s *ccn_iribu, int serverport);
 
-int ccn_iribu_http_status(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_http_s *http);
+int ccn_iribu_http_status(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_http_s *http);
 
 struct ccn_iribu_http_s*
 ccn_iribu_http_cleanup(struct ccn_iribu_http_s *http);
 
 int
-ccn_iribu_http_anteselect(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_http_s *http,
+ccn_iribu_http_anteselect(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_http_s *http,
                      fd_set *readfs, fd_set *writefs, int *maxfd);
 
 int
-ccn_iribu_http_postselect(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_http_s *http,
+ccn_iribu_http_postselect(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_http_s *http,
                      fd_set *readfs, fd_set *writefs);
 
 int
@@ -55,7 +55,7 @@ int
 ccn_iribu_cmpfib(const void *a, const void *b);
 
 int
-ccn_iribu_http_status(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_http_s *http);
+ccn_iribu_http_status(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_http_s *http);
 
 #endif //USE_HTTP_STATUS
 

@@ -31,12 +31,12 @@ void null_func(void);
 // ----------------------------------------------------------------------
 
 struct ccn_iribu_http_s*
-ccn_iribu_http_new(struct ccn_iribu_relay_s *ccnl, int serverport)
+ccn_iribu_http_new(struct ccn_iribu_relay_s *ccn_iribu, int serverport)
 {
     int s, i = 1;
     struct sockaddr_in me;
     struct ccn_iribu_http_s *http;
-    (void) ccnl;
+    (void) ccn_iribu;
 
     s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (!s) {
@@ -83,10 +83,10 @@ ccn_iribu_http_cleanup(struct ccn_iribu_http_s *http)
 
 
 int
-ccn_iribu_http_anteselect(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_http_s *http,
+ccn_iribu_http_anteselect(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_http_s *http,
                      fd_set *readfs, fd_set *writefs, int *maxfd)
 {
-    (void) ccnl;
+    (void) ccn_iribu;
     if (!http)
         return -1;
     if (!http->client) {
@@ -106,7 +106,7 @@ ccn_iribu_http_anteselect(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_http_
 
 
 int
-ccn_iribu_http_postselect(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_http_s *http,
+ccn_iribu_http_postselect(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_http_s *http,
                      fd_set *readfs, fd_set *writefs)
 {
     if (!http)
@@ -133,7 +133,7 @@ ccn_iribu_http_postselect(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_http_
             http->client = 0;
         } else if (len > 0) {
             http->in[len] = 0;
-            ccn_iribu_http_status(ccnl, http);
+            ccn_iribu_http_status(ccn_iribu, http);
         }
     }
     if (http->client && FD_ISSET(http->client, writefs) && http->out) {
@@ -193,7 +193,7 @@ ccn_iribu_cmpfib(const void *a, const void *b)
 }
 
 int
-ccn_iribu_http_status(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_http_s *http)
+ccn_iribu_http_status(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_http_s *http)
 {
     static char txt[64000];
     char *hdr =
@@ -212,14 +212,14 @@ ccn_iribu_http_status(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_http_s *h
 
     strcpy(txt, hdr);
     len += snprintf(txt+len, sizeof(txt) - len,
-                   "<html><head><title>ccn-lite-relay status</title>\n"
+                   "<html><head><title>ccn-iribu-relay status</title>\n"
                    "<style type=\"text/css\">\n"
                    "body {font-family: sans-serif;}\n"
                    "</style>\n"
                    "</head><body>\n");
     len += snprintf(txt+len, sizeof(txt) - len, "\n<table borders=0>\n<tr><td>"
                    "<a href=\"\">[refresh]</a>&nbsp;&nbsp;<td>"
-                   "ccn-lite-relay Status Page &nbsp;&nbsp;");
+                   "ccn-iribu-relay Status Page &nbsp;&nbsp;");
     //uname(&uts);
     //len += sprintf(txt+len, "node <strong>%s (%d)</strong>\n",
     //               uts.nodename, getpid());
@@ -227,17 +227,17 @@ ccn_iribu_http_status(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_http_s *h
     cp = ctime(&t);
     cp[strlen(cp)-1] = 0;
     len += snprintf(txt+len, sizeof(txt) - len, "<tr><td><td><font size=-1>%s &nbsp;&nbsp;", cp);
-    cp = ctime(&ccn-iribu->startup_time);
+    cp = ctime(&ccn_iribu->startup_time);
     cp[strlen(cp)-1] = 0;
     len += snprintf(txt+len, sizeof(txt) - len, " (started %s)</font>\n</table>\n", cp);
 
     len += snprintf(txt+len, sizeof(txt) - len, "\n<p><table borders=0 width=100%% bgcolor=#e0e0ff>"
                    "<tr><td><em>Forwarding table</em></table><ul>\n");
-    for (fwd = ccn-iribu->fib, cnt = 0; fwd; fwd = fwd->next, cnt++);
+    for (fwd = ccn_iribu->fib, cnt = 0; fwd; fwd = fwd->next, cnt++);
     if (cnt > 0) {
         struct ccn_iribu_forward_s **fwda;
         fwda = (struct ccn_iribu_forward_s**) ccn_iribu_malloc(cnt * sizeof(fwd));
-        for (fwd = ccn-iribu->fib, i = 0; fwd; fwd = fwd->next, i++)
+        for (fwd = ccn_iribu->fib, i = 0; fwd; fwd = fwd->next, i++)
             fwda[i] = fwd;
         qsort(fwda, cnt, sizeof(fwd), ccn_iribu_cmpfib);
         for (i = 0; i < cnt; i++) {
@@ -261,11 +261,11 @@ ccn_iribu_http_status(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_http_s *h
 
     len += snprintf(txt+len, sizeof(txt) - len, "\n<p><table borders=0 width=100%% bgcolor=#e0e0ff>"
                    "<tr><td><em>Faces</em></table><ul>\n");
-    for (f = ccn-iribu->faces, cnt = 0; f; f = f->next, cnt++);
+    for (f = ccn_iribu->faces, cnt = 0; f; f = f->next, cnt++);
     if (cnt > 0) {
         struct ccn_iribu_face_s **fa;
         fa = (struct ccn_iribu_face_s**) ccn_iribu_malloc(cnt * sizeof(f));
-        for (f = ccn-iribu->faces, i = 0; f; f = f->next, i++)
+        for (f = ccn_iribu->faces, i = 0; f; f = f->next, i++)
             fa[i] = f;
         qsort(fa, cnt, sizeof(f), ccn_iribu_cmpfaceid);
         for (i = 0; i < cnt; i++) {
@@ -288,35 +288,35 @@ ccn_iribu_http_status(struct ccn_iribu_relay_s *ccnl, struct ccn_iribu_http_s *h
 
     len += snprintf(txt+len, sizeof(txt) - len, "\n<p><table borders=0 width=100%% bgcolor=#e0e0ff>"
                    "<tr><td><em>Interfaces</em></table><ul>\n");
-    for (i = 0; i < ccn-iribu->ifcount; i++) {
+    for (i = 0; i < ccn_iribu->ifcount; i++) {
 #ifdef USE_STATS
         len += snprintf(txt+len, sizeof(txt) - len, "<li><strong>i%d</strong>&nbsp;&nbsp;"
                        "addr=<font face=courier>%s</font>&nbsp;&nbsp;"
                        "qlen=%zu/%d"
                        "&nbsp;&nbsp;rx=%u&nbsp;&nbsp;tx=%u"
                        "\n",
-                       i, ccn_iribu_addr2ascii(&ccn-iribu->ifs[i].addr),
-                       ccn-iribu->ifs[i].qlen, CCN_IRIBU_MAX_IF_QLEN,
-                       ccn-iribu->ifs[i].rx_cnt, ccn-iribu->ifs[i].tx_cnt);
+                       i, ccn_iribu_addr2ascii(&ccn_iribu->ifs[i].addr),
+                       ccn_iribu->ifs[i].qlen, CCN_IRIBU_MAX_IF_QLEN,
+                       ccn_iribu->ifs[i].rx_cnt, ccn_iribu->ifs[i].tx_cnt);
 #else
         len += snprintf(txt+len, sizeof(txt) - len, "<li><strong>i%d</strong>&nbsp;&nbsp;"
                        "addr=<font face=courier>%s</font>&nbsp;&nbsp;"
                        "qlen=%d/%d"
                        "\n",
-                       i, ccn_iribu_addr2ascii(&ccn-iribu->ifs[i].addr),
-                       ccn-iribu->ifs[i].qlen, CCN_IRIBU_MAX_IF_QLEN);
+                       i, ccn_iribu_addr2ascii(&ccn_iribu->ifs[i].addr),
+                       ccn_iribu->ifs[i].qlen, CCN_IRIBU_MAX_IF_QLEN);
 #endif
     }
     len += snprintf(txt+len, sizeof(txt) - len, "</ul>\n");
 
     len += snprintf(txt+len, sizeof(txt) - len, "\n<p><table borders=0 width=100%% bgcolor=#e0e0ff>"
                    "<tr><td><em>Misc stats</em></table><ul>\n");
-    for (cnt = 0, bpt = ccn-iribu->nonces; bpt; bpt = bpt->next, cnt++);
+    for (cnt = 0, bpt = ccn_iribu->nonces; bpt; bpt = bpt->next, cnt++);
     len += snprintf(txt+len, sizeof(txt) - len, "<li>Nonces: %d\n", cnt);
-    for (cnt = 0, ipt = ccn-iribu->pit; ipt; ipt = ipt->next, cnt++);
+    for (cnt = 0, ipt = ccn_iribu->pit; ipt; ipt = ipt->next, cnt++);
     len += snprintf(txt+len, sizeof(txt) - len, "<li>Pending interests: %d\n", cnt);
     len += snprintf(txt+len, sizeof(txt) - len, "<li>Content chunks: %d (max=%d)\n",
-                   ccn-iribu->contentcnt, ccn-iribu->max_cache_entries);
+                   ccn_iribu->contentcnt, ccn_iribu->max_cache_entries);
     len += snprintf(txt+len, sizeof(txt) - len, "</ul>\n");
 
     len += snprintf(txt+len, sizeof(txt) - len, "\n<p><table borders=0 width=100%% bgcolor=#e0e0ff>"

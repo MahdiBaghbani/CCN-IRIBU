@@ -1,4 +1,4 @@
-# ccn-lite/src/py/ccnlite/util.py
+# ccn-iribu/src/py/ccniribu/util.py
 
 '''
 CCN-lite module for Python:

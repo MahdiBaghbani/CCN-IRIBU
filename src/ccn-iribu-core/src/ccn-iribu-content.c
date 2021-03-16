@@ -37,7 +37,7 @@
 #include "../include/ccn-iribu-logging.h"
 #endif
 
-// TODO: remove unused ccnl parameter
+// TODO: remove unused ccn_iribu parameter
 struct ccn_iribu_content_s*
 ccn_iribu_content_new(struct ccn_iribu_pkt_s **pkt)
 {
