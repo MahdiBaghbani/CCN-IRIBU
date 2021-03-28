@@ -67,11 +67,10 @@ struct ccn_iribu_interest_s *ccn_iribu_interest_new(struct ccn_iribu_relay_s *cc
     i->last_used = CCN_IRIBU_NOW();
 
     /** default value for max_pit_entries is defined in ccn-iribu-defs.h as
-     * CCN_IRIBU_DEFAULT_MAX_PIT_ENTRIES */
-    /** it is set to -1 (means infinity) for anything other than arduino, riot or android
-     */
-    /** this code checks if max_pit_entries isn't defaulted to -1 and then compares its
-     * value against pitcnt value */
+     * CCN_IRIBU_DEFAULT_MAX_PIT_ENTRIES
+     * it is set to -1 (means infinity) for anything other than arduino, riot or android
+     * this code checks if max_pit_entries isn't defaulted to -1 and then compares its
+     * value against the pitcnt value */
     if ((ccn_iribu->max_pit_entries != -1) &&
         (ccn_iribu->pitcnt >= ccn_iribu->max_pit_entries)) {
         ccn_iribu_pkt_free(i->pkt);
