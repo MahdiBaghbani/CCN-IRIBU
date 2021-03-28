@@ -20,21 +20,19 @@
  */
 
 #ifndef CCN_IRIBU_LOCALRPC_H
-#define CCN_IRIBU_LOCALRPC_H
+#    define CCN_IRIBU_LOCALRPC_H
 
-#ifndef CCN_IRIBU_LINUXKERNEL
-#include "ccn-iribu-relay.h"
-#include "ccn-iribu-face.h"
-#else
-#include "../../ccn-iribu-core/include/ccn-iribu-relay.h"
-#include "../../ccn-iribu-core/include/ccn-iribu-face.h"
-#endif
-
-
+#    ifndef CCN_IRIBU_LINUXKERNEL
+#        include "ccn-iribu-face.h"
+#        include "ccn-iribu-relay.h"
+#    else
+#        include "../../ccn-iribu-core/include/ccn-iribu-face.h"
+#        include "../../ccn-iribu-core/include/ccn-iribu-relay.h"
+#    endif
 
 /**
  * @brief       Processing of Local RPC messages
- * 
+ *
  * @param[in] relay     pointer to current ccn iribu relay
  * @param[in] from      face on which the message was received
  * @param[in] buf       data which were received
@@ -42,9 +40,9 @@
  *
  * @return      < 0 if no bytes consumed or error
  */
-int8_t
-ccn_iribu_localrpc_exec(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-                   uint8_t **buf, size_t *buflen);
+int8_t ccn_iribu_localrpc_exec(struct ccn_iribu_relay_s *relay,
+                               struct ccn_iribu_face_s *from, uint8_t **buf,
+                               size_t *buflen);
 
 #endif
 

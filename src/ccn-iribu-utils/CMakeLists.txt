@@ -24,7 +24,7 @@ set(
 )
 
 link_directories(
-    ${CMAKE_BINARY_DIR}/lib
+        ${CMAKE_BINARY_DIR}/lib
 )
 
 # set include directories
@@ -69,7 +69,7 @@ add_executable(
         src/ccn-iribu-fetch.c
 )
 
-if(OpenSSL_FOUND)
+if (OpenSSL_FOUND)
     add_executable(
             ccn-iribu-ccnb2xml
             src/ccn-iribu-ccnb2xml.c
@@ -96,14 +96,14 @@ if(OpenSSL_FOUND)
             ccn-iribu-rpc
             src/ccn-iribu-rpc.c
     )
-endif()
+endif ()
 
-if(USE_FRAG)
+if (USE_FRAG)
     add_executable(
             ccn-iribu-mkF
             src/ccn-iribu-mkF.c
     )
-endif()
+endif ()
 
 add_executable(
         ccn-iribu-mkI
@@ -152,7 +152,7 @@ target_link_libraries(
         ccn-iribu-unix
 )
 
-if(OpenSSL_FOUND)
+if (OpenSSL_FOUND)
     target_link_libraries(
             ccn-iribu-ccnb2xml
             ${PROJECT_LINK_LIBS}
@@ -242,7 +242,7 @@ if(OpenSSL_FOUND)
             ccn-iribu-unix
             ${OPENSSL_LIBRARIES}
     )
-endif()
+endif ()
 
 target_link_libraries(
         ccn-iribu-fetch
@@ -259,7 +259,7 @@ target_link_libraries(
         common
 )
 
-if(USE_FRAG)
+if (USE_FRAG)
     target_link_libraries(
             ccn-iribu-mkF
             ${PROJECT_LINK_LIBS}
@@ -274,7 +274,7 @@ if(USE_FRAG)
             ccn-iribu-unix
             common
     )
-endif()
+endif ()
 
 target_link_libraries(
         ccn-iribu-mkI

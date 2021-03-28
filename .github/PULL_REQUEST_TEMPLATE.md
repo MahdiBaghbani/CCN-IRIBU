@@ -13,7 +13,6 @@ Put here the description of your contribution:
 - you can also give more information to reviewers about how to test your changes
 -->
 
-
 ### Issues/PRs references
 
 <!--

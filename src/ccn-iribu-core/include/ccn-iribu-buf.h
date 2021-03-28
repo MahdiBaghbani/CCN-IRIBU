@@ -20,11 +20,10 @@
 #define CCN_IRIBU_BUF_H
 
 #ifndef CCN_IRIBU_LINUXKERNEL
-#include <unistd.h> //FIXME: SWITCH HERE
-#include <string.h>
+#    include <string.h>
+#    include <unistd.h>    //FIXME: SWITCH HERE
 #endif
 #include <stddef.h>
-
 
 struct ccn_iribu_relay_s;
 
@@ -35,16 +34,14 @@ struct ccn_iribu_buf_s {
 };
 
 /**
- * 
+ *
  */
-struct ccn_iribu_buf_s*
-ccn_iribu_buf_new(void *data, size_t len);
+struct ccn_iribu_buf_s *ccn_iribu_buf_new(void *data, size_t len);
 
-#define buf_dup(B)      (B) ? ccn_iribu_buf_new(B->data, B->datalen) : NULL
-#define buf_equal(X,Y)  ((X) && (Y) && (X->datalen==Y->datalen) &&\
-                         !memcmp(X->data,Y->data,X->datalen))
+#define buf_dup(B) (B) ? ccn_iribu_buf_new(B->data, B->datalen) : NULL
+#define buf_equal(X, Y) \
+    ((X) && (Y) && (X->datalen == Y->datalen) && !memcmp(X->data, Y->data, X->datalen))
 
-void
-ccn_iribu_core_cleanup(struct ccn_iribu_relay_s *ccn_iribu);
-    
-#endif //CCN_IRIBU_BUF_H
+void ccn_iribu_core_cleanup(struct ccn_iribu_relay_s *ccn_iribu);
+
+#endif    // CCN_IRIBU_BUF_H

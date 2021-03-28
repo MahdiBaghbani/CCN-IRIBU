@@ -32,22 +32,19 @@ static ccn_iribu_cb_on_data _cb_rx_on_data = NULL;
  */
 static ccn_iribu_cb_on_data _cb_tx_on_data = NULL;
 
-void
-ccn_iribu_set_cb_rx_on_data(ccn_iribu_cb_on_data func)
+void ccn_iribu_set_cb_rx_on_data(ccn_iribu_cb_on_data func)
 {
     _cb_rx_on_data = func;
 }
 
-void
-ccn_iribu_set_cb_tx_on_data(ccn_iribu_cb_on_data func)
+void ccn_iribu_set_cb_tx_on_data(ccn_iribu_cb_on_data func)
 {
     _cb_tx_on_data = func;
 }
 
-int
-ccn_iribu_callback_rx_on_data(struct ccn_iribu_relay_s *relay,
-                         struct ccn_iribu_face_s *from,
-                         struct ccn_iribu_pkt_s *pkt)
+int ccn_iribu_callback_rx_on_data(struct ccn_iribu_relay_s *relay,
+                                  struct ccn_iribu_face_s *from,
+                                  struct ccn_iribu_pkt_s *pkt)
 {
     if (_cb_rx_on_data) {
         return _cb_rx_on_data(relay, from, pkt);
@@ -56,10 +53,9 @@ ccn_iribu_callback_rx_on_data(struct ccn_iribu_relay_s *relay,
     return 0;
 }
 
-int
-ccn_iribu_callback_tx_on_data(struct ccn_iribu_relay_s *relay,
-                         struct ccn_iribu_face_s *to,
-                         struct ccn_iribu_pkt_s *pkt)
+int ccn_iribu_callback_tx_on_data(struct ccn_iribu_relay_s *relay,
+                                  struct ccn_iribu_face_s *to,
+                                  struct ccn_iribu_pkt_s *pkt)
 {
     if (_cb_tx_on_data) {
         return _cb_tx_on_data(relay, to, pkt);

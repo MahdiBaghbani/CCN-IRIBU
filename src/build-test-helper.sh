@@ -39,21 +39,21 @@
 #
 # This function modifies the passed file.
 build-test-modify-defines() {
-    local file=$1
-    local setVariables=$2
-    local unsetVariables=$3
+  local file=$1
+  local setVariables=$2
+  local unsetVariables=$3
 
-    # Define variables that are commented out
-    for var in $setVariables; do
-        sed -e "s!^\s*//\s*#define $var!#define $var!" "$file" > "$file.sed"
-        mv "$file.sed" "$file"
-    done
+  # Define variables that are commented out
+  for var in $setVariables; do
+    sed -e "s!^\s*//\s*#define $var!#define $var!" "$file" >"$file.sed"
+    mv "$file.sed" "$file"
+  done
 
-    # Comment already defined variables
-    for var in $unsetVariables; do
-        sed -e "s!^\s*#define $var!// #define $var!" "$file" > "$file.sed"
-        mv "$file.sed" "$file"
-    done
+  # Comment already defined variables
+  for var in $unsetVariables; do
+    sed -e "s!^\s*#define $var!// #define $var!" "$file" >"$file.sed"
+    mv "$file.sed" "$file"
+  done
 }
 
 # Builds ccn-iribu and logs the output in a specified log file.
@@ -62,20 +62,21 @@ build-test-modify-defines() {
 #     $1    log file
 #     $2... parameters passed to make
 build-test-make() {
-    # TODO: fix $NO_CORES!
-    local logfile=$1; shift
-    local rc=0
+  # TODO: fix $NO_CORES!
+  local logfile=$1
+  shift
+  local rc=0
 
-    echo "$ make clean" >> "$logfile"
-    make clean >> "$logfile" 2>&1
-    echo "" >> "$logfile"
+  echo "$ make clean" >>"$logfile"
+  make clean >>"$logfile" 2>&1
+  echo "" >>"$logfile"
 
-    echo "$ make -j$NO_CORES -k $@" >> "$logfile"
-    make -j$NO_CORES -k -B $@ >> "$logfile" 2>&1
-    rc=$?
-    echo "" >> "$logfile"
+  echo "$ make -j$NO_CORES -k $@" >>"$logfile"
+  make -j$NO_CORES -k -B $@ >>"$logfile" 2>&1
+  rc=$?
+  echo "" >>"$logfile"
 
-    return $rc
+  return $rc
 }
 
 # Tests a specific packet format by feeding all available test files to
@@ -85,30 +86,30 @@ build-test-make() {
 #     $1    log file
 #     $2    packet format
 build-test-packet-format() {
-    local logfile=$1;
-    local pktFormat=$2;
+  local logfile=$1
+  local pktFormat=$2
 
-    echo "$ make -j$NO_CORES -C util ccn-iribu-pktdump" >> "$logfile"
-    make -j$NO_CORES -C util ccn-iribu-pktdump >> "$logfile"
+  echo "$ make -j$NO_CORES -C util ccn-iribu-pktdump" >>"$logfile"
+  make -j$NO_CORES -C util ccn-iribu-pktdump >>"$logfile"
+  if [ $? -ne 0 ]; then
+    return 1
+  fi
+  echo "" >>"$logfile"
+
+  local rc=0
+  local files=""
+
+  files=$(find ../test/$pktFormat -iname "*.$pktFormat")
+  for file in $files; do
+    echo "$ ccn-iribu-pktdump < $file" >>"$logfile"
+    ./util/ccn-iribu-pktdump <$file >>"$logfile" 2>&1
     if [ $? -ne 0 ]; then
-        return 1
+      rc=1
     fi
-    echo "" >> "$logfile"
+    echo "" >>"$logfile"
+  done
 
-    local rc=0
-    local files=""
-
-    files=$(find ../test/$pktFormat -iname "*.$pktFormat")
-    for file in $files; do
-        echo "$ ccn-iribu-pktdump < $file" >> "$logfile"
-        ./util/ccn-iribu-pktdump < $file >> "$logfile" 2>&1
-        if [ $? -ne 0 ]; then
-            rc=1
-        fi
-        echo "" >> "$logfile"
-    done
-
-    return $rc
+  return $rc
 }
 
 # Runs the demo-relay.sh script.
@@ -119,18 +120,18 @@ build-test-packet-format() {
 #     $3    relay mode (ux or udp)
 #     $4    use kernel ("true" or "false")
 build-test-demo-relay() {
-    local logfile=$1
-    local suite=$2
-    local relayMode=$3
-    local useKernel=$4
-    local rc
+  local logfile=$1
+  local suite=$2
+  local relayMode=$3
+  local useKernel=$4
+  local rc
 
-    echo "$ ../test/scripts/demo-relay.sh $suite $relayMode $useKernel" >> "$logfile"
-    ../test/scripts/demo-relay.sh "$suite" "$relayMode" "$useKernel" >> "$logfile" 2>&1
-    rc=$?
-    echo "" >> "$logfile"
+  echo "$ ../test/scripts/demo-relay.sh $suite $relayMode $useKernel" >>"$logfile"
+  ../test/scripts/demo-relay.sh "$suite" "$relayMode" "$useKernel" >>"$logfile" 2>&1
+  rc=$?
+  echo "" >>"$logfile"
 
-    return $rc
+  return $rc
 }
 
 ### Main script:
@@ -147,61 +148,61 @@ rm -f "$LOGFILE"
 
 if [ "$MODE" = "make" ]; then
 
-    if [ -n "$MODIFIY_FILE" ]; then
-        cp "$MODIFIY_FILE" "$MODIFIY_FILE.bak"
-        echo "Modifying $MODIFIY_FILE..." >> "$LOGFILE"
-        build-test-modify-defines "$MODIFIY_FILE" "$SET_VARS" "$UNSET_VARS"
-        if [ $? -ne 0 ]; then RC=1; fi
-        echo "" >> "$LOGFILE"
-    fi
-
-    build-test-make "$LOGFILE" $MAKE_VARS $MAKE_TARGETS
+  if [ -n "$MODIFIY_FILE" ]; then
+    cp "$MODIFIY_FILE" "$MODIFIY_FILE.bak"
+    echo "Modifying $MODIFIY_FILE..." >>"$LOGFILE"
+    build-test-modify-defines "$MODIFIY_FILE" "$SET_VARS" "$UNSET_VARS"
     if [ $? -ne 0 ]; then RC=1; fi
+    echo "" >>"$LOGFILE"
+  fi
 
-    if [ -n "$MODIFIY_FILE" ]; then
-        cp "$MODIFIY_FILE" "/tmp/$MODIFIY_FILE.$TARGET"
-        mv "$MODIFIY_FILE.bak" "$MODIFIY_FILE"
-    fi
+  build-test-make "$LOGFILE" $MAKE_VARS $MAKE_TARGETS
+  if [ $? -ne 0 ]; then RC=1; fi
+
+  if [ -n "$MODIFIY_FILE" ]; then
+    cp "$MODIFIY_FILE" "/tmp/$MODIFIY_FILE.$TARGET"
+    mv "$MODIFIY_FILE.bak" "$MODIFIY_FILE"
+  fi
 
 elif [ "$MODE" = "pkt-format" ]; then
 
-    build-test-packet-format "$LOGFILE" "$PKT_FORMAT"
-    if [ $? -ne 0 ]; then RC=1; fi
+  build-test-packet-format "$LOGFILE" "$PKT_FORMAT"
+  if [ $? -ne 0 ]; then RC=1; fi
 
 elif [ "$MODE" = "demo-relay" ]; then
 
-    if [ "$WITH_KRNL" = "true" ]; then
-        MAKE_VARS="USE_KRNL=1"
-    else
-        MAKE_VARS=""
-        WITH_KRNL="false"
-    fi
+  if [ "$WITH_KRNL" = "true" ]; then
+    MAKE_VARS="USE_KRNL=1"
+  else
+    MAKE_VARS=""
+    WITH_KRNL="false"
+  fi
 
-    echo "$ make -j$NO_CORES all $MAKE_VARS" >> "$LOGFILE"
-    make -j$NO_CORES all $MAKE_VARS >> "$LOGFILE"
-    if [ $? -ne 0 ]; then
-        RC=1
-    else
-        for M in "ux" "udp"; do
-            build-test-demo-relay "$LOGFILE" "$SUITE" "$M" "$WITH_KRNL"
-            if [ $? -ne 0 ]; then RC=1; fi
-        done
-    fi
+  echo "$ make -j$NO_CORES all $MAKE_VARS" >>"$LOGFILE"
+  make -j$NO_CORES all $MAKE_VARS >>"$LOGFILE"
+  if [ $? -ne 0 ]; then
+    RC=1
+  else
+    for M in "ux" "udp"; do
+      build-test-demo-relay "$LOGFILE" "$SUITE" "$M" "$WITH_KRNL"
+      if [ $? -ne 0 ]; then RC=1; fi
+    done
+  fi
 
 else
 
-    echo "Error! Unknown build-test-helper mode: '$MODE'" >> "$LOGFILE"
-    RC=2
+  echo "Error! Unknown build-test-helper mode: '$MODE'" >>"$LOGFILE"
+  RC=2
 
 fi
 
 if [ $RC -eq 0 ]; then
-    if ! grep --quiet -i "warning" "$LOGFILE"; then
-        echo $'\b\b\b\b[\e[1;32mok\e[0;0m]'
-    else
-        echo $'\b\b\b\b\b\b\b\b\b[\e[1;33mwarning\e[0;0m]'
-    fi
+  if ! grep --quiet -i "warning" "$LOGFILE"; then
+    echo $'\b\b\b\b[\e[1;32mok\e[0;0m]'
+  else
+    echo $'\b\b\b\b\b\b\b\b\b[\e[1;33mwarning\e[0;0m]'
+  fi
 else
-    echo $'\b\b\b\b\b\b\b\b[\e[1;31mfailed\e[0;0m]'
+  echo $'\b\b\b\b\b\b\b\b[\e[1;31mfailed\e[0;0m]'
 fi
 exit $RC

@@ -24,27 +24,23 @@
 #define CCN_IRIBU_PKT_SWITCH_H
 
 #ifndef CCN_IRIBU_LINUXKERNEL
-#include <stdint.h>
+#    include <stdint.h>
 #else
-#include <linux/types.h>
+#    include <linux/types.h>
 #endif
 #include <stddef.h>
 
-int8_t
-ccn_iribu_switch_dehead(uint8_t **buf, size_t *len, int32_t *code);
+int8_t ccn_iribu_switch_dehead(uint8_t **buf, size_t *len, int32_t *code);
 
-int
-ccn_iribu_enc2suite(int enc);
+int ccn_iribu_enc2suite(int enc);
 
 #ifdef NEEDS_PACKET_CRAFTING
-#ifndef CCN_IRIBU_LINUXKERNEL
-int
-ccn_iribu_switch_prependCodeVal(unsigned long val, int *offset, unsigned char *buf);
-#endif
-int8_t
-ccn_iribu_switch_prependCoding(uint64_t code, size_t *offset, uint8_t *buf, size_t *res);
+#    ifndef CCN_IRIBU_LINUXKERNEL
+int ccn_iribu_switch_prependCodeVal(unsigned long val, int *offset, unsigned char *buf);
+#    endif
+int8_t ccn_iribu_switch_prependCoding(uint64_t code, size_t *offset, uint8_t *buf,
+                                      size_t *res);
 
 #endif
 
-
-#endif // eof
+#endif    // eof

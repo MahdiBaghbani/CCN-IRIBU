@@ -26,7 +26,7 @@
 #include "ccn-iribu-sockunion.h"
 
 #ifdef CCN_IRIBU_RIOT
-#include "evtimer_msg.h"
+#    include "evtimer_msg.h"
 #endif
 
 struct ccn_iribu_face_s {
@@ -35,16 +35,15 @@ struct ccn_iribu_face_s {
     int ifndx;
     sockunion peer;
     int flags;
-    uint32_t last_used; // updated when we receive a packet
-    struct ccn_iribu_buf_s *outq, *outqend; // queue of packets to send
-    struct ccn_iribu_frag_s *frag;  // which special datagram armoring
+    uint32_t last_used;                        // updated when we receive a packet
+    struct ccn_iribu_buf_s *outq, *outqend;    // queue of packets to send
+    struct ccn_iribu_frag_s *frag;             // which special datagram armoring
     struct ccn_iribu_sched_s *sched;
 #ifdef CCN_IRIBU_RIOT
     evtimer_msg_event_t evtmsg_timeout;
 #endif
 };
 
-void
-ccn_iribu_face_free(struct ccn_iribu_face_s *face);
+void ccn_iribu_face_free(struct ccn_iribu_face_s *face);
 
-#endif // CCN_IRIBU_FACE_H
+#endif    // CCN_IRIBU_FACE_H

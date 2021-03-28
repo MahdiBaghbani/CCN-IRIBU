@@ -21,31 +21,38 @@
  */
 
 #ifndef CCN_IRIBU_LINUXKERNEL
-#include "ccn-iribu-logging.h"
-#include <string.h>
-#include <stdio.h>
+#    include "ccn-iribu-logging.h"
+#    include <stdio.h>
+#    include <string.h>
 #else
-#include "../include/ccn-iribu-logging.h"
+#    include "../include/ccn-iribu-logging.h"
 #endif
 
 int debug_level;
 
-char
-ccn_iribu_debugLevelToChar(int level)
+char ccn_iribu_debugLevelToChar(int level)
 {
 #if !defined(CCN_IRIBU_ARDUINO) && !defined(CCN_IRIBU_RIOT)
     switch (level) {
-        case FATAL:     return 'F';
-        case ERROR:     return 'E';
-        case WARNING:   return 'W';
-        case INFO:      return 'I';
-        case DEBUG:     return 'D';
-        case VERBOSE:   return 'V';
-        case TRACE:     return 'T';
-        default:        return '?';
+    case FATAL:
+        return 'F';
+    case ERROR:
+        return 'E';
+    case WARNING:
+        return 'W';
+    case INFO:
+        return 'I';
+    case DEBUG:
+        return 'D';
+    case VERBOSE:
+        return 'V';
+    case TRACE:
+        return 'T';
+    default:
+        return '?';
     }
-#else // gcc-avr creates a lookup table (in the data section) which
-      // we want to avoid. To force PROGMEM, we have to code :-(
+#else    // gcc-avr creates a lookup table (in the data section) which
+         // we want to avoid. To force PROGMEM, we have to code :-(
     if (level == FATAL)
         return 'F';
     if (level == ERROR)
@@ -64,24 +71,29 @@ ccn_iribu_debugLevelToChar(int level)
 #endif
 }
 
-int
-ccn_iribu_debug_str2level(char *s)
+int ccn_iribu_debug_str2level(char *s)
 {
-    if (!strcmp(s, "fatal"))   return FATAL;
-    if (!strcmp(s, "error"))   return ERROR;
-    if (!strcmp(s, "warning")) return WARNING;
-    if (!strcmp(s, "info"))    return INFO;
-    if (!strcmp(s, "debug"))   return DEBUG;
-    if (!strcmp(s, "trace"))   return TRACE;
-    if (!strcmp(s, "verbose")) return VERBOSE;
+    if (!strcmp(s, "fatal"))
+        return FATAL;
+    if (!strcmp(s, "error"))
+        return ERROR;
+    if (!strcmp(s, "warning"))
+        return WARNING;
+    if (!strcmp(s, "info"))
+        return INFO;
+    if (!strcmp(s, "debug"))
+        return DEBUG;
+    if (!strcmp(s, "trace"))
+        return TRACE;
+    if (!strcmp(s, "verbose"))
+        return VERBOSE;
     return 1;
 }
 
 #ifdef USE_DEBUG
-#ifdef USE_DEBUG_MALLOC
+#    ifdef USE_DEBUG_MALLOC
 
-char *
-getBaseName(char *fn)
+char *getBaseName(char *fn)
 {
     char *cp = fn + strlen(fn);
 
@@ -89,33 +101,30 @@ getBaseName(char *fn)
         if (*cp == '/')
             break;
 
-    return cp+1;
+    return cp + 1;
 }
 
-void
-debug_memdump(void)
+void debug_memdump(void)
 {
     struct mhdr *h;
 
     CONSOLE("[M] %s: @@@ memory dump starts\n", timestamp());
     for (h = mem; h; h = h->next) {
-#ifdef CCN_IRIBU_ARDUINO
+#        ifdef CCN_IRIBU_ARDUINO
         sprintf_P(logstr, PSTR("addr %p %5d Bytes, "),
-                  (int)((unsigned char *)h + sizeof(struct mhdr)),
-                  h->size);
+                  (int) ((unsigned char *) h + sizeof(struct mhdr)), h->size);
         Serial.print(logstr);
         // remove the "src/../" prefix:
         strcpy_P(logstr, h->fname);
         Serial.print(getBaseName(logstr));
-        CONSOLE(":%d @%d.%03d\n", h->lineno,
-                int(h->tstamp), int(1000*(h->tstamp - int(h->tstamp))));
-#else
-        CONSOLE("addr %p %lu Bytes, %s:%d @%s\n",
-                (void *)(h + sizeof(struct mhdr)),
+        CONSOLE(":%d @%d.%03d\n", h->lineno, int(h->tstamp),
+                int(1000 * (h->tstamp - int(h->tstamp))));
+#        else
+        CONSOLE("addr %p %lu Bytes, %s:%d @%s\n", (void *) (h + sizeof(struct mhdr)),
                 h->size, getBaseName(h->fname), h->lineno, h->tstamp);
-#endif
+#        endif
     }
     CONSOLE("[M] %s: @@@ memory dump ends\n", timestamp());
 }
-#endif //USE_DEBUG_MALLOC
-#endif //USE_DEBUG
+#    endif    // USE_DEBUG_MALLOC
+#endif    // USE_DEBUG

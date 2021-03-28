@@ -1,5 +1,5 @@
 /**
- * @addtogroup CCNL-fwd 
+ * @addtogroup CCNL-fwd
  * @brief CCN-lite Forwarding Library for different packet formats
  * @{
  * @file ccn-iribu-fwd.h
@@ -22,19 +22,19 @@
  */
 
 #ifndef CCN_IRIBU_FWD_H
-#define CCN_IRIBU_FWD_H
+#    define CCN_IRIBU_FWD_H
 
-#ifndef CCN_IRIBU_LINUXKERNEL
-#include "ccn-iribu-core.h"
-#else
-#include "../../ccn-iribu-core/include/ccn-iribu-core.h"
-#endif
+#    ifndef CCN_IRIBU_LINUXKERNEL
+#        include "ccn-iribu-core.h"
+#    else
+#        include "../../ccn-iribu-core/include/ccn-iribu-core.h"
+#    endif
 
 /**
  * @brief       Functionpointer to a CCN-lite Forwarder Function
  */
-typedef int8_t (*dispatchFct)(struct ccn_iribu_relay_s*, struct ccn_iribu_face_s*,
-                           uint8_t**, size_t *);
+typedef int8_t (*dispatchFct)(struct ccn_iribu_relay_s *, struct ccn_iribu_face_s *,
+                              uint8_t **, size_t *);
 
 /**
  * @brief       Functionpointer to a CCN-lite CS-Matching Function
@@ -46,14 +46,14 @@ typedef int8_t (*cMatchFct)(struct ccn_iribu_pkt_s *p, struct ccn_iribu_content_
  *
  */
 struct ccn_iribu_suite_s {
-    dispatchFct RX; /**< Forwarder Function for a specific packet format */
+    dispatchFct RX;   /**< Forwarder Function for a specific packet format */
     cMatchFct cMatch; /**< CS-Matching Function for a speific packet format */
 };
 
-#ifdef USE_SUITE_CCNB
+#    ifdef USE_SUITE_CCNB
 /**
  * @brief       Helper to process one CCNB packet
- * 
+ *
  * @param[in] relay     pointer to current ccn iribu relay
  * @param[in] from      face on which the message was received
  * @param[in] data      data which were received
@@ -62,13 +62,12 @@ struct ccn_iribu_suite_s {
  *
  * @return      < 0 if no bytes consumed or error
  */
-int8_t
-ccn_iribu_ccnb_fwd(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-              uint8_t **data, size_t *datalen, uint64_t typ);
+int8_t ccn_iribu_ccnb_fwd(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
+                          uint8_t **data, size_t *datalen, uint64_t typ);
 
 /**
  * @brief       process one CCNB packet (CCNB forwarding pipeline)
- * 
+ *
  * @param[in] relay     pointer to current ccn iribu relay
  * @param[in] from      face on which the message was received
  * @param[in] data      data which were received
@@ -76,15 +75,15 @@ ccn_iribu_ccnb_fwd(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *fro
  *
  * @return      < 0 if no bytes consumed or error
  */
-int8_t
-ccn_iribu_ccnb_forwarder(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-                    uint8_t **data, size_t *datalen);
-#endif // USE_SUITE_CCNB
+int8_t ccn_iribu_ccnb_forwarder(struct ccn_iribu_relay_s *relay,
+                                struct ccn_iribu_face_s *from, uint8_t **data,
+                                size_t *datalen);
+#    endif    // USE_SUITE_CCNB
 
-#ifdef USE_SUITE_CCNTLV
+#    ifdef USE_SUITE_CCNTLV
 /**
  * @brief       process one CCNTLV packet (CCNTLV forwarding pipeline)
- * 
+ *
  * @param[in] relay     pointer to current ccn iribu relay
  * @param[in] from      face on which the message was received
  * @param[in] data      data which were received
@@ -92,15 +91,15 @@ ccn_iribu_ccnb_forwarder(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_
  *
  * @return      < 0 if no bytes consumed or error
  */
-int8_t
-ccn_iribu_ccntlv_forwarder(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-                      uint8_t **data, size_t *datalen);
-#endif // USE_SUITE_CCNTLV
+int8_t ccn_iribu_ccntlv_forwarder(struct ccn_iribu_relay_s *relay,
+                                  struct ccn_iribu_face_s *from, uint8_t **data,
+                                  size_t *datalen);
+#    endif    // USE_SUITE_CCNTLV
 
-#ifdef USE_SUITE_NDNTLV
+#    ifdef USE_SUITE_NDNTLV
 /**
  * @brief       process one NDNTLV packet (NDN forwarding pipeline)
- * 
+ *
  * @param[in] relay     pointer to current ccn iribu relay
  * @param[in] from      face on which the message was received
  * @param[in] data      data which were received
@@ -108,40 +107,39 @@ ccn_iribu_ccntlv_forwarder(struct ccn_iribu_relay_s *relay, struct ccn_iribu_fac
  *
  * @return      < 0 if no bytes consumed or error
  */
-int8_t
-ccn_iribu_ndntlv_forwarder(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-                      uint8_t **data, size_t *datalen);
-#endif // USE_SUITE_NDNTLV
+int8_t ccn_iribu_ndntlv_forwarder(struct ccn_iribu_relay_s *relay,
+                                  struct ccn_iribu_face_s *from, uint8_t **data,
+                                  size_t *datalen);
+#    endif    // USE_SUITE_NDNTLV
 
 /**
  * @brief Handle and incomming Interest Message
  *
  * @param[in] relay   pointer to current ccn iribu relay
  * @param[in] from    face on which the interest was received
- * @param[in] pkt     packet which was received   
- * @param[in] cMatch  matching strategy for the Content Store 
+ * @param[in] pkt     packet which was received
+ * @param[in] cMatch  matching strategy for the Content Store
  *
  * @return   0 on success
  * @return   < 0 on failure
-*/
-int
-ccn_iribu_fwd_handleInterest(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-                        struct ccn_iribu_pkt_s **pkt, cMatchFct cMatch);
-
+ */
+int ccn_iribu_fwd_handleInterest(struct ccn_iribu_relay_s *relay,
+                                 struct ccn_iribu_face_s *from,
+                                 struct ccn_iribu_pkt_s **pkt, cMatchFct cMatch);
 
 /**
  * @brief Handle and incomming Content Message
  *
  * @param[in] relay   pointer to current ccn iribu relay
  * @param[in] from    face on which the interest was received
- * @param[in] pkt     packet which was received   
+ * @param[in] pkt     packet which was received
  *
  * @return   0 on success
  * @return   < 0 on failure
-*/
-int
-ccn_iribu_fwd_handleContent(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-                       struct ccn_iribu_pkt_s **pkt);
+ */
+int ccn_iribu_fwd_handleContent(struct ccn_iribu_relay_s *relay,
+                                struct ccn_iribu_face_s *from,
+                                struct ccn_iribu_pkt_s **pkt);
 
 #endif
 

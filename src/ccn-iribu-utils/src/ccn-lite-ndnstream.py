@@ -29,6 +29,7 @@ val2 = struct.Struct('>H')
 val4 = struct.Struct('>I')
 val8 = struct.Struct('>Q')
 
+
 def ndntlv_readTorL(f, maxlen):
     if maxlen == 0:
         raise EOFError
@@ -47,7 +48,7 @@ def ndntlv_readTorL(f, maxlen):
             maxlen = maxlen - 3
         return (val2.unpack(f.read(2)), maxlen)
     if maxlen > 0 and maxlen < 5:
-            raise EOFError
+        raise EOFError
     if b == 254:
         if maxlen > 0:
             maxlen = maxlen - 5
@@ -58,10 +59,12 @@ def ndntlv_readTorL(f, maxlen):
         maxlen = maxlen - 9
     return (val8.unpack(f.read(8)), maxlen)
 
+
 def ndntlv_readTL(f, maxlen):
     (t, maxlen) = ndntlv_readTorL(f, maxlen)
     (l, maxlen) = ndntlv_readTorL(f, maxlen)
     return (t, l, maxlen)
+
 
 def ndntlv_file2content(f, maxlen):
     while maxlen == -1 or maxlen > 0:
@@ -74,6 +77,7 @@ def ndntlv_file2content(f, maxlen):
             f.read(l)
     return ''
 
+
 if __name__ == "__main__":
     try:
         while 1:
@@ -83,4 +87,3 @@ if __name__ == "__main__":
     except EOFError:
         sys.stdout.flush()
     sys.stderr.write('\ndone.\n')
-

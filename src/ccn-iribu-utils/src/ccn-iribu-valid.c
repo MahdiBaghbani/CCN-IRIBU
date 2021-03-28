@@ -20,17 +20,18 @@
  * 2015-06-08  created
  */
 
-#define assert(...) do {} while(0)
+#define assert(...) \
+    do {            \
+    } while (0)
 #include "ccn-iribu-common.h"
 #include "ccn-iribu-ext-hmac.h"
 
-struct ccn_iribu_pkt_s*
-ccn_iribu_parse(uint8_t *data, size_t datalen)
+struct ccn_iribu_pkt_s *ccn_iribu_parse(uint8_t *data, size_t datalen)
 {
     unsigned char *base = data;
-    int suite = -1;
+    int suite           = -1;
     int32_t enc;
-    size_t skip = 0;
+    size_t skip                 = 0;
     struct ccn_iribu_pkt_s *pkt = 0;
 
     DEBUGMSG(DEBUG, "start parsing %zu bytes\n", datalen);
@@ -42,8 +43,9 @@ ccn_iribu_parse(uint8_t *data, size_t datalen)
         suite = ccn_iribu_pkt2suite(data, datalen, &skip);
 
     if (!ccn_iribu_isSuite(suite)) {
-        DEBUGMSG(WARNING, "?unknown packet format? %zu bytes starting with 0x%02x at offset %zd\n",
-                     datalen, *data, data - base);
+        DEBUGMSG(WARNING,
+                 "?unknown packet format? %zu bytes starting with 0x%02x at offset %zd\n",
+                 datalen, *data, data - base);
         return NULL;
     }
 
@@ -66,8 +68,7 @@ ccn_iribu_parse(uint8_t *data, size_t datalen)
             return NULL;
         }
         if (pkt->type != CCNX_TLV_TL_Interest && pkt->type != CCNX_TLV_TL_Object) {
-          DEBUGMSG(INFO, "ccnx2015: neither Interest nor Data (%lu)\n",
-                   pkt->type);
+            DEBUGMSG(INFO, "ccnx2015: neither Interest nor Data (%lu)\n", pkt->type);
             return pkt;
         }
         break;
@@ -96,7 +97,7 @@ ccn_iribu_parse(uint8_t *data, size_t datalen)
 #endif
     default:
         DEBUGMSG(INFO, "packet without HMAC\n");
-        pkt = ccn_iribu_calloc(1, sizeof(struct ccn_iribu_pkt_s));
+        pkt      = ccn_iribu_calloc(1, sizeof(struct ccn_iribu_pkt_s));
         pkt->buf = ccn_iribu_buf_new(NULL, datalen);
         return pkt;
     }
@@ -105,16 +106,15 @@ ccn_iribu_parse(uint8_t *data, size_t datalen)
 
 // ----------------------------------------------------------------------
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
-    unsigned char incoming[64*1024];
+    unsigned char incoming[64 * 1024];
     size_t len = 0, signLen = 32;
     ssize_t rc;
     int opt, cnt, exitBehavior = 0;
     struct ccn_iribu_pkt_s *pkt;
     unsigned char keyval[64], signature[32];
-    char *keyfile = NULL;
+    char *keyfile      = NULL;
     struct key_s *keys = NULL;
 
     base64_build_decoding_table();
@@ -122,7 +122,7 @@ main(int argc, char *argv[])
     while ((opt = getopt(argc, argv, "e:hk:v:")) != -1) {
         switch (opt) {
         case 'e':
-            exitBehavior = (int)strtol(optarg, (char**)NULL, 10);
+            exitBehavior = (int) strtol(optarg, (char **) NULL, 10);
             break;
         case 'k':
             keyfile = optarg;
@@ -138,20 +138,23 @@ main(int argc, char *argv[])
             break;
         case 'h':
         default:
-Usage:
-            fprintf(stderr, "usage: %s [options] <INCOMING >OUTGOING\n"
-            "  -k FILE  HMAC256 keys (base64 encoded)\n"
-            "  -e N     exit: 0=drop-missing-or-inval, 1=warn-missing-or-inval, 2=warn-inval\n"
-            "  -h       this help text\n"
+        Usage:
+            fprintf(
+                stderr,
+                "usage: %s [options] <INCOMING >OUTGOING\n"
+                "  -k FILE  HMAC256 keys (base64 encoded)\n"
+                "  -e N     exit: 0=drop-missing-or-inval, 1=warn-missing-or-inval, "
+                "2=warn-inval\n"
+                "  -h       this help text\n"
 #ifdef USE_LOGGING
-            "  -v DEBUG_LEVEL (fatal, error, warning, info, debug, verbose, trace)\n"
+                "  -v DEBUG_LEVEL (fatal, error, warning, info, debug, verbose, trace)\n"
 #endif
-,
-            argv[0]);
+                ,
+                argv[0]);
             exit(1);
         }
     }
-    if(!keyfile){
+    if (!keyfile) {
         DEBUGMSG(FATAL, "Keyfile must be specified");
     }
     keys = load_keys_from_file(keyfile);
@@ -197,7 +200,8 @@ Usage:
                 return -1;
             }
             ccn_iribu_hmac256_keyval(keys->key, (size_t) keys->keylen, keyval);
-            ccn_iribu_hmac256_sign(keyval, 64, pkt->hmacStart, pkt->hmacLen, signature, &signLen);
+            ccn_iribu_hmac256_sign(keyval, 64, pkt->hmacStart, pkt->hmacLen, signature,
+                                   &signLen);
             if (!memcmp(signature, pkt->hmacSignature, 32)) {
                 DEBUGMSG(INFO, "signature is valid (key #%d)\n", cnt);
                 break;

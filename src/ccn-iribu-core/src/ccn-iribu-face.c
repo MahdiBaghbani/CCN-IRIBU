@@ -20,9 +20,10 @@
  * 2017-06-16 created
  */
 
-#include "ccn-iribu-malloc.h"
 #include "ccn-iribu-face.h"
+#include "ccn-iribu-malloc.h"
 
-void ccn_iribu_face_free(struct ccn_iribu_face_s *face) {
+void ccn_iribu_face_free(struct ccn_iribu_face_s *face)
+{
     ccn_iribu_free(face);
 }

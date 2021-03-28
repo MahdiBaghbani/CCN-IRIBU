@@ -23,11 +23,11 @@
 #ifndef CCN_IRIBU_FORWARD_H
 #define CCN_IRIBU_FORWARD_H
 
-#include "ccn-iribu-prefix.h"
-#include "ccn-iribu-face.h"
-#include "ccn-iribu-relay.h"
 #include "ccn-iribu-buf.h"
- 
+#include "ccn-iribu-face.h"
+#include "ccn-iribu-prefix.h"
+#include "ccn-iribu-relay.h"
+
 typedef void (*tapCallback)(struct ccn_iribu_relay_s *, struct ccn_iribu_face_s *,
                             struct ccn_iribu_prefix_s *, struct ccn_iribu_buf_s *);
 
@@ -39,4 +39,4 @@ struct ccn_iribu_forward_s {
     char suite;
 };
 
-#endif //CCN_IRIBU_FORWARD_H
+#endif    // CCN_IRIBU_FORWARD_H

@@ -20,28 +20,26 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #ifndef CCN_IRIBU_CRYPTO_H
-#define CCN_IRIBU_CRYPTO_H
+#    define CCN_IRIBU_CRYPTO_H
 
-#ifdef USE_SIGNATURES
-#include <openssl/pem.h>
-#include <openssl/sha.h>
-#include <openssl/rsa.h>
-#include <openssl/objects.h>
-#include <openssl/err.h>
+#    ifdef USE_SIGNATURES
+#        include <openssl/err.h>
+#        include <openssl/objects.h>
+#        include <openssl/pem.h>
+#        include <openssl/rsa.h>
+#        include <openssl/sha.h>
+#    endif
+
+int sha(void *input, unsigned long length, unsigned char *md);
+
+int sign(char *private_key_path, unsigned char *msg, int msg_len, unsigned char *sig,
+         unsigned int *sig_len);
+
+int verify(char *public_key_path, unsigned char *msg, int msg_len, unsigned char *sig,
+           unsigned int sig_len);
+
+int add_signature(unsigned char *out, char *private_key_path, unsigned char *file,
+                  unsigned int fsize);
+
 #endif
-
-int sha(void* input, unsigned long length, unsigned char* md);
-
-int sign(char* private_key_path, unsigned char *msg, int msg_len,
-     unsigned char *sig, unsigned int *sig_len);
-
-int
-verify(char* public_key_path, unsigned char *msg, int msg_len,
-       unsigned char *sig, unsigned int sig_len);
-
-int
-add_signature(unsigned char *out, char *private_key_path,
-              unsigned char *file, unsigned int fsize);
-
-#endif 
 /** @} */

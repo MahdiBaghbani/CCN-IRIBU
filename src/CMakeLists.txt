@@ -45,85 +45,85 @@ option(
 )
 
 if (CCN_IRIBU_RIOT)
-   set(CCN_IRIBU_PACKETFORMAT_CCNB OFF)
-   set(CCN_IRIBU_PACKETFORMAT_CCNTLV OFF)
-   set(CCN_IRIBU_PACKETFORMAT_LOCALRPC OFF)
+    set(CCN_IRIBU_PACKETFORMAT_CCNB OFF)
+    set(CCN_IRIBU_PACKETFORMAT_CCNTLV OFF)
+    set(CCN_IRIBU_PACKETFORMAT_LOCALRPC OFF)
 endif ()
 
 # CCN_IRIBU flags
 set(CCN_IRIBU_BASIC_FLAGS
-    -DUSE_DEBUG
-    -DUSE_LOGGING
-#    -DUSE_SIGNATURES
-    -DUSE_DUP_CHECK
-#    -DUSE_ECHO
-    -DUSE_HMAC256
-    -DUSE_STATS
-    -DNEEDS_PACKET_CRAFTING
-    -DNEEDS_PREFIX_MATCHING
-    -DUSE_LINKLAYER
-    CACHE PATH
-    "basic build flags for CNN-IRIBU"
-)
+        -DUSE_DEBUG
+        -DUSE_LOGGING
+        #    -DUSE_SIGNATURES
+        -DUSE_DUP_CHECK
+        #    -DUSE_ECHO
+        -DUSE_HMAC256
+        -DUSE_STATS
+        -DNEEDS_PACKET_CRAFTING
+        -DNEEDS_PREFIX_MATCHING
+        -DUSE_LINKLAYER
+        CACHE PATH
+        "basic build flags for CNN-IRIBU"
+        )
 
 add_definitions(${CCN_IRIBU_BASIC_FLAGS})
 
 if (NOT CCN_IRIBU_RIOT)
-   set(
-           CCN_IRIBU_EXTRA_FLAGS
-           -DUSE_CCNxDIGEST
-           -DUSE_MGMT
-           -DUSE_UNIXSOCKET
-           -DUSE_IPV4
-           -DUSE_IPV6
-           -DUSE_DEBUG_MALLOC
-           -DUSE_HTTP_STATUS
-   )
+    set(
+            CCN_IRIBU_EXTRA_FLAGS
+            -DUSE_CCNxDIGEST
+            -DUSE_MGMT
+            -DUSE_UNIXSOCKET
+            -DUSE_IPV4
+            -DUSE_IPV6
+            -DUSE_DEBUG_MALLOC
+            -DUSE_HTTP_STATUS
+    )
 
-   add_definitions(${CCN_IRIBU_EXTRA_FLAGS})
-endif()
+    add_definitions(${CCN_IRIBU_EXTRA_FLAGS})
+endif ()
 
 # Platforms
 set(CCN_IRIBU_PLATFORM_FLAGS
-    -DCCN_IRIBU_UNIX
-#    -DCCN_IRIBU_ARDUINO
-     CACHE PATH
-    "platform flags for CNN-IRIBU"
-)
+        -DCCN_IRIBU_UNIX
+        #    -DCCN_IRIBU_ARDUINO
+        CACHE PATH
+        "platform flags for CNN-IRIBU"
+        )
 add_definitions(${CCN_IRIBU_PLATFORM_FLAGS})
 
 # Packet formats
 set(CCN_IRIBU_PACKETFORMAT_FLAGS "")
 
 if (CCN_IRIBU_PACKETFORMAT_NDN)
-   set(
-           CCN_IRIBU_PACKETFORMAT_FLAGS
-           "${CCN_IRIBU_PACKETFORMAT_FLAGS}"
-           -DUSE_SUITE_NDNTLV
-   )
+    set(
+            CCN_IRIBU_PACKETFORMAT_FLAGS
+            "${CCN_IRIBU_PACKETFORMAT_FLAGS}"
+            -DUSE_SUITE_NDNTLV
+    )
 endif ()
 
 if (CCN_IRIBU_PACKETFORMAT_CCNB)
-   set(
-           CCN_IRIBU_PACKETFORMAT_FLAGS
-           "${CCN_IRIBU_PACKETFORMAT_FLAGS}"
-           -DUSE_SUITE_CCNB
-   )
+    set(
+            CCN_IRIBU_PACKETFORMAT_FLAGS
+            "${CCN_IRIBU_PACKETFORMAT_FLAGS}"
+            -DUSE_SUITE_CCNB
+    )
 endif ()
 
 if (CCN_IRIBU_PACKETFORMAT_CCNTLV)
-   set(
-           CCN_IRIBU_PACKETFORMAT_FLAGS
-           "${CCN_IRIBU_PACKETFORMAT_FLAGS}"
-           -DUSE_SUITE_CCNTLV
-   )
+    set(
+            CCN_IRIBU_PACKETFORMAT_FLAGS
+            "${CCN_IRIBU_PACKETFORMAT_FLAGS}"
+            -DUSE_SUITE_CCNTLV
+    )
 endif ()
 
 if (CCN_IRIBU_PACKETFORMAT_LOCALRPC)
-   set(
-           CCN_IRIBU_PACKETFORMAT_FLAGS
-           "${CCN_IRIBU_PACKETFORMAT_FLAGS}"
-           -DUSE_SUITE_LOCALRPC)
+    set(
+            CCN_IRIBU_PACKETFORMAT_FLAGS
+            "${CCN_IRIBU_PACKETFORMAT_FLAGS}"
+            -DUSE_SUITE_LOCALRPC)
 endif ()
 
 set(
@@ -135,28 +135,28 @@ set(
 
 add_definitions(${CCN_IRIBU_PACKETFORMAT_FLAGS})
 
-if(CCN_IRIBU_RIOT)
+if (CCN_IRIBU_RIOT)
     set(CCN_IRIBU_RIOT_FLAGS
-        -DCCN_IRIBU_APP_RX
-        -DUSE_DUP_CHECK
-        ${RIOT_CFLAGS}
-         CACHE PATH
-        "CCN_IRIBU RIOT flags for CNN-IRIBU"
-    )
+            -DCCN_IRIBU_APP_RX
+            -DUSE_DUP_CHECK
+            ${RIOT_CFLAGS}
+            CACHE PATH
+            "CCN_IRIBU RIOT flags for CNN-IRIBU"
+            )
     add_definitions(${CCN_IRIBU_RIOT_FLAGS})
-endif()
+endif ()
 
 if (NOT CCN_IRIBU_RIOT)
     set(
             CMAKE_C_FLAGS
             "${CMAKE_C_FLAGS} -Wextra -Wall -Werror -std=c99 -g -pedantic"
     ) #TODO: add -fsanitize=address
-else()
+else ()
     set(
             CMAKE_C_FLAGS
             "${CMAKE_C_FLAGS} -Wextra -Wall -Werror -std=c99 -g"
     )
-endif()
+endif ()
 
 set(
         CMAKE_C_FLAGS_DEBUG
@@ -168,11 +168,11 @@ if (NOT DEFINED CCN_IRIBU_LINUXKERNEL AND NOT CCN_IRIBU_RIOT)
     include_directories(${OPENSSL_INCLUDE_DIR})
     message("OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
     message("OpenSSL libraries: ${OPENSSL_LIBRARIES}")
-endif()
+endif ()
 
 #add_subdirectory(ccn-iribu-addons)
 #if (CCN_IRIBU_RIOT)
-  #  set(CMAKE_C_FLAGS ${RIOT_CFLAGS})
+#  set(CMAKE_C_FLAGS ${RIOT_CFLAGS})
 #endif()
 
 if (NOT DEFINED CCN_IRIBU_LINUXKERNEL)
@@ -184,16 +184,16 @@ if (NOT DEFINED CCN_IRIBU_LINUXKERNEL)
         add_subdirectory(ccn-iribu-unix)
         add_subdirectory(ccn-iribu-relay)
         add_subdirectory(ccn-iribu-utils)
-    endif()
-endif()
+    endif ()
+endif ()
 
 if (CCN_IRIBU_RIOT)
     add_subdirectory(ccn-iribu-riot)
-endif()
+endif ()
 
 if (DEFINED CCN_IRIBU_LINUXKERNEL)
     add_subdirectory(ccn-iribu-lnxkernel)
-endif()
+endif ()
 
 if (NOT DEFINED CCN_IRIBU_LINUXKERNEL)
     if (NOT CCN_IRIBU_RIOT)
@@ -204,8 +204,8 @@ if (NOT DEFINED CCN_IRIBU_LINUXKERNEL)
                 ccn-iribu-fwd
                 ccn-iribu-unix
         )
-    endif()
-endif()
+    endif ()
+endif ()
 
 find_package(Doxygen)
 if (DOXYGEN_FOUND)
@@ -234,7 +234,7 @@ if (DOXYGEN_FOUND)
             COMMENT "Generating API documentation with Doxygen"
             VERBATIM
     )
-endif()
+endif ()
 
 
 # unused:

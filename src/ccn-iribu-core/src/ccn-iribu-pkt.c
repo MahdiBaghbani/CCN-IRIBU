@@ -20,31 +20,30 @@
  * 2017-06-16 created
  */
 #ifndef CCN_IRIBU_LINUXKERNEL
-#include "ccn-iribu-pkt.h"
+#    include "ccn-iribu-pkt.h"
 
-#include "ccn-iribu-os-time.h"
-#include "ccn-iribu-defs.h"
-#include "ccn-iribu-pkt-ccntlv.h"
+#    include "ccn-iribu-defs.h"
+#    include "ccn-iribu-os-time.h"
+#    include "ccn-iribu-pkt-ccntlv.h"
 
-#include "ccn-iribu-prefix.h"
-#include "ccn-iribu-malloc.h"
+#    include "ccn-iribu-malloc.h"
+#    include "ccn-iribu-prefix.h"
 
-#include "ccn-iribu-logging.h"
+#    include "ccn-iribu-logging.h"
 #else
-#include "../include/ccn-iribu-pkt.h"
+#    include "../include/ccn-iribu-pkt.h"
 
-#include "../include/ccn-iribu-os-time.h"
-#include "../include/ccn-iribu-defs.h"
-#include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ccntlv.h"
+#    include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ccntlv.h"
+#    include "../include/ccn-iribu-defs.h"
+#    include "../include/ccn-iribu-os-time.h"
 
-#include "../include/ccn-iribu-prefix.h"
-#include "../include/ccn-iribu-malloc.h"
+#    include "../include/ccn-iribu-malloc.h"
+#    include "../include/ccn-iribu-prefix.h"
 
-#include "../include/ccn-iribu-logging.h"
+#    include "../include/ccn-iribu-logging.h"
 #endif
 
-void
-ccn_iribu_pkt_free(struct ccn_iribu_pkt_s *pkt)
+void ccn_iribu_pkt_free(struct ccn_iribu_pkt_s *pkt)
 {
     if (pkt) {
         if (pkt->pfx) {
@@ -74,24 +73,23 @@ ccn_iribu_pkt_free(struct ccn_iribu_pkt_s *pkt)
             }
             ccn_iribu_prefix_free(pkt->pfx);
         }
-        if(pkt->buf){
+        if (pkt->buf) {
             ccn_iribu_free(pkt->buf);
         }
         ccn_iribu_free(pkt);
     }
 }
 
-
-struct ccn_iribu_pkt_s *
-ccn_iribu_pkt_dup(struct ccn_iribu_pkt_s *pkt){
-    struct ccn_iribu_pkt_s * ret = ccn_iribu_malloc(sizeof(struct ccn_iribu_pkt_s));
-    if(!pkt){
+struct ccn_iribu_pkt_s *ccn_iribu_pkt_dup(struct ccn_iribu_pkt_s *pkt)
+{
+    struct ccn_iribu_pkt_s *ret = ccn_iribu_malloc(sizeof(struct ccn_iribu_pkt_s));
+    if (!pkt) {
         if (ret) {
             ccn_iribu_free(ret);
         }
         return NULL;
     }
-    if(!ret){
+    if (!ret) {
         return NULL;
     }
     if (pkt->pfx) {
@@ -100,7 +98,7 @@ ccn_iribu_pkt_dup(struct ccn_iribu_pkt_s *pkt){
 #ifdef USE_SUITE_CCNB
         case CCN_IRIBU_SUITE_CCNB:
             ret->s.ccnb.nonce = buf_dup(pkt->s.ccnb.nonce);
-            ret->s.ccnb.ppkd = buf_dup(pkt->s.ccnb.ppkd);
+            ret->s.ccnb.ppkd  = buf_dup(pkt->s.ccnb.ppkd);
             break;
 #endif
 #ifdef USE_SUITE_CCNTLV
@@ -111,7 +109,7 @@ ccn_iribu_pkt_dup(struct ccn_iribu_pkt_s *pkt){
 #ifdef USE_SUITE_NDNTLV
         case CCN_IRIBU_SUITE_NDNTLV:
             ret->s.ndntlv.nonce = buf_dup(pkt->s.ndntlv.nonce);
-            ret->s.ndntlv.ppkl = buf_dup(pkt->s.ndntlv.ppkl);
+            ret->s.ndntlv.ppkl  = buf_dup(pkt->s.ndntlv.ppkl);
             break;
 #endif
 #ifdef USE_SUITE_LOCALRPC
@@ -121,22 +119,21 @@ ccn_iribu_pkt_dup(struct ccn_iribu_pkt_s *pkt){
             break;
         }
         ret->pfx = ccn_iribu_prefix_dup(pkt->pfx);
-        if(!ret->pfx){
+        if (!ret->pfx) {
             ret->buf = NULL;
             ccn_iribu_pkt_free(ret);
             return NULL;
         }
         ret->pfx->suite = pkt->pfx->suite;
-        ret->suite = pkt->suite;
-        ret->buf = buf_dup(pkt->buf);
-        ret->content = ret->buf->data + (pkt->content - pkt->buf->data);
-        ret->contlen = pkt->contlen;
+        ret->suite      = pkt->suite;
+        ret->buf        = buf_dup(pkt->buf);
+        ret->content    = ret->buf->data + (pkt->content - pkt->buf->data);
+        ret->contlen    = pkt->contlen;
     }
     return ret;
 }
 
-size_t
-ccn_iribu_pkt_mkComponent(int suite, uint8_t *dst, char *src, size_t srclen)
+size_t ccn_iribu_pkt_mkComponent(int suite, uint8_t *dst, char *src, size_t srclen)
 {
     size_t len = 0;
 
@@ -146,12 +143,12 @@ ccn_iribu_pkt_mkComponent(int suite, uint8_t *dst, char *src, size_t srclen)
         if (srclen > UINT16_MAX) {
             return 0;
         }
-        uint16_t *sp = (uint16_t*) dst;
-        *sp++ = htons(CCNX_TLV_N_NameSegment);
-        len = srclen;
-        *sp++ = htons((uint16_t) len);
+        uint16_t *sp = (uint16_t *) dst;
+        *sp++        = htons(CCNX_TLV_N_NameSegment);
+        len          = srclen;
+        *sp++        = htons((uint16_t) len);
         memcpy(sp, src, len);
-        len += 2*sizeof(uint16_t);
+        len += 2 * sizeof(uint16_t);
         break;
     }
 #endif
@@ -164,8 +161,7 @@ ccn_iribu_pkt_mkComponent(int suite, uint8_t *dst, char *src, size_t srclen)
     return len;
 }
 
-int
-ccn_iribu_pkt_prependComponent(int suite, char *src, int *offset, unsigned char *buf)
+int ccn_iribu_pkt_prependComponent(int suite, char *src, int *offset, unsigned char *buf)
 {
     int len = strlen(src);
 
@@ -178,15 +174,14 @@ ccn_iribu_pkt_prependComponent(int suite, char *src, int *offset, unsigned char 
 
 #ifdef USE_SUITE_CCNTLV
     if (suite == CCN_IRIBU_SUITE_CCNTLV) {
-        unsigned short *sp = (unsigned short*) (buf + *offset) - 1;
+        unsigned short *sp = (unsigned short *) (buf + *offset) - 1;
         if (*offset < 4)
             return -1;
         *sp-- = htons(len);
-        *sp = htons(CCNX_TLV_N_NameSegment);
-        len += 2*sizeof(unsigned short);
-        *offset -= 2*sizeof(unsigned short);
+        *sp   = htons(CCNX_TLV_N_NameSegment);
+        len += 2 * sizeof(unsigned short);
+        *offset -= 2 * sizeof(unsigned short);
     }
 #endif
     return len;
 }
-

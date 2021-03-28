@@ -25,9 +25,9 @@
 
 // ----------------------------------------------------------------------
 
-int
-ccn_iribu_core_RX_i_or_c(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-                    unsigned char **data, int *datalen)
+int ccn_iribu_core_RX_i_or_c(struct ccn_iribu_relay_s *relay,
+                             struct ccn_iribu_face_s *from, unsigned char **data,
+                             int *datalen)
 {
     return 0;
 }
@@ -35,12 +35,11 @@ ccn_iribu_core_RX_i_or_c(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_
 // ----------------------------------------------------------------------
 
 static char *fileprefix = "defrag";
-static char noclobber = 0;
+static char noclobber   = 0;
 static int cnt;
 
-int
-reassembly_done(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-                unsigned char **data, int *len)
+int reassembly_done(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
+                    unsigned char **data, int *len)
 {
     char fname[512];
     int f;
@@ -65,14 +64,12 @@ reassembly_done(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
     return 0;
 }
 
-
-void
-parseFrag(char *fname, unsigned char *data, int datalen, struct ccn_iribu_face_s *f)
+void parseFrag(char *fname, unsigned char *data, int datalen, struct ccn_iribu_face_s *f)
 {
     int num, typ;
 
-    if (dehead(&data, &datalen, &num, &typ)
-                || typ != CCN_TT_DTAG || num != CCN_IRIBU_DTAG_FRAGMENT2013) {
+    if (dehead(&data, &datalen, &num, &typ) || typ != CCN_TT_DTAG ||
+        num != CCN_IRIBU_DTAG_FRAGMENT2013) {
         DEBUGMSG(ERROR, "** file %s not a CCNx2013 fragment, ignored\n", fname);
         return;
     }
@@ -83,8 +80,7 @@ parseFrag(char *fname, unsigned char *data, int datalen, struct ccn_iribu_face_s
 
 // ----------------------------------------------------------------------
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     int opt;
     char *fname;
@@ -96,27 +92,30 @@ main(int argc, char *argv[])
             fileprefix = optarg;
             break;
         case 'n':
-            noclobber = ! noclobber;
+            noclobber = !noclobber;
             break;
         case 'v':
 #ifdef USE_LOGGING
             if (isdigit(optarg[0]))
-                debug_level = (int)strtol(optarg, (char**)NULL, 10);
+                debug_level = (int) strtol(optarg, (char **) NULL, 10);
             else
                 debug_level = ccn_iribu_debug_str2level(optarg);
 #endif
-        break;
+            break;
 
         case 'h':
         default:
-usage:
-            fprintf(stderr, "usage: %s [options] FILE(S)\n"
-            "  -f PREFIX   use PREFIX for output file names (default: defrag)\n"
-            "  -n          no-clobber\n"
+        usage:
+            fprintf(
+                stderr,
+                "usage: %s [options] FILE(S)\n"
+                "  -f PREFIX   use PREFIX for output file names (default: defrag)\n"
+                "  -n          no-clobber\n"
 #ifdef USE_LOGGING
-            "  -v DEBUG_LEVEL (fatal, error, warning, info, debug, verbose, trace)\n"
+                "  -v DEBUG_LEVEL (fatal, error, warning, info, debug, verbose, trace)\n"
 #endif
-            ,argv[0]);
+                ,
+                argv[0]);
             exit(1);
         }
     }
@@ -124,13 +123,12 @@ usage:
     if (!argv[optind])
         goto usage;
 
-
     memset(&f, 0, sizeof(f));
     f.frag = ccn_iribu_frag_new(CCN_IRIBU_FRAG_CCNx2013, 1200);
 
     fname = argv[optind++];
     do {
-        unsigned char in[64*1024];
+        unsigned char in[64 * 1024];
         int len, fd = open(fname, O_RDONLY);
 
         DEBUGMSG(INFO, "** file %s\n", fname);

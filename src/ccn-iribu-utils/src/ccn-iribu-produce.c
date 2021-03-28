@@ -20,24 +20,22 @@
  * 2014-09-01 created <basil.kohler@unibas.ch>
  */
 
-
 #define CCN_IRIBU_MAX_CHUNK_SIZE 4048
 
 #include "ccn-iribu-common.h"
 #include "ccn-iribu-crypto.h"
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     // char *private_key_path = 0;
     //    char *witness = 0;
-    uint8_t out[65*1024];
+    uint8_t out[65 * 1024];
     char *publisher = 0;
     char *infname = 0, *outdirname = 0, *outfname = 0;
     size_t contentlen = 0, plen;
     int f, fout, opt;
     //    int suite = CCN_IRIBU_SUITE_DEFAULT;
-    int suite = CCN_IRIBU_SUITE_CCNTLV;
+    int suite         = CCN_IRIBU_SUITE_CCNTLV;
     size_t chunk_size = CCN_IRIBU_MAX_CHUNK_SIZE;
     struct ccn_iribu_prefix_s *name;
     ccn_iribu_data_opts_u data_opts;
@@ -47,7 +45,9 @@ main(int argc, char *argv[])
         case 'c':
             chunk_size = (size_t) strtol(optarg, (char **) NULL, 10);
             if (chunk_size > CCN_IRIBU_MAX_CHUNK_SIZE) {
-                DEBUGMSG(WARNING, "max chunk size is %d (%zu is to large), using max chunk size\n", CCN_IRIBU_MAX_CHUNK_SIZE, chunk_size);
+                DEBUGMSG(WARNING,
+                         "max chunk size is %d (%zu is to large), using max chunk size\n",
+                         CCN_IRIBU_MAX_CHUNK_SIZE, chunk_size);
                 chunk_size = CCN_IRIBU_MAX_CHUNK_SIZE;
             }
             break;
@@ -60,19 +60,20 @@ main(int argc, char *argv[])
         case 'o':
             outdirname = optarg;
             break;
-/*
-        case 'k':
-            private_key_path = optarg;
-            break;
-        case 'w':
-            witness = optarg;
-            break;
-*/
+            /*
+                    case 'k':
+                        private_key_path = optarg;
+                        break;
+                    case 'w':
+                        witness = optarg;
+                        break;
+            */
         case 'p':
             publisher = optarg;
-            plen = unescape_component(publisher);
+            plen      = unescape_component(publisher);
             if (plen != 32) {
-                DEBUGMSG(ERROR, "publisher key digest has wrong length (%zu instead of 32)\n",
+                DEBUGMSG(ERROR,
+                         "publisher key digest has wrong length (%zu instead of 32)\n",
                          plen);
                 exit(-1);
             }
@@ -83,30 +84,32 @@ main(int argc, char *argv[])
         case 'v':
 #ifdef USE_LOGGING
             if (isdigit(optarg[0]))
-                debug_level =  (int)strtol(optarg, (char **)NULL, 10);
+                debug_level = (int) strtol(optarg, (char **) NULL, 10);
             else
                 debug_level = ccn_iribu_debug_str2level(optarg);
 #endif
             break;
         case 'h':
         default:
-Usage:
-        fprintf(stderr,
-        "Creates a chunked content object stream for the input data and writes them to stdout.\n"
-        "usage: %s [options] URL\n"
-        "  -c SIZE          size for each chunk (max %d)\n"
-        "  -f FNAME         filename of the chunks when using -o\n"
-        "  -i FNAME         input file (instead of stdin)\n"
-        "  -o DIR           output dir (instead of stdout), filename default is cN, otherwise specify -f\n"
-        "  -p DIGEST        publisher fingerprint\n"
-        "  -s SUITE         (ccnb, ccnx2015, ndn2013)\n"
+        Usage:
+            fprintf(
+                stderr,
+                "Creates a chunked content object stream for the input data and writes "
+                "them to stdout.\n"
+                "usage: %s [options] URL\n"
+                "  -c SIZE          size for each chunk (max %d)\n"
+                "  -f FNAME         filename of the chunks when using -o\n"
+                "  -i FNAME         input file (instead of stdin)\n"
+                "  -o DIR           output dir (instead of stdout), filename default is "
+                "cN, otherwise specify -f\n"
+                "  -p DIGEST        publisher fingerprint\n"
+                "  -s SUITE         (ccnb, ccnx2015, ndn2013)\n"
 #ifdef USE_LOGGING
-        "  -v DEBUG_LEVEL (fatal, error, warning, info, debug, verbose, trace)\n"
+                "  -v DEBUG_LEVEL (fatal, error, warning, info, debug, verbose, trace)\n"
 #endif
-        ,
-        argv[0],
-        CCN_IRIBU_MAX_CHUNK_SIZE);
-        exit(1);
+                ,
+                argv[0], CCN_IRIBU_MAX_CHUNK_SIZE);
+            exit(1);
         }
     }
 
@@ -130,12 +133,16 @@ Usage:
         status = stat(outdirname, &st_buf);
         if (status != 0) {
             // DEBUGMSG (ERROR, "Error (%d) when opening file %s\n", errno, outdirname);
-            DEBUGMSG(ERROR, "Error (%d) when opening output dir %s (probaby does not exist)\n", errno, outdirname);
+            DEBUGMSG(ERROR,
+                     "Error (%d) when opening output dir %s (probaby does not exist)\n",
+                     errno, outdirname);
             goto Usage;
         }
-        if (S_ISREG (st_buf.st_mode)) {
-            // DEBUGMSG (ERROR, "Error: %s is a file and not a directory.\n", argv[optind]);
-            DEBUGMSG(ERROR, "Error: output dir %s is a file and not a directory.\n", outdirname);
+        if (S_ISREG(st_buf.st_mode)) {
+            // DEBUGMSG (ERROR, "Error: %s is a file and not a directory.\n",
+            // argv[optind]);
+            DEBUGMSG(ERROR, "Error: output dir %s is a file and not a directory.\n",
+                     outdirname);
             goto Usage;
         }
     }
@@ -144,12 +151,16 @@ Usage:
         status = stat(infname, &st_buf);
         if (status != 0) {
             // DEBUGMSG (ERROR, "Error (%d) when opening file %s\n", errno, outdirname);
-            DEBUGMSG(ERROR, "Error (%d) when opening input file %s (probaby does not exist)\n", errno, infname);
+            DEBUGMSG(ERROR,
+                     "Error (%d) when opening input file %s (probaby does not exist)\n",
+                     errno, infname);
             goto Usage;
         }
-        if (S_ISDIR (st_buf.st_mode)) {
-            // DEBUGMSG (ERROR, "Error: %s is a file and not a directory.\n", argv[optind]);
-            DEBUGMSG(ERROR, "Error: input file %s is a directory and not a file.\n", infname);
+        if (S_ISDIR(st_buf.st_mode)) {
+            // DEBUGMSG (ERROR, "Error: %s is a file and not a directory.\n",
+            // argv[optind]);
+            DEBUGMSG(ERROR, "Error: input file %s is a directory and not a file.\n",
+                     infname);
             goto Usage;
         }
         f = open(infname, O_RDONLY);
@@ -163,7 +174,7 @@ Usage:
     char default_file_name[2] = "c";
     if (!outfname) {
         outfname = default_file_name;
-    } else if(!outdirname) {
+    } else if (!outdirname) {
         DEBUGMSG(WARNING, "filename -f without -o output dir does nothing\n");
     }
 
@@ -182,20 +193,19 @@ Usage:
     char outpathname[255];
     char fileext[10];
     switch (suite) {
-        case CCN_IRIBU_SUITE_CCNB:
-            strcpy(fileext, "ccnb");
-            break;
-        case CCN_IRIBU_SUITE_CCNTLV:
-            strcpy(fileext, "ccntlv");
-            break;
-        case CCN_IRIBU_SUITE_NDNTLV:
-            strcpy(fileext, "ndntlv");
-            break;
-        default:
-            DEBUGMSG(ERROR, "fileext for suite %d not implemented\n", suite);
+    case CCN_IRIBU_SUITE_CCNB:
+        strcpy(fileext, "ccnb");
+        break;
+    case CCN_IRIBU_SUITE_CCNTLV:
+        strcpy(fileext, "ccntlv");
+        break;
+    case CCN_IRIBU_SUITE_NDNTLV:
+        strcpy(fileext, "ndntlv");
+        break;
+    default:
+        DEBUGMSG(ERROR, "fileext for suite %d not implemented\n", suite);
     }
 
-    
     FILE *fp = fopen(infname, "r");
     fseek(fp, 0L, SEEK_END);
     long sz = ftell(fp);
@@ -240,18 +250,20 @@ Usage:
 
         switch (suite) {
         case CCN_IRIBU_SUITE_CCNTLV:
-            if (ccn_iribu_ccntlv_prependContentWithHdr(name, chunk_buf, chunk_len, &lastchunknum,
-                                                  //is_last ? &chunknum : NULL,
-                                                  NULL, // int *contentpos
-                                                  &offs, out, &contentlen)) {
+            if (ccn_iribu_ccntlv_prependContentWithHdr(name, chunk_buf, chunk_len,
+                                                       &lastchunknum,
+                                                       // is_last ? &chunknum : NULL,
+                                                       NULL,    // int *contentpos
+                                                       &offs, out, &contentlen)) {
                 goto Error;
             }
             break;
         case CCN_IRIBU_SUITE_NDNTLV:
             data_opts.ndntlv.finalblockid = lastchunknum;
-            if (ccn_iribu_ndntlv_prependContent(name, chunk_buf, chunk_len, NULL,
-                                           &(data_opts.ndntlv),// is_last ? &chunknum : NULL,
-                                           &offs, out, &contentlen)) {
+            if (ccn_iribu_ndntlv_prependContent(
+                    name, chunk_buf, chunk_len, NULL,
+                    &(data_opts.ndntlv),    // is_last ? &chunknum : NULL,
+                    &offs, out, &contentlen)) {
                 goto Error;
             }
             break;
@@ -262,7 +274,8 @@ Usage:
         }
 
         if (outdirname) {
-            snprintf(outpathname, sizeof(outpathname), "%s/%s%d.%s", outdirname, outfname, chunknum, fileext);
+            snprintf(outpathname, sizeof(outpathname), "%s/%s%d.%s", outdirname, outfname,
+                     chunknum, fileext);
 
             DEBUGMSG(INFO, "writing chunk %d to file %s\n", chunknum, outpathname);
 
@@ -271,7 +284,7 @@ Usage:
             close(fout);
         } else {
             DEBUGMSG(INFO, "writing chunk %d\n", chunknum);
-            fwrite(out + offs, sizeof(unsigned char),contentlen, stdout);
+            fwrite(out + offs, sizeof(unsigned char), contentlen, stdout);
         }
 
         chunknum++;

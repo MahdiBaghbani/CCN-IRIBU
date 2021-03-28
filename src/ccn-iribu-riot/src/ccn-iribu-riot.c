@@ -29,21 +29,21 @@
 #include <time.h>
 
 /* RIOT specific includes */
-#include "sched.h"
-#include "random.h"
-#include "timex.h"
-#include "xtimer.h"
-#include "net/gnrc/netreg.h"
+#include "ccn-iribu-riot.h"
+#include "net/gnrc/netapi.h"
 #include "net/gnrc/netif.h"
 #include "net/gnrc/netif/hdr.h"
-#include "net/gnrc/netapi.h"
+#include "net/gnrc/netreg.h"
 #include "net/packet.h"
-#include "ccn-iribu-riot.h"
+#include "random.h"
+#include "sched.h"
+#include "timex.h"
+#include "xtimer.h"
 
-#include "ccn-iribu-os-time.h"
 #include "ccn-iribu-fwd.h"
-#include "ccn-iribu-producer.h"
+#include "ccn-iribu-os-time.h"
 #include "ccn-iribu-pkt-builder.h"
+#include "ccn-iribu-producer.h"
 
 /**
  * @brief RIOT specific local variables
@@ -73,8 +73,8 @@ kernel_pid_t ccn_iribu_event_loop_pid = KERNEL_PID_UNDEF;
 
 evtimer_msg_t ccn_iribu_evtimer;
 
-#include "ccn-iribu-defs.h"
 #include "ccn-iribu-core.h"
+#include "ccn-iribu-defs.h"
 
 /**
  * @brief Central relay information
@@ -99,9 +99,8 @@ extern int debug_level;
  * @par[in] dest    Destination's address information
  * @par[in] buf     Data to send
  */
-void
-ccn_iribu_ll_TX(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_if_s *ifc,
-           sockunion *dest, struct ccn_iribu_buf_s *buf);
+void ccn_iribu_ll_TX(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_if_s *ifc,
+                     sockunion *dest, struct ccn_iribu_buf_s *buf);
 
 /**
  * @brief Callback for packet reception which should be passed to the application
@@ -120,8 +119,7 @@ int ccn_iribu_app_RX(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_conte
 static gnrc_netreg_entry_t _ccn_iribu_ne;
 
 /* add a netif to CCN-lite's interfaces, set the nettype, and register a receiver */
-int
-ccn_iribu_open_netif(kernel_pid_t if_pid, gnrc_nettype_t netreg_type)
+int ccn_iribu_open_netif(kernel_pid_t if_pid, gnrc_nettype_t netreg_type)
 {
     assert(pid_is_valid(if_pid));
     if (gnrc_netif_get_by_pid(if_pid) == NULL) {
@@ -135,25 +133,28 @@ ccn_iribu_open_netif(kernel_pid_t if_pid, gnrc_nettype_t netreg_type)
 
     /* get current interface from CCN-IRIBU's relay */
     struct ccn_iribu_if_s *i;
-    i = &ccn_iribu_relay.ifs[ccn_iribu_relay.ifcount];
-    i->mtu = NDN_DEFAULT_MTU;
-    i->fwdalli = 1;
-    i->if_pid = if_pid;
+    i                    = &ccn_iribu_relay.ifs[ccn_iribu_relay.ifcount];
+    i->mtu               = NDN_DEFAULT_MTU;
+    i->fwdalli           = 1;
+    i->if_pid            = if_pid;
     i->addr.sa.sa_family = AF_PACKET;
 
     int res;
     uint16_t mtu;
     res = gnrc_netapi_get(if_pid, NETOPT_MAX_PDU_SIZE, 0, &(mtu), sizeof(mtu));
     if (res < 0) {
-        DEBUGMSG(ERROR, "error: unable to determine MTU for if=<%u>\n", (unsigned) i->if_pid);
+        DEBUGMSG(ERROR, "error: unable to determine MTU for if=<%u>\n",
+                 (unsigned) i->if_pid);
         return -ECANCELED;
     }
-    i->mtu = (int)mtu;
+    i->mtu = (int) mtu;
     DEBUGMSG(DEBUG, "interface's MTU is set to %lu\n", (unsigned long) i->mtu);
 
-    res = gnrc_netapi_get(if_pid, NETOPT_ADDR_LEN, 0, &(i->addr_len), sizeof(i->addr_len));
+    res =
+        gnrc_netapi_get(if_pid, NETOPT_ADDR_LEN, 0, &(i->addr_len), sizeof(i->addr_len));
     if (res < 0) {
-        DEBUGMSG(ERROR, "error: unable to determine address length for if=<%u>\n", (unsigned) if_pid);
+        DEBUGMSG(ERROR, "error: unable to determine address length for if=<%u>\n",
+                 (unsigned) if_pid);
         return -ECANCELED;
     }
     DEBUGMSG(DEBUG, "interface's address length is %u\n", (unsigned) i->addr_len);
@@ -180,116 +181,117 @@ ccn_iribu_open_netif(kernel_pid_t if_pid, gnrc_nettype_t netreg_type)
 }
 
 /* (link layer) sending function */
-void
-ccn_iribu_ll_TX(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_if_s *ifc,
-           sockunion *dest, struct ccn_iribu_buf_s *buf)
+void ccn_iribu_ll_TX(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_if_s *ifc,
+                     sockunion *dest, struct ccn_iribu_buf_s *buf)
 {
     (void) ccn_iribu;
     int rc;
-    DEBUGMSG(TRACE, "ccn_iribu_ll_TX %d bytes to %s\n", (buf ? (int) buf->datalen : -1), ccn_iribu_addr2ascii(dest));
+    DEBUGMSG(TRACE, "ccn_iribu_ll_TX %d bytes to %s\n", (buf ? (int) buf->datalen : -1),
+             ccn_iribu_addr2ascii(dest));
 
     (void) ifc;
-    switch(dest->sa.sa_family) {
-        /* link layer sending */
-        case AF_PACKET: {
-                            /* allocate memory */
-                            gnrc_pktsnip_t *hdr = NULL;
-                            gnrc_pktsnip_t *pkt= gnrc_pktbuf_add(NULL, buf->data,
-                                                                 buf->datalen,
-                                                                 GNRC_NETTYPE_CCN);
+    switch (dest->sa.sa_family) {
+    /* link layer sending */
+    case AF_PACKET: {
+        /* allocate memory */
+        gnrc_pktsnip_t *hdr = NULL;
+        gnrc_pktsnip_t *pkt =
+            gnrc_pktbuf_add(NULL, buf->data, buf->datalen, GNRC_NETTYPE_CCN);
 
-                            if (pkt == NULL) {
-                                printf("error: packet buffer full trying to allocate %d bytes\n", (int)buf->datalen);
-                                return;
-                            }
+        if (pkt == NULL) {
+            printf("error: packet buffer full trying to allocate %d bytes\n",
+                   (int) buf->datalen);
+            return;
+        }
 
-                            /* check for loopback */
-                            bool is_loopback = false;
-                            if (ifc->addr_len == dest->linklayer.sll_halen) {
-                                if (memcmp(ifc->hwaddr, dest->linklayer.sll_addr, dest->linklayer.sll_halen) == 0) {
-                                    /* build link layer header */
-                                    hdr = gnrc_netif_hdr_build(NULL, dest->linklayer.sll_halen,
-                                                               dest->linklayer.sll_addr,
-                                                               dest->linklayer.sll_halen);
+        /* check for loopback */
+        bool is_loopback = false;
+        if (ifc->addr_len == dest->linklayer.sll_halen) {
+            if (memcmp(ifc->hwaddr, dest->linklayer.sll_addr,
+                       dest->linklayer.sll_halen) == 0) {
+                /* build link layer header */
+                hdr = gnrc_netif_hdr_build(NULL, dest->linklayer.sll_halen,
+                                           dest->linklayer.sll_addr,
+                                           dest->linklayer.sll_halen);
 
-                                    gnrc_netif_hdr_set_src_addr((gnrc_netif_hdr_t *)hdr->data, ifc->hwaddr, ifc->addr_len);
-                                    is_loopback = true;
-                                }
-                            }
+                gnrc_netif_hdr_set_src_addr((gnrc_netif_hdr_t *) hdr->data, ifc->hwaddr,
+                                            ifc->addr_len);
+                is_loopback = true;
+            }
+        }
 
-                            /* for the non-loopback case */
-                            if (hdr == NULL) {
-                                hdr = gnrc_netif_hdr_build(NULL, 0,
-                                                           dest->linklayer.sll_addr,
-                                                           dest->linklayer.sll_halen);
-                            }
+        /* for the non-loopback case */
+        if (hdr == NULL) {
+            hdr = gnrc_netif_hdr_build(NULL, 0, dest->linklayer.sll_addr,
+                                       dest->linklayer.sll_halen);
+        }
 
-                            /* check if header building succeeded */
-                            if (hdr == NULL) {
-                                puts("error: packet buffer full trying to allocate netif_hdr");
-                                gnrc_pktbuf_release(pkt);
-                                return;
-                            }
-                            LL_PREPEND(pkt, hdr);
+        /* check if header building succeeded */
+        if (hdr == NULL) {
+            puts("error: packet buffer full trying to allocate netif_hdr");
+            gnrc_pktbuf_release(pkt);
+            return;
+        }
+        LL_PREPEND(pkt, hdr);
 
-                            if (is_loopback) {
-                                    DEBUGMSG(DEBUG, "loopback packet\n");
-                                    if (gnrc_netapi_receive(ccn_iribu_event_loop_pid, pkt) < 1) {
-                                        DEBUGMSG(ERROR, "error: unable to loopback packet, discard it\n");
-                                        gnrc_pktbuf_release(pkt);
-                                    }
-                                    return;
-                            }
+        if (is_loopback) {
+            DEBUGMSG(DEBUG, "loopback packet\n");
+            if (gnrc_netapi_receive(ccn_iribu_event_loop_pid, pkt) < 1) {
+                DEBUGMSG(ERROR, "error: unable to loopback packet, discard it\n");
+                gnrc_pktbuf_release(pkt);
+            }
+            return;
+        }
 
-                            /* distinguish between broadcast and unicast */
-                            bool is_bcast = true;
-                            /* TODO: handle broadcast addresses which are not all 0xFF */
-                            for (unsigned i = 0; i < dest->linklayer.sll_halen; i++) {
-                                if (dest->linklayer.sll_addr[i] != UINT8_MAX) {
-                                    is_bcast = false;
-                                    break;
-                                }
-                            }
+        /* distinguish between broadcast and unicast */
+        bool is_bcast = true;
+        /* TODO: handle broadcast addresses which are not all 0xFF */
+        for (unsigned i = 0; i < dest->linklayer.sll_halen; i++) {
+            if (dest->linklayer.sll_addr[i] != UINT8_MAX) {
+                is_bcast = false;
+                break;
+            }
+        }
 
-                            if (is_bcast) {
-                                DEBUGMSG(DEBUG, " is broadcast\n");
-                                gnrc_netif_hdr_t *nethdr = (gnrc_netif_hdr_t *)hdr->data;
-                                nethdr->flags = GNRC_NETIF_HDR_FLAGS_BROADCAST;
-                            }
+        if (is_bcast) {
+            DEBUGMSG(DEBUG, " is broadcast\n");
+            gnrc_netif_hdr_t *nethdr = (gnrc_netif_hdr_t *) hdr->data;
+            nethdr->flags            = GNRC_NETIF_HDR_FLAGS_BROADCAST;
+        }
 
-                            /* actual sending */
-                            DEBUGMSG(DEBUG, " try to pass to GNRC (%i): %p\n", (int) ifc->if_pid, (void*) pkt);
-                            if (gnrc_netapi_send(ifc->if_pid, pkt) < 1) {
-                                puts("error: unable to send\n");
-                                gnrc_pktbuf_release(pkt);
-                                return;
-                            }
-                            break;
-                        }
-        default:
-                        DEBUGMSG(WARNING, "unknown transport\n");
-                        break;
+        /* actual sending */
+        DEBUGMSG(DEBUG, " try to pass to GNRC (%i): %p\n", (int) ifc->if_pid,
+                 (void *) pkt);
+        if (gnrc_netapi_send(ifc->if_pid, pkt) < 1) {
+            puts("error: unable to send\n");
+            gnrc_pktbuf_release(pkt);
+            return;
+        }
+        break;
+    }
+    default:
+        DEBUGMSG(WARNING, "unknown transport\n");
+        break;
     }
     (void) rc; /* just to silence a compiler warning (if USE_DEBUG is not set) */
 }
 
 /* packets delivered to the application */
-int
-ccn_iribu_app_RX(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_content_s *c)
+int ccn_iribu_app_RX(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_content_s *c)
 {
     (void) ccn_iribu;
-    DEBUGMSG(DEBUG, "Received something of size %u for the application\n", c->pkt->contlen);
+    DEBUGMSG(DEBUG, "Received something of size %u for the application\n",
+             c->pkt->contlen);
 
-    gnrc_pktsnip_t *pkt= gnrc_pktbuf_add(NULL, c->pkt->content,
-                                         c->pkt->contlen,
-                                         GNRC_NETTYPE_CCN_CHUNK);
+    gnrc_pktsnip_t *pkt =
+        gnrc_pktbuf_add(NULL, c->pkt->content, c->pkt->contlen, GNRC_NETTYPE_CCN_CHUNK);
     if (pkt == NULL) {
         DEBUGMSG(WARNING, "Something went wrong allocating buffer for the chunk!\n");
         return -1;
     }
 
-    if (!gnrc_netapi_dispatch_receive(GNRC_NETTYPE_CCN_CHUNK,
-                                      GNRC_NETREG_DEMUX_CTX_ALL, pkt)) {
+    if (!gnrc_netapi_dispatch_receive(GNRC_NETTYPE_CCN_CHUNK, GNRC_NETREG_DEMUX_CTX_ALL,
+                                      pkt)) {
         DEBUGMSG(DEBUG, "ccn-iribu: unable to forward packet as no one is \
                  interested in it\n");
         gnrc_pktbuf_release(pkt);
@@ -299,8 +301,7 @@ ccn_iribu_app_RX(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_content_s
 }
 
 /* receiving callback for CCN packets */
-void
-_receive(struct ccn_iribu_relay_s *ccn_iribu, msg_t *m)
+void _receive(struct ccn_iribu_relay_s *ccn_iribu, msg_t *m)
 {
     int i;
     /* iterate over interfaces */
@@ -311,46 +312,50 @@ _receive(struct ccn_iribu_relay_s *ccn_iribu, msg_t *m)
     }
 
     if (i == ccn_iribu->ifcount) {
-        DEBUGMSG(WARNING, "No matching CCN interface found, assume it's from the default interface\n");
+        DEBUGMSG(
+            WARNING,
+            "No matching CCN interface found, assume it's from the default interface\n");
         i = 0;
     }
 
     /* packet parsing */
-    gnrc_pktsnip_t *pkt = (gnrc_pktsnip_t *)m->content.ptr;
+    gnrc_pktsnip_t *pkt = (gnrc_pktsnip_t *) m->content.ptr;
     gnrc_pktsnip_t *ccn_pkt, *netif_pkt;
     LL_SEARCH_SCALAR(pkt, ccn_pkt, type, GNRC_NETTYPE_CCN);
     LL_SEARCH_SCALAR(pkt, netif_pkt, type, GNRC_NETTYPE_NETIF);
-    gnrc_netif_hdr_t *nethdr = (gnrc_netif_hdr_t *)netif_pkt->data;
+    gnrc_netif_hdr_t *nethdr = (gnrc_netif_hdr_t *) netif_pkt->data;
     sockunion su;
     memset(&su, 0, sizeof(su));
-    (void )nethdr;
-    su.sa.sa_family = AF_PACKET;
+    (void) nethdr;
+    su.sa.sa_family        = AF_PACKET;
     su.linklayer.sll_halen = nethdr->src_l2addr_len;
-    memcpy(su.linklayer.sll_addr, gnrc_netif_hdr_get_src_addr(nethdr), nethdr->src_l2addr_len);
+    memcpy(su.linklayer.sll_addr, gnrc_netif_hdr_get_src_addr(nethdr),
+           nethdr->src_l2addr_len);
 
     /* call CCN-lite callback and free memory in packet buffer */
     ccn_iribu_core_RX(ccn_iribu, i, ccn_pkt->data, ccn_pkt->size, &su.sa, sizeof(su.sa));
     gnrc_pktbuf_release(pkt);
 }
 
-static void
-ccn_iribu_interest_retransmit(struct ccn_iribu_relay_s *relay, struct ccn_iribu_interest_s *ccn_iribu_int)
+static void ccn_iribu_interest_retransmit(struct ccn_iribu_relay_s *relay,
+                                          struct ccn_iribu_interest_s *ccn_iribu_int)
 {
-    if(ccn_iribu_int->retries >= CCN_IRIBU_MAX_INTEREST_RETRANSMIT) {
+    if (ccn_iribu_int->retries >= CCN_IRIBU_MAX_INTEREST_RETRANSMIT) {
         return;
     }
 
-    ccn_iribu_int->evtmsg_retrans.msg.type = CCN_IRIBU_MSG_INT_RETRANS;
+    ccn_iribu_int->evtmsg_retrans.msg.type        = CCN_IRIBU_MSG_INT_RETRANS;
     ccn_iribu_int->evtmsg_retrans.msg.content.ptr = ccn_iribu_int;
-    ((evtimer_event_t *)&ccn_iribu_int->evtmsg_retrans)->offset = CCN_IRIBU_INTEREST_RETRANS_TIMEOUT;
-    evtimer_add_msg(&ccn_iribu_evtimer, &ccn_iribu_int->evtmsg_retrans, ccn_iribu_event_loop_pid);
+    ((evtimer_event_t *) &ccn_iribu_int->evtmsg_retrans)->offset =
+        CCN_IRIBU_INTEREST_RETRANS_TIMEOUT;
+    evtimer_add_msg(&ccn_iribu_evtimer, &ccn_iribu_int->evtmsg_retrans,
+                    ccn_iribu_event_loop_pid);
     ccn_iribu_int->retries++;
     ccn_iribu_interest_propagate(relay, ccn_iribu_int);
 }
 
 /* the main event-loop */
-void
-*_ccn_iribu_event_loop(void *arg)
+void *_ccn_iribu_event_loop(void *arg)
 {
     struct ccn_iribu_content_s *content;
     struct ccn_iribu_pkt_s *pkt;
@@ -361,113 +366,110 @@ void
 
     msg_init_queue(_msg_queue, CCN_IRIBU_QUEUE_SIZE);
     evtimer_init_msg(&ccn_iribu_evtimer);
-    struct ccn_iribu_relay_s *ccn_iribu = (struct ccn_iribu_relay_s*) arg;
+    struct ccn_iribu_relay_s *ccn_iribu = (struct ccn_iribu_relay_s *) arg;
 
-    while(!ccn_iribu->halt_flag) {
+    while (!ccn_iribu->halt_flag) {
         msg_t m, reply, mr;
         DEBUGMSG(VERBOSE, "ccn-iribu: waiting for incoming message.\n");
         msg_receive(&m);
 
         switch (m.type) {
-            case GNRC_NETAPI_MSG_TYPE_RCV:
-                DEBUGMSG(DEBUG, "ccn-iribu: GNRC_NETAPI_MSG_TYPE_RCV received\n");
-                _receive(ccn_iribu, &m);
-                break;
+        case GNRC_NETAPI_MSG_TYPE_RCV:
+            DEBUGMSG(DEBUG, "ccn-iribu: GNRC_NETAPI_MSG_TYPE_RCV received\n");
+            _receive(ccn_iribu, &m);
+            break;
 
-            case GNRC_NETAPI_MSG_TYPE_SND:
-                DEBUGMSG(DEBUG, "ccn-iribu: GNRC_NETAPI_MSG_TYPE_SND received\n");
-                pkt = (struct ccn_iribu_pkt_s *) m.content.ptr;
-                ccn_iribu_fwd_handleInterest(ccn_iribu, loopback_face, &pkt, ccn_iribu_ndntlv_cMatch);
-                ccn_iribu_pkt_free(pkt);
-                break;
+        case GNRC_NETAPI_MSG_TYPE_SND:
+            DEBUGMSG(DEBUG, "ccn-iribu: GNRC_NETAPI_MSG_TYPE_SND received\n");
+            pkt = (struct ccn_iribu_pkt_s *) m.content.ptr;
+            ccn_iribu_fwd_handleInterest(ccn_iribu, loopback_face, &pkt,
+                                         ccn_iribu_ndntlv_cMatch);
+            ccn_iribu_pkt_free(pkt);
+            break;
 
-            case GNRC_NETAPI_MSG_TYPE_GET:
-            case GNRC_NETAPI_MSG_TYPE_SET:
-                DEBUGMSG(DEBUG, "ccn-iribu: reply to unsupported get/set\n");
-                reply.content.value = -ENOTSUP;
-                msg_reply(&m, &reply);
+        case GNRC_NETAPI_MSG_TYPE_GET:
+        case GNRC_NETAPI_MSG_TYPE_SET:
+            DEBUGMSG(DEBUG, "ccn-iribu: reply to unsupported get/set\n");
+            reply.content.value = -ENOTSUP;
+            msg_reply(&m, &reply);
+            break;
+        case CCN_IRIBU_MSG_CS_ADD:
+            DEBUGMSG(VERBOSE, "ccn-iribu: CS add\n");
+            content = (struct ccn_iribu_content_s *) m.content.ptr;
+            ccn_iribu_cs_add(ccn_iribu, content);
+            break;
+        case CCN_IRIBU_MSG_CS_DEL:
+            DEBUGMSG(VERBOSE, "ccn-iribu: CS remove\n");
+            prefix = (struct ccn_iribu_prefix_s *) m.content.ptr;
+            spref  = ccn_iribu_prefix_to_path(prefix);
+            if (!spref) {
+                DEBUGMSG(WARNING,
+                         "ccn-iribu: CS remove failed, because of no memory available\n");
                 break;
-            case CCN_IRIBU_MSG_CS_ADD:
-                DEBUGMSG(VERBOSE, "ccn-iribu: CS add\n");
-                content = (struct ccn_iribu_content_s *)m.content.ptr;
-                ccn_iribu_cs_add(ccn_iribu, content);
-                break;
-            case CCN_IRIBU_MSG_CS_DEL:
-                DEBUGMSG(VERBOSE, "ccn-iribu: CS remove\n");
-                prefix = (struct ccn_iribu_prefix_s *)m.content.ptr;
-                spref = ccn_iribu_prefix_to_path(prefix);
-                if (!spref) {
-                    DEBUGMSG(WARNING, "ccn-iribu: CS remove failed, because of no memory available\n");
-                    break;
-                }
-                if (ccn_iribu_cs_remove(ccn_iribu, spref) < 0) {
-                    DEBUGMSG(WARNING, "removing CS entry failed\n");
-                }
+            }
+            if (ccn_iribu_cs_remove(ccn_iribu, spref) < 0) {
+                DEBUGMSG(WARNING, "removing CS entry failed\n");
+            }
+            ccn_iribu_free(spref);
+            break;
+        case CCN_IRIBU_MSG_CS_LOOKUP:
+            DEBUGMSG(VERBOSE, "ccn-iribu: CS lookup\n");
+            prefix  = (struct ccn_iribu_prefix_s *) m.content.ptr;
+            spref   = ccn_iribu_prefix_to_path(prefix);
+            mr.type = CCN_IRIBU_MSG_CS_LOOKUP;
+            if (spref) {
+                content = ccn_iribu_cs_lookup(ccn_iribu, spref);
                 ccn_iribu_free(spref);
-                break;
-            case CCN_IRIBU_MSG_CS_LOOKUP:
-                DEBUGMSG(VERBOSE, "ccn-iribu: CS lookup\n");
-                prefix = (struct ccn_iribu_prefix_s *)m.content.ptr;
-                spref = ccn_iribu_prefix_to_path(prefix);
-                mr.type = CCN_IRIBU_MSG_CS_LOOKUP;
-                if (spref) {
-                    content = ccn_iribu_cs_lookup(ccn_iribu, spref);
-                    ccn_iribu_free(spref);
-                }
-                else {
-                    DEBUGMSG(WARNING, "ccn-iribu: CS lookup failed, because of no memory available\n");
-                    content = NULL;
-                }
-                mr.content.ptr = content;
-                msg_reply(&m, &mr);
-                break;
-            case CCN_IRIBU_MSG_INT_RETRANS:
-                ccn_iribu_int = (struct ccn_iribu_interest_s *)m.content.ptr;
-                ccn_iribu_interest_retransmit(ccn_iribu, ccn_iribu_int);
-                break;
-            case CCN_IRIBU_MSG_INT_TIMEOUT:
-                ccn_iribu_int = (struct ccn_iribu_interest_s *)m.content.ptr;
-                ccn_iribu_interest_remove(ccn_iribu, ccn_iribu_int);
-                break;
-            case CCN_IRIBU_MSG_FACE_TIMEOUT:
-                face = (struct ccn_iribu_face_s *)m.content.ptr;
-                if (face &&
-                    !(face->flags & CCN_IRIBU_FACE_FLAGS_STATIC)) {
-                    ccn_iribu_face_remove(ccn_iribu, face);
-                }
-                break;
-            default:
-                DEBUGMSG(WARNING, "ccn-iribu: unknown message type\n");
-                break;
+            } else {
+                DEBUGMSG(WARNING,
+                         "ccn-iribu: CS lookup failed, because of no memory available\n");
+                content = NULL;
+            }
+            mr.content.ptr = content;
+            msg_reply(&m, &mr);
+            break;
+        case CCN_IRIBU_MSG_INT_RETRANS:
+            ccn_iribu_int = (struct ccn_iribu_interest_s *) m.content.ptr;
+            ccn_iribu_interest_retransmit(ccn_iribu, ccn_iribu_int);
+            break;
+        case CCN_IRIBU_MSG_INT_TIMEOUT:
+            ccn_iribu_int = (struct ccn_iribu_interest_s *) m.content.ptr;
+            ccn_iribu_interest_remove(ccn_iribu, ccn_iribu_int);
+            break;
+        case CCN_IRIBU_MSG_FACE_TIMEOUT:
+            face = (struct ccn_iribu_face_s *) m.content.ptr;
+            if (face && !(face->flags & CCN_IRIBU_FACE_FLAGS_STATIC)) {
+                ccn_iribu_face_remove(ccn_iribu, face);
+            }
+            break;
+        default:
+            DEBUGMSG(WARNING, "ccn-iribu: unknown message type\n");
+            break;
         }
-
     }
     return NULL;
 }
 
 /* trampoline function creating the loopback face */
-kernel_pid_t
-ccn_iribu_start(void)
+kernel_pid_t ccn_iribu_start(void)
 {
     loopback_face = ccn_iribu_get_face_or_create(&ccn_iribu_relay, -1, NULL, 0);
     loopback_face->flags |= CCN_IRIBU_FACE_FLAGS_STATIC;
 
-    ccn_iribu_relay.max_cache_entries = CCN_IRIBU_CACHE_SIZE;
-    ccn_iribu_relay.max_pit_entries = CCN_IRIBU_DEFAULT_MAX_PIT_ENTRIES;
+    ccn_iribu_relay.max_cache_entries   = CCN_IRIBU_CACHE_SIZE;
+    ccn_iribu_relay.max_pit_entries     = CCN_IRIBU_DEFAULT_MAX_PIT_ENTRIES;
     ccn_iribu_relay.ccn_iribu_ll_TX_ptr = &ccn_iribu_ll_TX;
 
     /* start the CCN-IRIBU event-loop */
-    ccn_iribu_event_loop_pid =  thread_create(_ccn_iribu_stack, sizeof(_ccn_iribu_stack),
-                                          CCN_IRIBU_THREAD_PRIORITY,
-                                          THREAD_CREATE_STACKTEST, _ccn_iribu_event_loop,
-                                          &ccn_iribu_relay, "ccn_iribu");
+    ccn_iribu_event_loop_pid = thread_create(
+        _ccn_iribu_stack, sizeof(_ccn_iribu_stack), CCN_IRIBU_THREAD_PRIORITY,
+        THREAD_CREATE_STACKTEST, _ccn_iribu_event_loop, &ccn_iribu_relay, "ccn_iribu");
     return ccn_iribu_event_loop_pid;
 }
 
 static xtimer_t _wait_timer;
 static msg_t _timeout_msg;
-int
-ccn_iribu_wait_for_chunk(void *buf, size_t buf_len, uint64_t timeout)
+int ccn_iribu_wait_for_chunk(void *buf, size_t buf_len, uint64_t timeout)
 {
     int res = (-1);
 
@@ -485,29 +487,26 @@ ccn_iribu_wait_for_chunk(void *buf, size_t buf_len, uint64_t timeout)
         msg_receive(&m);
         if (m.type == GNRC_NETAPI_MSG_TYPE_RCV) {
             DEBUGMSG(TRACE, "It's from the stack!\n");
-            gnrc_pktsnip_t *pkt = (gnrc_pktsnip_t *)m.content.ptr;
+            gnrc_pktsnip_t *pkt = (gnrc_pktsnip_t *) m.content.ptr;
             DEBUGMSG(DEBUG, "Type is: %i\n", pkt->type);
             if (pkt->type == GNRC_NETTYPE_CCN_CHUNK) {
-                char *c = (char*) pkt->data;
+                char *c = (char *) pkt->data;
                 DEBUGMSG(INFO, "Content is: %s\n", c);
                 size_t len = (pkt->size > buf_len) ? buf_len : pkt->size;
                 memcpy(buf, pkt->data, len);
                 res = (int) len;
                 gnrc_pktbuf_release(pkt);
-            }
-            else {
+            } else {
                 DEBUGMSG(WARNING, "Unkown content\n");
                 gnrc_pktbuf_release(pkt);
                 continue;
             }
             xtimer_remove(&_wait_timer);
             break;
-        }
-        else if (m.type == CCN_IRIBU_MSG_TIMEOUT) {
+        } else if (m.type == CCN_IRIBU_MSG_TIMEOUT) {
             res = -ETIMEDOUT;
             break;
-        }
-        else {
+        } else {
             /* TODO: reduce timeout value */
             DEBUGMSG(DEBUG, "Unknow message received, ignore it\n");
         }
@@ -519,23 +518,24 @@ ccn_iribu_wait_for_chunk(void *buf, size_t buf_len, uint64_t timeout)
 /* TODO: move everything below here to ccn-iribu-core-utils */
 
 /* generates and send out an interest */
-int
-ccn_iribu_send_interest(struct ccn_iribu_prefix_s *prefix, unsigned char *buf, int buf_len,
-                   ccn_iribu_interest_opts_u *int_opts)
+int ccn_iribu_send_interest(struct ccn_iribu_prefix_s *prefix, unsigned char *buf,
+                            int buf_len, ccn_iribu_interest_opts_u *int_opts)
 {
-    int ret = 0;
+    int ret    = 0;
     size_t len = 0;
     ccn_iribu_interest_opts_u default_opts;
-    default_opts.ndntlv.nonce = 0;
-    default_opts.ndntlv.mustbefresh = false;
-    default_opts.ndntlv.interestlifetime = CCN_IRIBU_INTEREST_TIMEOUT * 1000; // ms
+    default_opts.ndntlv.nonce            = 0;
+    default_opts.ndntlv.mustbefresh      = false;
+    default_opts.ndntlv.interestlifetime = CCN_IRIBU_INTEREST_TIMEOUT * 1000;    // ms
 
     if (_ccn_iribu_suite != CCN_IRIBU_SUITE_NDNTLV) {
         DEBUGMSG(WARNING, "Suite not supported by RIOT!\n");
         return -1;
     }
 
-    DEBUGMSG(INFO, "interest for chunk number: %lu\n", (prefix->chunknum == NULL) ? (unsigned long) 0 : (unsigned long) *prefix->chunknum);
+    DEBUGMSG(INFO, "interest for chunk number: %lu\n",
+             (prefix->chunknum == NULL) ? (unsigned long) 0
+                                        : (unsigned long) *prefix->chunknum);
 
     if (!prefix) {
         DEBUGMSG(ERROR, "prefix could not be created!\n");
@@ -552,12 +552,13 @@ ccn_iribu_send_interest(struct ccn_iribu_prefix_s *prefix, unsigned char *buf, i
 
     DEBUGMSG(DEBUG, "nonce: %" PRIi32 "\n", int_opts->ndntlv.nonce);
 
-    ccn_iribu_mkInterest(prefix, int_opts, buf, (buf + buf_len), &len, (size_t *)&buf_len);
+    ccn_iribu_mkInterest(prefix, int_opts, buf, (buf + buf_len), &len,
+                         (size_t *) &buf_len);
 
     buf += buf_len;
 
     unsigned char *start = buf;
-    unsigned char *data = buf;
+    unsigned char *data  = buf;
     struct ccn_iribu_pkt_s *pkt, *pktc;
     (void) pktc;
 
@@ -577,9 +578,9 @@ ccn_iribu_send_interest(struct ccn_iribu_prefix_s *prefix, unsigned char *buf, i
         return -4;
     }
 
-    msg_t m = { .type = GNRC_NETAPI_MSG_TYPE_SND, .content.ptr = pkt };
-    ret = msg_send(&m, ccn_iribu_event_loop_pid);
-    if(ret < 1){
+    msg_t m = {.type = GNRC_NETAPI_MSG_TYPE_SND, .content.ptr = pkt};
+    ret     = msg_send(&m, ccn_iribu_event_loop_pid);
+    if (ret < 1) {
         DEBUGMSG(WARNING, "could not send Interest: %i\n", ret);
     }
 

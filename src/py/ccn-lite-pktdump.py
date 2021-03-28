@@ -58,21 +58,26 @@ if __name__ == "__main__":
                 return
             infile.seek(-2, 1)
             suite = util.whichSuite(ord(a), ord(b))
-            print "\n# %s" % fn
+            print
+            "\n# %s" % fn
             if suite == None:
                 return
             if suite == 'ndn2013':
-                print '# packet format is ndn2013\n#'
+                print
+                '# packet format is ndn2013\n#'
                 ndn.dump(infile, 0, -1)
             else:
-                print '# unknown packet format\n#'
+                print
+                '# unknown packet format\n#'
                 util.hexDump(infile, 1, 1, -1)
         except EOFError:
             pass
         if infile != sys.stdin:
             infile.close()
 
-    print "# ccn-iribu-dump.py"
+
+    print
+    "# ccn-iribu-dump.py"
 
     if len(args.fnames) == 0:
         dumpFile(None)

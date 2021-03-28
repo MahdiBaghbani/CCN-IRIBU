@@ -24,14 +24,14 @@ set(
 )
 
 link_directories(
-    ${CMAKE_BINARY_DIR}/lib
+        ${CMAKE_BINARY_DIR}/lib
 )
 
 include_directories(
-    ../ccn-iribu-pkt/include
-    ../ccn-iribu-fwd/include
-    ../ccn-iribu-core/include
-    ../ccn-iribu-unix/include
+        ../ccn-iribu-pkt/include
+        ../ccn-iribu-fwd/include
+        ../ccn-iribu-core/include
+        ../ccn-iribu-unix/include
 )
 
 file(

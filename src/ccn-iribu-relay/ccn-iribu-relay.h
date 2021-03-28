@@ -27,4 +27,4 @@
 
 extern struct ccn_iribu_timer_s *eventqueue;
 
-#endif // EOF
+#endif    // EOF

@@ -20,14 +20,12 @@
  * 2013-07-06  created
  */
 
-
 #include "ccn-iribu-common.h"
 
 // ----------------------------------------------------------------------
-void
-file2frags(int suite, unsigned char *data, int datalen, char *fileprefix,
-           int bytelimit, unsigned int *seqnr, unsigned int seqnrwidth,
-           uint8_t noclobber)
+void file2frags(int suite, unsigned char *data, int datalen, char *fileprefix,
+                int bytelimit, unsigned int *seqnr, unsigned int seqnrwidth,
+                uint8_t noclobber)
 {
     struct ccn_iribu_buf_s *fragbuf;
     struct ccn_iribu_frag_s fr;
@@ -37,13 +35,13 @@ file2frags(int suite, unsigned char *data, int datalen, char *fileprefix,
     memset(&fr, 0, sizeof(fr));
     //    fr.protocol = CCN_IRIBU_FRAG_CCNx2013;
     // fr.protocol = CCN_IRIBU_FRAG_SEQUENCED2015;
-    fr.protocol = CCN_IRIBU_FRAG_BEGINEND2015;
-    fr.bigpkt = ccn_iribu_buf_new(data, datalen);
-    fr.mtu = bytelimit;
-    fr.sendseq = *seqnr;
+    fr.protocol     = CCN_IRIBU_FRAG_BEGINEND2015;
+    fr.bigpkt       = ccn_iribu_buf_new(data, datalen);
+    fr.mtu          = bytelimit;
+    fr.sendseq      = *seqnr;
     fr.sendseqwidth = seqnrwidth;
-    fr.flagwidth = 1;
-    fr.outsuite = suite;
+    fr.flagwidth    = 1;
+    fr.outsuite     = suite;
 
     //    fragbuf = ccn_iribu_frag_getnext(&fr);
     fragbuf = ccn_iribu_frag_getnext(&fr, NULL, NULL);
@@ -52,8 +50,8 @@ file2frags(int suite, unsigned char *data, int datalen, char *fileprefix,
         if (noclobber && !access(fname, F_OK)) {
             printf("file %s already exists, skipping this name\n", fname);
         } else {
-            printf("new fragment, len=%zd / %d --> %s\n",
-                   fragbuf->datalen, fr.sendseq, fname);
+            printf("new fragment, len=%zd / %d --> %s\n", fragbuf->datalen, fr.sendseq,
+                   fname);
             f = creat(fname, 0666);
             if (f < 0)
                 perror("open");
@@ -63,7 +61,8 @@ file2frags(int suite, unsigned char *data, int datalen, char *fileprefix,
                 close(f);
             }
             ccn_iribu_free(fragbuf);
-            fragbuf = ccn_iribu_frag_getnext(&fr, NULL, NULL); //ccn_iribu_frag_getnext(&fr);
+            fragbuf = ccn_iribu_frag_getnext(&fr, NULL,
+                                             NULL);    // ccn_iribu_frag_getnext(&fr);
         }
         cnt++;
     }
@@ -72,24 +71,23 @@ file2frags(int suite, unsigned char *data, int datalen, char *fileprefix,
 
 // ----------------------------------------------------------------------
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     int opt, len, fd;
     unsigned int bytelimit = 1500, seqnr = 0, seqnrlen = 4;
     char *cmdname = argv[0], *cp, *fname, *fileprefix = "frag";
     uint8_t noclobber = false;
-    int suite = CCN_IRIBU_SUITE_DEFAULT;
+    int suite         = CCN_IRIBU_SUITE_DEFAULT;
 
     while ((opt = getopt(argc, argv, "a:b:f:hns:v:")) != -1) {
         switch (opt) {
         case 'a':
             seqnr = strtol(optarg, &cp, 0);
-            if (cp && cp[0]== '/' && isdigit(cp[1]))
-                seqnrlen = (int)strtol(cp+1, (char**)NULL, 10);
+            if (cp && cp[0] == '/' && isdigit(cp[1]))
+                seqnrlen = (int) strtol(cp + 1, (char **) NULL, 10);
             break;
         case 'b':
-            bytelimit = (int)strtol(optarg, (char**)NULL, 10);
+            bytelimit = (int) strtol(optarg, (char **) NULL, 10);
             break;
         case 'f':
             fileprefix = optarg;
@@ -112,18 +110,20 @@ main(int argc, char *argv[])
 
         case 'h':
         default:
-Usage:
-            fprintf(stderr, "usage: %s [options] FILE(S)\n"
-            "  -a NUM[/SZ] start with seqnr NUM, SZ Bytes (default: 0/4)\n"
-            "  -b LIMIT    MTU limit (default is 1500)\n"
-            "  -f PREFIX   use PREFIX for fragment file names (default: frag)\n"
-            "  -n          no-clobber\n"
-            "  -s SUITE    (ccnb, ccnx2015, ndn2013)\n"
+        Usage:
+            fprintf(
+                stderr,
+                "usage: %s [options] FILE(S)\n"
+                "  -a NUM[/SZ] start with seqnr NUM, SZ Bytes (default: 0/4)\n"
+                "  -b LIMIT    MTU limit (default is 1500)\n"
+                "  -f PREFIX   use PREFIX for fragment file names (default: frag)\n"
+                "  -n          no-clobber\n"
+                "  -s SUITE    (ccnb, ccnx2015, ndn2013)\n"
 #ifdef USE_LOGGING
-            "  -v DEBUG_LEVEL (fatal, error, warning, info, debug, verbose, trace)\n"
+                "  -v DEBUG_LEVEL (fatal, error, warning, info, debug, verbose, trace)\n"
 #endif
-            ,
-            cmdname);
+                ,
+                cmdname);
             exit(1);
         }
     }
@@ -132,7 +132,7 @@ Usage:
 
     fname = argv[optind] ? argv[optind++] : "-";
     do {
-        unsigned char in[64*1024];
+        unsigned char in[64 * 1024];
         fd = strcmp(fname, "-") ? open(fname, O_RDONLY) : 0;
         if (fd < 0) {
             fprintf(stderr, "error opening file %s\n", fname);
@@ -147,15 +147,14 @@ Usage:
             char tmp;
             len = read(fd, &tmp, 1);
             if (len > 0) {
-                fprintf(stderr, "error: input file %s larger than %d KB\n",
-                        fname, (int)(sizeof(in)/1024));
+                fprintf(stderr, "error: input file %s larger than %d KB\n", fname,
+                        (int) (sizeof(in) / 1024));
                 exit(-1);
             }
         }
         close(fd);
 
-        file2frags(suite, in, len, fileprefix, bytelimit,
-                   &seqnr, seqnrlen, noclobber);
+        file2frags(suite, in, len, fileprefix, bytelimit, &seqnr, seqnrlen, noclobber);
         fname = argv[optind] ? argv[optind++] : NULL;
     } while (fname);
 

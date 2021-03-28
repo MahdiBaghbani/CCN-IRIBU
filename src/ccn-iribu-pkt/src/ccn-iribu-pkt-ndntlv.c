@@ -23,44 +23,40 @@
 
 #ifdef USE_SUITE_NDNTLV
 
-#ifndef CCN_IRIBU_LINUXKERNEL
-#include "ccn-iribu-pkt-ndntlv.h"
-#include "ccn-iribu-core.h"
-#include <stdlib.h>
-#include <string.h>
-#include <arpa/inet.h>
-#include <assert.h>
-#include <stdint.h>
-#else
-#include <linux/types.h>
-#include "../include/ccn-iribu-pkt-ndntlv.h"
-#include "../../ccn-iribu-core/include/ccn-iribu-core.h"
-# define UINT32_MAX		(4294967295U)
-# define UINT16_MAX		(65535)
-#endif
-
-
-
+#    ifndef CCN_IRIBU_LINUXKERNEL
+#        include "ccn-iribu-pkt-ndntlv.h"
+#        include "ccn-iribu-core.h"
+#        include <arpa/inet.h>
+#        include <assert.h>
+#        include <stdint.h>
+#        include <stdlib.h>
+#        include <string.h>
+#    else
+#        include "../../ccn-iribu-core/include/ccn-iribu-core.h"
+#        include "../include/ccn-iribu-pkt-ndntlv.h"
+#        include <linux/types.h>
+#        define UINT32_MAX (4294967295U)
+#        define UINT16_MAX (65535)
+#    endif
 
 // ----------------------------------------------------------------------
 // packet parsing
 
-int8_t
-ccn_iribu_ndntlv_varlenint(uint8_t **buf, size_t *len, uint64_t *val)
+int8_t ccn_iribu_ndntlv_varlenint(uint8_t **buf, size_t *len, uint64_t *val)
 {
     if (**buf < 253 && *len >= 1) {
         *val = **buf;
         *buf += 1;
         *len -= 1;
-    } else if (**buf == 253 && *len >= 3) { // 2 bytes
+    } else if (**buf == 253 && *len >= 3) {    // 2 bytes
         /* ORing bytes does not provoke alignment issues */
         *val = (((*buf)[1] << 8U) | ((*buf)[2] << 0U));
         *buf += 3;
         *len -= 3;
-    } else if (**buf == 254 && *len >= 5) { // 4 bytes
+    } else if (**buf == 254 && *len >= 5) {    // 4 bytes
         /* ORing bytes does not provoke alignment issues */
         *val = ((uint64_t)(*buf)[1] << 24U) | ((uint64_t)(*buf)[2] << 16U) |
-               ((uint64_t)(*buf)[3] <<  8U) | ((uint64_t)(*buf)[4] <<  0U);
+               ((uint64_t)(*buf)[3] << 8U) | ((uint64_t)(*buf)[4] << 0U);
         *buf += 5;
         *len -= 5;
     } else {
@@ -70,8 +66,7 @@ ccn_iribu_ndntlv_varlenint(uint8_t **buf, size_t *len, uint64_t *val)
     return 0;
 }
 
-uint64_t
-ccn_iribu_ndntlv_nonNegInt(uint8_t *cp, size_t len)
+uint64_t ccn_iribu_ndntlv_nonNegInt(uint8_t *cp, size_t len)
 {
     uint64_t val = 0;
 
@@ -82,11 +77,9 @@ ccn_iribu_ndntlv_nonNegInt(uint8_t *cp, size_t len)
     return val;
 }
 
-int8_t
-ccn_iribu_ndntlv_dehead(uint8_t **buf, size_t *len,
-                   uint64_t *typ, size_t *vallen)
+int8_t ccn_iribu_ndntlv_dehead(uint8_t **buf, size_t *len, uint64_t *typ, size_t *vallen)
 {
-    size_t maxlen = *len;
+    size_t maxlen       = *len;
     uint64_t vallen_int = 0;
     if (ccn_iribu_ndntlv_varlenint(buf, len, typ)) {
         return -1;
@@ -95,59 +88,60 @@ ccn_iribu_ndntlv_dehead(uint8_t **buf, size_t *len,
         return -1;
     }
     if (vallen_int > SIZE_MAX) {
-        return -1; // Return failure (-1) if length value in the tlv exceeds size_t bounds
+        return -1;    // Return failure (-1) if length value in the tlv exceeds size_t
+                      // bounds
     }
     *vallen = (size_t) vallen_int;
     if (*vallen > maxlen) {
-        return -1; // Return failure (-1) if length value in the tlv is longer than the buffer
+        return -1;    // Return failure (-1) if length value in the tlv is longer than the
+                      // buffer
     }
     return 0;
 }
 
 // we use one extraction routine for each of interest, data and fragment pkts
-struct ccn_iribu_pkt_s*
-ccn_iribu_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
-                      uint8_t **data, size_t *datalen)
+struct ccn_iribu_pkt_s *ccn_iribu_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
+                                                   uint8_t **data, size_t *datalen)
 {
     struct ccn_iribu_pkt_s *pkt;
     size_t oldpos, len, i;
     uint64_t typ;
     struct ccn_iribu_prefix_s *prefix = 0;
-#ifdef USE_HMAC256
+#    ifdef USE_HMAC256
     int validAlgoIsHmac256 = 0;
-#endif
-
+#    endif
 
     DEBUGMSG(DEBUG, "ccn_iribu_ndntlv_bytes2pkt len=%zu\n", *datalen);
 
-    pkt = (struct ccn_iribu_pkt_s*) ccn_iribu_calloc(1, sizeof(struct ccn_iribu_pkt_s));
+    pkt = (struct ccn_iribu_pkt_s *) ccn_iribu_calloc(1, sizeof(struct ccn_iribu_pkt_s));
     if (!pkt) {
         return NULL;
     }
     pkt->type = pkttype;
 
-#ifdef USE_HMAC256
+#    ifdef USE_HMAC256
     pkt->hmacStart = start;
-#endif
-    switch(pkttype) {
+#    endif
+    switch (pkttype) {
     case NDN_TLV_Interest:
         pkt->flags |= CCN_IRIBU_PKT_REQUEST;
         break;
     case NDN_TLV_Data:
         pkt->flags |= CCN_IRIBU_PKT_REPLY;
         break;
-#ifdef USE_FRAG
+#    ifdef USE_FRAG
     case NDN_TLV_Fragment:
         pkt->flags |= CCN_IRIBU_PKT_FRAGMENT;
         break;
-#endif
+#    endif
     default:
-        DEBUGMSG(INFO, "  ndntlv: unknown packet type %llu\n", (unsigned long long)pkttype);
+        DEBUGMSG(INFO, "  ndntlv: unknown packet type %llu\n",
+                 (unsigned long long) pkttype);
         goto Bail;
     }
 
-    pkt->suite = CCN_IRIBU_SUITE_NDNTLV;
-    pkt->s.ndntlv.scope = 3;
+    pkt->suite              = CCN_IRIBU_SUITE_NDNTLV;
+    pkt->s.ndntlv.scope     = 3;
     pkt->s.ndntlv.maxsuffix = CCN_IRIBU_MAX_NAME_COMP;
 
     /* set default lifetime, in case InterestLifetime guider is absent */
@@ -164,12 +158,13 @@ ccn_iribu_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
                 DEBUGMSG(WARNING, " ndntlv: name already defined\n");
                 goto Bail;
             }
-            prefix = ccn_iribu_prefix_new(CCN_IRIBU_SUITE_NDNTLV, CCN_IRIBU_MAX_NAME_COMP);
+            prefix =
+                ccn_iribu_prefix_new(CCN_IRIBU_SUITE_NDNTLV, CCN_IRIBU_MAX_NAME_COMP);
             if (!prefix) {
                 goto Bail;
             }
-            prefix->compcnt = 0;
-            pkt->pfx = prefix;
+            prefix->compcnt         = 0;
+            pkt->pfx                = prefix;
             pkt->val.final_block_id = -1;
 
             prefix->nameptr = start + oldpos;
@@ -178,12 +173,14 @@ ccn_iribu_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
                     goto Bail;
                 }
                 if (typ == NDN_TLV_NameComponent &&
-                            prefix->compcnt < CCN_IRIBU_MAX_NAME_COMP) {
-                    if(cp[0] == NDN_Marker_SegmentNumber) {
+                    prefix->compcnt < CCN_IRIBU_MAX_NAME_COMP) {
+                    if (cp[0] == NDN_Marker_SegmentNumber) {
                         uint64_t chunknum;
-                        prefix->chunknum = (uint32_t *) ccn_iribu_malloc(sizeof(uint32_t));
-                        // TODO: requires ccn_iribu_ndntlv_includedNonNegInt which includes the length of the marker
-                        // it is implemented for encode, the decode is not yet implemented
+                        prefix->chunknum =
+                            (uint32_t *) ccn_iribu_malloc(sizeof(uint32_t));
+                        // TODO: requires ccn_iribu_ndntlv_includedNonNegInt which
+                        // includes the length of the marker it is implemented for encode,
+                        // the decode is not yet implemented
                         chunknum = ccn_iribu_ndntlv_nonNegInt(cp + 1, i - 1);
                         if (chunknum > UINT32_MAX) {
                             goto Bail;
@@ -191,9 +188,11 @@ ccn_iribu_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
                         *prefix->chunknum = (uint32_t) chunknum;
                     }
                     prefix->comp[prefix->compcnt] = cp;
-                    prefix->complen[prefix->compcnt] = i; //FIXME, what if the len value inside the TLV is wrong -> can this lead to overruns inside
+                    prefix->complen[prefix->compcnt] =
+                        i;    // FIXME, what if the len value inside the TLV is wrong ->
+                              // can this lead to overruns inside
                     prefix->compcnt++;
-                }  // else unknown type: skip
+                }    // else unknown type: skip
                 cp += i;
                 len2 -= i;
             }
@@ -205,12 +204,13 @@ ccn_iribu_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
                 if (ccn_iribu_ndntlv_dehead(&cp, &len2, &typ, &i)) {
                     goto Bail;
                 }
-                switch(typ) {
+                switch (typ) {
                 case NDN_TLV_MinSuffixComponents:
                     pkt->s.ndntlv.minsuffix = ccn_iribu_ndntlv_nonNegInt(cp, i);
                     break;
                 case NDN_TLV_MaxSuffixComponents:
-//                    fprintf(stderr, "setting to %d\n", (int)ccn_iribu_ndntlv_nonNegInt(cp, i));
+                    //                    fprintf(stderr, "setting to %d\n",
+                    //                    (int)ccn_iribu_ndntlv_nonNegInt(cp, i));
                     pkt->s.ndntlv.maxsuffix = ccn_iribu_ndntlv_nonNegInt(cp, i);
                     break;
                 case NDN_TLV_MustBeFresh:
@@ -233,7 +233,7 @@ ccn_iribu_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
             pkt->s.ndntlv.scope = ccn_iribu_ndntlv_nonNegInt(*data, len);
             break;
         case NDN_TLV_Content:
-        case NDN_TLV_NdnlpFragment: // payload
+        case NDN_TLV_NdnlpFragment:    // payload
             pkt->content = *data;
             pkt->contlen = len;
             break;
@@ -256,8 +256,9 @@ ccn_iribu_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
                     }
                     if (typ == NDN_TLV_NameComponent) {
                         // TODO: again, includedNonNeg not yet implemented
-                        pkt->val.final_block_id = ccn_iribu_ndntlv_nonNegInt(cp + 1, i - 1);
-                        if (pkt->val.final_block_id < 0) { // TODO: Is this check ok?
+                        pkt->val.final_block_id =
+                            ccn_iribu_ndntlv_nonNegInt(cp + 1, i - 1);
+                        if (pkt->val.final_block_id < 0) {    // TODO: Is this check ok?
                             goto Bail;
                         }
                     }
@@ -271,7 +272,7 @@ ccn_iribu_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
             break;
         case NDN_TLV_Frag_BeginEndFields:
             pkt->val.seqno = ccn_iribu_ndntlv_nonNegInt(*data, len);
-            DEBUGMSG(TRACE, "  frag: %04llux\n", (unsigned long long)pkt->val.seqno);
+            DEBUGMSG(TRACE, "  frag: %04llux\n", (unsigned long long) pkt->val.seqno);
             if (pkt->val.seqno & 0x4000) {
                 pkt->flags |= CCN_IRIBU_PKT_FRAG_BEGIN;
             }
@@ -280,14 +281,14 @@ ccn_iribu_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
             }
             pkt->val.seqno &= 0x3fff;
             break;
-#ifdef USE_HMAC256
+#    ifdef USE_HMAC256
         case NDN_TLV_SignatureInfo:
             while (len2 > 0) {
                 if (ccn_iribu_ndntlv_dehead(&cp, &len2, &typ, &i)) {
                     goto Bail;
                 }
                 if (typ == NDN_TLV_SignatureType && i == 1 &&
-                                          *cp == NDN_VAL_SIGTYPE_HMAC256) {
+                    *cp == NDN_VAL_SIGTYPE_HMAC256) {
                     validAlgoIsHmac256 = 1;
                     break;
                 }
@@ -297,11 +298,11 @@ ccn_iribu_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *start,
             break;
         case NDN_TLV_SignatureValue:
             if (pkt->hmacStart && validAlgoIsHmac256 && len == 32) {
-                pkt->hmacLen = oldpos;
+                pkt->hmacLen       = oldpos;
                 pkt->hmacSignature = *data;
             }
             break;
-#endif
+#    endif
         default:
             break;
         }
@@ -339,18 +340,18 @@ Bail:
 
 // ----------------------------------------------------------------------
 
-#ifdef NEEDS_PREFIX_MATCHING
+#    ifdef NEEDS_PREFIX_MATCHING
 
 // returns: 0=match, -1=otherwise
-int8_t
-ccn_iribu_ndntlv_cMatch(struct ccn_iribu_pkt_s *p, struct ccn_iribu_content_s *c)
+int8_t ccn_iribu_ndntlv_cMatch(struct ccn_iribu_pkt_s *p, struct ccn_iribu_content_s *c)
 {
-#ifndef CCN_IRIBU_LINUXKERNEL
+#        ifndef CCN_IRIBU_LINUXKERNEL
     assert(p);
     assert(p->suite == CCN_IRIBU_SUITE_NDNTLV);
-#endif
+#        endif
 
-    if (ccn_iribu_i_prefixof_c(p->pfx, p->s.ndntlv.minsuffix, p->s.ndntlv.maxsuffix, c) < 0) {
+    if (ccn_iribu_i_prefixof_c(p->pfx, p->s.ndntlv.minsuffix, p->s.ndntlv.maxsuffix, c) <
+        0) {
         return -1;
     }
 
@@ -359,20 +360,18 @@ ccn_iribu_ndntlv_cMatch(struct ccn_iribu_pkt_s *p, struct ccn_iribu_content_s *c
         return -1;
     }
 
-    DEBUGMSG(DEBUG, "  matching content for interest, content %p\n",
-                     (void *) c);
+    DEBUGMSG(DEBUG, "  matching content for interest, content %p\n", (void *) c);
     return 0;
 }
 
-#endif
+#    endif
 
 // ----------------------------------------------------------------------
 // packet composition
 
-#ifdef NEEDS_PACKET_CRAFTING
+#    ifdef NEEDS_PACKET_CRAFTING
 
-int8_t
-ccn_iribu_ndntlv_prependTLval(uint64_t val, size_t *offset, uint8_t *buf)
+int8_t ccn_iribu_ndntlv_prependTLval(uint64_t val, size_t *offset, uint8_t *buf)
 {
     uint8_t len, i, t;
 
@@ -385,24 +384,23 @@ ccn_iribu_ndntlv_prependTLval(uint64_t val, size_t *offset, uint8_t *buf)
     } else {
         len = 8U, t = 255U;
     }
-    if (*offset < (unsigned) (len+1)) {
+    if (*offset < (unsigned) (len + 1)) {
         return -1;
     }
 
     for (i = 0; i < len; i++) {
-        buf[--(*offset)] = (uint8_t) (val & 0xffU);
-        val = val >> 8U;
+        buf[--(*offset)] = (uint8_t)(val & 0xffU);
+        val              = val >> 8U;
     }
     buf[--(*offset)] = t;
     // return len + 1;
     return 0;
 }
 
-int8_t
-ccn_iribu_ndntlv_prependTL(uint64_t type, uint64_t len,
-                      size_t *offset, uint8_t *buf)
+int8_t ccn_iribu_ndntlv_prependTL(uint64_t type, uint64_t len, size_t *offset,
+                                  uint8_t *buf)
 {
-//    size_t oldoffset = *offset;
+    //    size_t oldoffset = *offset;
     if (ccn_iribu_ndntlv_prependTLval(len, offset, buf) < 0) {
         return -1;
     }
@@ -413,9 +411,8 @@ ccn_iribu_ndntlv_prependTL(uint64_t type, uint64_t len,
     return 0;
 }
 
-int8_t
-ccn_iribu_ndntlv_prependNonNegIntVal(uint64_t val,
-                                size_t *offset, uint8_t *buf) {
+int8_t ccn_iribu_ndntlv_prependNonNegIntVal(uint64_t val, size_t *offset, uint8_t *buf)
+{
     int len = 0;
     uint8_t i;
     // Number of padding bytes needed for a value of a certain length
@@ -425,7 +422,7 @@ ccn_iribu_ndntlv_prependNonNegIntVal(uint64_t val,
         if ((*offset)-- < 1) {
             return -1;
         }
-        buf[*offset] = (uint8_t) (val & 0xffU);
+        buf[*offset] = (uint8_t)(val & 0xffU);
         len++;
         val = val >> 8U;
     }
@@ -440,10 +437,8 @@ ccn_iribu_ndntlv_prependNonNegIntVal(uint64_t val,
     return 0;
 }
 
-int8_t
-ccn_iribu_ndntlv_prependNonNegInt(uint64_t type,
-                             uint64_t val,
-                             size_t *offset, uint8_t *buf)
+int8_t ccn_iribu_ndntlv_prependNonNegInt(uint64_t type, uint64_t val, size_t *offset,
+                                         uint8_t *buf)
 {
     size_t oldoffset = *offset;
     if (ccn_iribu_ndntlv_prependNonNegIntVal(val, offset, buf) < 0) {
@@ -456,18 +451,16 @@ ccn_iribu_ndntlv_prependNonNegInt(uint64_t type,
     return 0;
 }
 
-
-int8_t
-ccn_iribu_ndntlv_prependIncludedNonNegInt(uint64_t type, uint64_t val,
-                                     uint8_t marker,
-                                     size_t *offset, uint8_t *buf)
+int8_t ccn_iribu_ndntlv_prependIncludedNonNegInt(uint64_t type, uint64_t val,
+                                                 uint8_t marker, size_t *offset,
+                                                 uint8_t *buf)
 {
     size_t oldoffset = *offset;
     if (ccn_iribu_ndntlv_prependNonNegIntVal(val, offset, buf) < 0) {
         return -1;
     }
 
-    if((*offset)-- < 1) {
+    if ((*offset)-- < 1) {
         return -1;
     }
     buf[*offset] = marker;
@@ -479,10 +472,8 @@ ccn_iribu_ndntlv_prependIncludedNonNegInt(uint64_t type, uint64_t val,
     return 0;
 }
 
-
-int8_t
-ccn_iribu_ndntlv_prependBlob(uint64_t type, uint8_t *blob, size_t len,
-                        size_t *offset, uint8_t *buf)
+int8_t ccn_iribu_ndntlv_prependBlob(uint64_t type, uint8_t *blob, size_t len,
+                                    size_t *offset, uint8_t *buf)
 {
 
     if (*offset < len) {
@@ -496,30 +487,27 @@ ccn_iribu_ndntlv_prependBlob(uint64_t type, uint8_t *blob, size_t len,
     return 0;
 }
 
-int8_t
-ccn_iribu_ndntlv_prependName(struct ccn_iribu_prefix_s *name,
-                        size_t *offset, uint8_t *buf)
+int8_t ccn_iribu_ndntlv_prependName(struct ccn_iribu_prefix_s *name, size_t *offset,
+                                    uint8_t *buf)
 {
     size_t oldoffset = *offset;
     uint64_t cnt;
 
     if (name->chunknum) {
-        if (ccn_iribu_ndntlv_prependIncludedNonNegInt(NDN_TLV_NameComponent,
-                                                 *name->chunknum,
-                                                 NDN_Marker_SegmentNumber,
-                                                 offset, buf) < 0) {
+        if (ccn_iribu_ndntlv_prependIncludedNonNegInt(
+                NDN_TLV_NameComponent, *name->chunknum, NDN_Marker_SegmentNumber, offset,
+                buf) < 0) {
             return -1;
         }
     }
 
     for (cnt = name->compcnt; cnt > 0; cnt--) {
-        if (ccn_iribu_ndntlv_prependBlob(NDN_TLV_NameComponent, name->comp[cnt-1],
-                                    name->complen[cnt-1], offset, buf) < 0) {
+        if (ccn_iribu_ndntlv_prependBlob(NDN_TLV_NameComponent, name->comp[cnt - 1],
+                                         name->complen[cnt - 1], offset, buf) < 0) {
             return -1;
         }
     }
-    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_Name, oldoffset - *offset,
-                              offset, buf) < 0) {
+    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_Name, oldoffset - *offset, offset, buf) < 0) {
         return -1;
     }
 
@@ -528,9 +516,9 @@ ccn_iribu_ndntlv_prependName(struct ccn_iribu_prefix_s *name,
 
 // ----------------------------------------------------------------------
 
-int8_t
-ccn_iribu_ndntlv_prependInterest(struct ccn_iribu_prefix_s *name, int scope, struct ccn_iribu_ndntlv_interest_opts_s *opts,
-                            size_t *offset, uint8_t *buf, size_t *reslen)
+int8_t ccn_iribu_ndntlv_prependInterest(struct ccn_iribu_prefix_s *name, int scope,
+                                        struct ccn_iribu_ndntlv_interest_opts_s *opts,
+                                        size_t *offset, uint8_t *buf, size_t *reslen)
 {
     size_t oldoffset = *offset;
 
@@ -538,7 +526,8 @@ ccn_iribu_ndntlv_prependInterest(struct ccn_iribu_prefix_s *name, int scope, str
         if (scope > 2) {
             return -1;
         }
-        if (ccn_iribu_ndntlv_prependNonNegInt(NDN_TLV_Scope, (uint64_t) scope, offset, buf) < 0) {
+        if (ccn_iribu_ndntlv_prependNonNegInt(NDN_TLV_Scope, (uint64_t) scope, offset,
+                                              buf) < 0) {
             return -1;
         }
     }
@@ -546,12 +535,13 @@ ccn_iribu_ndntlv_prependInterest(struct ccn_iribu_prefix_s *name, int scope, str
     /* only include InterestLifetime TLV Guider, if life time > 0 milli seconds */
     if (opts->interestlifetime) {
         if (ccn_iribu_ndntlv_prependNonNegInt(NDN_TLV_InterestLifetime,
-                                         opts->interestlifetime, offset, buf) < 0) {
+                                              opts->interestlifetime, offset, buf) < 0) {
             return -1;
         }
     }
 
-    if (ccn_iribu_ndntlv_prependBlob(NDN_TLV_Nonce, (uint8_t *) &opts->nonce, 4, offset, buf) < 0) {
+    if (ccn_iribu_ndntlv_prependBlob(NDN_TLV_Nonce, (uint8_t *) &opts->nonce, 4, offset,
+                                     buf) < 0) {
         return -1;
     }
 
@@ -562,7 +552,8 @@ ccn_iribu_ndntlv_prependInterest(struct ccn_iribu_prefix_s *name, int scope, str
             return -1;
         }
 
-        if (ccn_iribu_ndntlv_prependTL(NDN_TLV_Selectors, sel_offset - *offset, offset, buf) < 0) {
+        if (ccn_iribu_ndntlv_prependTL(NDN_TLV_Selectors, sel_offset - *offset, offset,
+                                       buf) < 0) {
             return -1;
         }
     }
@@ -571,8 +562,8 @@ ccn_iribu_ndntlv_prependInterest(struct ccn_iribu_prefix_s *name, int scope, str
         return -1;
     }
 
-    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_Interest, oldoffset - *offset,
-                              offset, buf) < 0) {
+    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_Interest, oldoffset - *offset, offset, buf) <
+        0) {
         return -1;
     }
 
@@ -580,13 +571,12 @@ ccn_iribu_ndntlv_prependInterest(struct ccn_iribu_prefix_s *name, int scope, str
     return 0;
 }
 
-int8_t
-ccn_iribu_ndntlv_prependContent(struct ccn_iribu_prefix_s *name,
-                           uint8_t *payload, size_t paylen,
-                           size_t *contentpos, struct ccn_iribu_ndntlv_data_opts_s *opts,
-                           size_t *offset, uint8_t *buf, size_t *reslen)
+int8_t ccn_iribu_ndntlv_prependContent(struct ccn_iribu_prefix_s *name, uint8_t *payload,
+                                       size_t paylen, size_t *contentpos,
+                                       struct ccn_iribu_ndntlv_data_opts_s *opts,
+                                       size_t *offset, uint8_t *buf, size_t *reslen)
 {
-    size_t oldoffset = *offset, oldoffset2;
+    size_t oldoffset      = *offset, oldoffset2;
     uint8_t signatureType = NDN_VAL_SIGTYPE_DIGESTSHA256;
 
     if (contentpos) {
@@ -610,20 +600,21 @@ ccn_iribu_ndntlv_prependContent(struct ccn_iribu_prefix_s *name,
         }
     }
 
-    // use NDN_SigTypeVal_SignatureSha256WithRsa because this is default in ndn client libs
-    if (ccn_iribu_ndntlv_prependBlob(NDN_TLV_SignatureType, &signatureType, 1,
-                offset, buf) < 0) {
+    // use NDN_SigTypeVal_SignatureSha256WithRsa because this is default in ndn client
+    // libs
+    if (ccn_iribu_ndntlv_prependBlob(NDN_TLV_SignatureType, &signatureType, 1, offset,
+                                     buf) < 0) {
         return 1;
     }
 
     // Groups KeyLocator and Signature Type with stored len
-    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_SignatureInfo, oldoffset2 - *offset, offset, buf) < 0) {
+    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_SignatureInfo, oldoffset2 - *offset, offset,
+                                   buf) < 0) {
         return -1;
     }
 
     // mandatory
-    if (ccn_iribu_ndntlv_prependBlob(NDN_TLV_Content, payload, paylen,
-                                offset, buf) < 0) {
+    if (ccn_iribu_ndntlv_prependBlob(NDN_TLV_Content, payload, paylen, offset, buf) < 0) {
         return -1;
     }
 
@@ -631,31 +622,30 @@ ccn_iribu_ndntlv_prependContent(struct ccn_iribu_prefix_s *name,
     oldoffset2 = *offset;
     if (opts) {
         if (opts->finalblockid != UINT32_MAX) {
-            if (ccn_iribu_ndntlv_prependIncludedNonNegInt(NDN_TLV_NameComponent,
-                                                     opts->finalblockid,
-                                                     NDN_Marker_SegmentNumber,
-                                                     offset, buf) < 0) {
+            if (ccn_iribu_ndntlv_prependIncludedNonNegInt(
+                    NDN_TLV_NameComponent, opts->finalblockid, NDN_Marker_SegmentNumber,
+                    offset, buf) < 0) {
                 return -1;
             }
 
             // optional
             if (ccn_iribu_ndntlv_prependTL(NDN_TLV_FinalBlockId, oldoffset2 - *offset,
-                                      offset, buf) < 0) {
+                                           offset, buf) < 0) {
                 return -1;
             }
         }
 
         if (opts->freshnessperiod) {
-            if (ccn_iribu_ndntlv_prependNonNegInt(NDN_TLV_FreshnessPeriod,
-                                             opts->freshnessperiod, offset, buf) < 0) {
+            if (ccn_iribu_ndntlv_prependNonNegInt(
+                    NDN_TLV_FreshnessPeriod, opts->freshnessperiod, offset, buf) < 0) {
                 return -1;
             }
         }
     }
 
     // mandatory (empty for now)
-    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_MetaInfo, oldoffset2 - *offset,
-                              offset, buf) < 0) {
+    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_MetaInfo, oldoffset2 - *offset, offset, buf) <
+        0) {
         return -1;
     }
 
@@ -665,9 +655,8 @@ ccn_iribu_ndntlv_prependContent(struct ccn_iribu_prefix_s *name,
     }
 
     // mandatory
-    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_Data, oldoffset - *offset,
-                              offset, buf) < 0) {
-           return -1;
+    if (ccn_iribu_ndntlv_prependTL(NDN_TLV_Data, oldoffset - *offset, offset, buf) < 0) {
+        return -1;
     }
 
     if (contentpos) {
@@ -678,11 +667,11 @@ ccn_iribu_ndntlv_prependContent(struct ccn_iribu_prefix_s *name,
     return 0;
 }
 
-#ifdef USE_FRAG
+#        ifdef USE_FRAG
 
 // produces a full FRAG packet. It does not write, just read the fields in *fr
-struct ccn_iribu_buf_s*
-ccn_iribu_ndntlv_mkFrag(struct ccn_iribu_frag_s *fr, unsigned int *consumed)
+struct ccn_iribu_buf_s *ccn_iribu_ndntlv_mkFrag(struct ccn_iribu_frag_s *fr,
+                                                unsigned int *consumed)
 {
     unsigned char test[20];
     size_t offset, hdrlen;
@@ -698,12 +687,11 @@ ccn_iribu_ndntlv_mkFrag(struct ccn_iribu_frag_s *fr, unsigned int *consumed)
         datalen = fr->mtu;
     }
     offset = sizeof(test);
-    hdrlen = ccn_iribu_ndntlv_prependTL(NDN_TLV_NdnlpFragment, datalen,
-                                   &offset, test);
-    hdrlen += ccn_iribu_ndntlv_prependTL(NDN_TLV_Frag_BeginEndFields, 2,
-                                    &offset, test) + 2;
-    hdrlen += ccn_iribu_ndntlv_prependTL(NDN_TLV_Fragment, hdrlen + datalen,
-                                    &offset, test);
+    hdrlen = ccn_iribu_ndntlv_prependTL(NDN_TLV_NdnlpFragment, datalen, &offset, test);
+    hdrlen +=
+        ccn_iribu_ndntlv_prependTL(NDN_TLV_Frag_BeginEndFields, 2, &offset, test) + 2;
+    hdrlen +=
+        ccn_iribu_ndntlv_prependTL(NDN_TLV_Fragment, hdrlen + datalen, &offset, test);
 
     // with real values:
     datalen = fr->bigpkt->datalen - fr->sendoffs;
@@ -716,26 +704,23 @@ ccn_iribu_ndntlv_mkFrag(struct ccn_iribu_frag_s *fr, unsigned int *consumed)
         return 0;
     }
     offset = buf->datalen - datalen;
-    memcpy(buf->data + offset,
-           fr->bigpkt->data + fr->sendoffs, datalen);
-    ccn_iribu_ndntlv_prependTL(NDN_TLV_NdnlpFragment, datalen,
-                          &offset, buf->data);
+    memcpy(buf->data + offset, fr->bigpkt->data + fr->sendoffs, datalen);
+    ccn_iribu_ndntlv_prependTL(NDN_TLV_NdnlpFragment, datalen, &offset, buf->data);
 
     tmp = fr->sendseq & 0x03fff;
-    if (datalen >= fr->bigpkt->datalen) {            // single
+    if (datalen >= fr->bigpkt->datalen) {    // single
         tmp |= CCN_IRIBU_DTAG_FRAG_FLAG_SINGLE << 14;
-    } else if (fr->sendoffs == 0) {                  // start
+    } else if (fr->sendoffs == 0) {    // start
         tmp |= CCN_IRIBU_DTAG_FRAG_FLAG_FIRST << 14;
-    } else if((unsigned) datalen >= (fr->bigpkt->datalen - fr->sendoffs)) { // end
+    } else if ((unsigned) datalen >= (fr->bigpkt->datalen - fr->sendoffs)) {    // end
         tmp |= CCN_IRIBU_DTAG_FRAG_FLAG_LAST << 14;
     } else
-        tmp |= CCN_IRIBU_DTAG_FRAG_FLAG_MID << 14;        // middle
+        tmp |= CCN_IRIBU_DTAG_FRAG_FLAG_MID << 14;    // middle
     offset -= 2;
-    *(uint16_t*) (buf->data + offset) = htons(tmp);
-    tmp = ccn_iribu_ndntlv_prependTL(NDN_TLV_Frag_BeginEndFields, 2,
-                          &offset, buf->data);
-    tmp = ccn_iribu_ndntlv_prependTL(NDN_TLV_Fragment, buf->datalen - offset,
-                          &offset, buf->data);
+    *(uint16_t *) (buf->data + offset) = htons(tmp);
+    tmp = ccn_iribu_ndntlv_prependTL(NDN_TLV_Frag_BeginEndFields, 2, &offset, buf->data);
+    tmp = ccn_iribu_ndntlv_prependTL(NDN_TLV_Fragment, buf->datalen - offset, &offset,
+                                     buf->data);
 
     if (offset > 0) {
         buf->datalen -= offset;
@@ -745,10 +730,10 @@ ccn_iribu_ndntlv_mkFrag(struct ccn_iribu_frag_s *fr, unsigned int *consumed)
     *consumed = datalen;
     return buf;
 }
-#endif // USE_FRAG
+#        endif    // USE_FRAG
 
-#endif // NEEDS_PACKET_CRAFTING
+#    endif    // NEEDS_PACKET_CRAFTING
 
-#endif // USE_NDNTLV
+#endif    // USE_NDNTLV
 
 // eof

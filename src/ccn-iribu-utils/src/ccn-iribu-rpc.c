@@ -32,7 +32,8 @@
 
 Not working yet:
   ccn-iribu-rpc '/rpc/builtin/lookup /rpc/config/thisface/defaultSuite'
-  ccn-iribu-rpc '/rpc/builtin/set /rpc/config/thisface/defaultSuite /rpc/const/encoding/ndn2013'
+  ccn-iribu-rpc '/rpc/builtin/set /rpc/config/thisface/defaultSuite
+/rpc/const/encoding/ndn2013'
 
  */
 
@@ -43,31 +44,30 @@ int filecnt;
 
 // ----------------------------------------------------------------------
 
-struct rdr_ds_s*
-loadFile(char **cpp)
+struct rdr_ds_s *loadFile(char **cpp)
 {
     int n, fd, len, maxlen;
     struct rdr_ds_s *c;
 
     (*cpp)++;
-    n = (int)strtol(*cpp, (char**)NULL, 10);
+    n = (int) strtol(*cpp, (char **) NULL, 10);
     while (isdigit(**cpp))
         (*cpp)++;
     if (n < 1 || n >= filecnt) {
         DEBUGMSG(ERROR, "parse error, no file at position %d\n", n);
         return 0;
     }
-    if (!n) {  // should read stdin
-        fd = 0;
-        maxlen = 64*1024;
+    if (!n) {    // should read stdin
+        fd     = 0;
+        maxlen = 64 * 1024;
     } else {
         struct stat st;
-        if (stat(fileargs[n-1], &st)) {
-            DEBUGMSG(ERROR, "cannot access file %s\n", fileargs[n-1]);
+        if (stat(fileargs[n - 1], &st)) {
+            DEBUGMSG(ERROR, "cannot access file %s\n", fileargs[n - 1]);
             return 0;
         }
         maxlen = st.st_size;
-        fd = open(fileargs[n-1], O_RDONLY);
+        fd     = open(fileargs[n - 1], O_RDONLY);
         if (fd < 0) {
             perror("open file");
             return 0;
@@ -78,12 +78,12 @@ loadFile(char **cpp)
         DEBUGMSG(ERROR, "read file: malloc problem");
         return 0;
     }
-    c->type = LRPC_BIN;
+    c->type    = LRPC_BIN;
     c->flatlen = -1;
-    c->aux = c + 1;
+    c->aux     = c + 1;
 
     while (maxlen > 0) {
-        len = read(fd, (char*)(c+1) + c->u.binlen, maxlen);
+        len = read(fd, (char *) (c + 1) + c->u.binlen, maxlen);
         if (len < 0) {
             free(c);
             perror("reading file");
@@ -100,21 +100,20 @@ loadFile(char **cpp)
     return c;
 }
 
-struct rdr_ds_s*
-parseConst(char **cpp)
+struct rdr_ds_s *parseConst(char **cpp)
 {
     struct rdr_ds_s *c;
     char *p;
     int len;
 
-    if (**cpp == '&') // load file as BIN
+    if (**cpp == '&')    // load file as BIN
         return loadFile(cpp);
 
     c = calloc(1, sizeof(*c));
     if (!c)
         return 0;
     c->flatlen = -1;
-    c->aux = (struct rdr_ds_s*) *cpp;
+    c->aux     = (struct rdr_ds_s *) *cpp;
 
     p = *cpp;
     if (isalpha(*p) || *p == '/') {
@@ -123,7 +122,7 @@ parseConst(char **cpp)
             p++;
         c->u.namelen = p - *cpp;
     } else if (isdigit(*p)) {
-        c->type = LRPC_NONNEGINT;
+        c->type           = LRPC_NONNEGINT;
         c->u.nonnegintval = 0;
         while (isdigit(*p)) {
             c->u.nonnegintval = 10 * c->u.nonnegintval + (*p - '0');
@@ -132,7 +131,7 @@ parseConst(char **cpp)
     } else if (*p == '\"') {
         c->type = LRPC_STR;
         p++;
-        c->aux = (struct rdr_ds_s*) p;
+        c->aux = (struct rdr_ds_s *) p;
         while (*p && *p != '\"')
             p++;
         if (*p)
@@ -149,8 +148,7 @@ parseConst(char **cpp)
     return c;
 }
 
-struct rdr_ds_s*
-parsePrefixTerm(int lev, char **cpp)
+struct rdr_ds_s *parsePrefixTerm(int lev, char **cpp)
 {
     struct rdr_ds_s *term = NULL, *end = 0, *t2;
 
@@ -162,7 +160,7 @@ parsePrefixTerm(int lev, char **cpp)
             return term;
         if (**cpp == '(') {
             *cpp += 1;
-            t2 = parsePrefixTerm(lev+1, cpp);
+            t2 = parsePrefixTerm(lev + 1, cpp);
             if (!t2) {
                 if (term) {
                     free(term);
@@ -184,13 +182,13 @@ parsePrefixTerm(int lev, char **cpp)
                 term = t2;
                 continue;
             }
-        } else if (**cpp == '\\') { // lambda
+        } else if (**cpp == '\\') {    // lambda
             *cpp += 1;
-            t2 = calloc(1, sizeof(*t2));
-            t2->type = LRPC_LAMBDA;
-            t2->flatlen = -1;
+            t2              = calloc(1, sizeof(*t2));
+            t2->type        = LRPC_LAMBDA;
+            t2->flatlen     = -1;
             t2->u.lambdavar = parseConst(cpp);
-            t2->aux = parsePrefixTerm(lev+1, cpp);
+            t2->aux         = parsePrefixTerm(lev + 1, cpp);
             if (!term) {
                 term = t2;
                 continue;
@@ -198,10 +196,10 @@ parsePrefixTerm(int lev, char **cpp)
         } else {
             t2 = parseConst(cpp);
             if (!term) {
-                term = calloc(1, sizeof(*t2));
-                term->type = LRPC_APPLICATION;
+                term          = calloc(1, sizeof(*t2));
+                term->type    = LRPC_APPLICATION;
                 term->flatlen = -1;
-                term->u.fct = t2;
+                term->u.fct   = t2;
                 continue;
             }
         }
@@ -225,34 +223,43 @@ int ccn_iribu_rdr_dump(int lev, struct rdr_ds_s *x)
     if (t < LRPC_APPLICATION) {
         snprintf(tmp, sizeof(tmp), "v%02x", t);
         n = tmp;
-    } else switch (t) {
-    case LRPC_APPLICATION:
-        n = "APP"; break;
-    case LRPC_LAMBDA:
-        n = "LBD"; break;
-    case LRPC_SEQUENCE:
-        n = "SEQ"; break;
-    case LRPC_FLATNAME:
-        n = "VAR"; break;
-    case LRPC_NONNEGINT:
-        n = "INT"; break;
-    case LRPC_BIN:
-        n = "BIN"; break;
-    case LRPC_STR:
-        n = "STR"; break;
-    default:
-        n = "???"; break;
-    }
+    } else
+        switch (t) {
+        case LRPC_APPLICATION:
+            n = "APP";
+            break;
+        case LRPC_LAMBDA:
+            n = "LBD";
+            break;
+        case LRPC_SEQUENCE:
+            n = "SEQ";
+            break;
+        case LRPC_FLATNAME:
+            n = "VAR";
+            break;
+        case LRPC_NONNEGINT:
+            n = "INT";
+            break;
+        case LRPC_BIN:
+            n = "BIN";
+            break;
+        case LRPC_STR:
+            n = "STR";
+            break;
+        default:
+            n = "???";
+            break;
+        }
     for (i = 0; i < lev; i++)
         fprintf(stderr, "  ");
     fprintf(stderr, "%s (0x%x, len=%zu)\n", n, t, x->flatlen);
 
     switch (t) {
     case LRPC_APPLICATION:
-        ccn_iribu_rdr_dump(lev+1, x->u.fct);
+        ccn_iribu_rdr_dump(lev + 1, x->u.fct);
         break;
     case LRPC_LAMBDA:
-        ccn_iribu_rdr_dump(lev+1, x->u.lambdavar);
+        ccn_iribu_rdr_dump(lev + 1, x->u.lambdavar);
         break;
     case LRPC_SEQUENCE:
         break;
@@ -265,34 +272,32 @@ int ccn_iribu_rdr_dump(int lev, struct rdr_ds_s *x)
     }
     x = x->aux;
     while (x) {
-        ccn_iribu_rdr_dump(lev+1, x);
+        ccn_iribu_rdr_dump(lev + 1, x);
         x = x->nextinseq;
     }
     return 0;
 }
 
-struct rdr_ds_s*
-rpc_cli2rdr(char *cmd)
+struct rdr_ds_s *rpc_cli2rdr(char *cmd)
 {
     char *cp = cmd;
     struct rdr_ds_s *e;
 
     e = parsePrefixTerm(0, &cp);
 
-/*
-    ccn_iribu_rdr_getFlatLen(e);
-    ccn_iribu_rdr_dump(0, e);
-*/
+    /*
+        ccn_iribu_rdr_getFlatLen(e);
+        ccn_iribu_rdr_dump(0, e);
+    */
 
     return e;
 }
 
 // ----------------------------------------------------------------------
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
-    unsigned char request[64*1024], reply[64*1024], tmp[10];
+    unsigned char request[64 * 1024], reply[64 * 1024], tmp[10];
     int cnt, opt, port, sock = 0;
     size_t reqlen, replen, switchlen;
     struct sockaddr sa;
@@ -313,34 +318,36 @@ main(int argc, char *argv[])
         case 'v':
 #ifdef USE_LOGGING
             if (isdigit(optarg[0]))
-                debug_level = (int)strtol(optarg, (char**)NULL, 10);
+                debug_level = (int) strtol(optarg, (char **) NULL, 10);
             else
                 debug_level = ccn_iribu_debug_str2level(optarg);
 #endif
             break;
         case 'w':
-            wait = (float)strtof(optarg, (char**) NULL);
+            wait = (float) strtof(optarg, (char **) NULL);
             break;
         case 'x':
             ux = optarg;
             break;
         case 'h':
         default:
-Usage:
-            fprintf(stderr, "usage: %s "
-            "[-u host:port] [-x ux_path_name] [-w timeout] EXPRESSION [filenames]\n"
-            "  -n               no-reply (just send)\n"
-            "  -u a.b.c.d:port  UDP destination (default is 127.0.0.1/6363)\n"
+        Usage:
+            fprintf(
+                stderr,
+                "usage: %s "
+                "[-u host:port] [-x ux_path_name] [-w timeout] EXPRESSION [filenames]\n"
+                "  -n               no-reply (just send)\n"
+                "  -u a.b.c.d:port  UDP destination (default is 127.0.0.1/6363)\n"
 #ifdef USE_LOGGING
-            "  -v DEBUG_LEVEL (fatal, error, warning, info, debug, verbose, trace)\n"
+                "  -v DEBUG_LEVEL (fatal, error, warning, info, debug, verbose, trace)\n"
 #endif
-            "  -w timeout       in sec (float)\n"
-            "  -x ux_path_name  UNIX IPC: use this instead of UDP\n"
-            "EXPRESSION examples:\n"
-            "  \"/rpc/builtin/forward /rpc/const/encoding/ndn2013 &1\"\n"
-            "  \"/rpc/builtin/lookup /rpc/config/localTime\"\n"
-            "  \"/rpc/builtin/syslog \\\"log this!\\\"\"\n",
-            argv[0]);
+                "  -w timeout       in sec (float)\n"
+                "  -x ux_path_name  UNIX IPC: use this instead of UDP\n"
+                "EXPRESSION examples:\n"
+                "  \"/rpc/builtin/forward /rpc/const/encoding/ndn2013 &1\"\n"
+                "  \"/rpc/builtin/lookup /rpc/config/localTime\"\n"
+                "  \"/rpc/builtin/syslog \\\"log this!\\\"\"\n",
+                argv[0]);
             exit(1);
         }
     }
@@ -354,8 +361,8 @@ Usage:
     DEBUGMSG(TRACE, "using udp address %s/%d\n", addr, port);
 
     fileargs = argv + optind + 1;
-    filecnt = argc - optind;
-    expr = rpc_cli2rdr(argv[optind]);
+    filecnt  = argc - optind;
+    expr     = rpc_cli2rdr(argv[optind]);
     if (!expr)
         return -1;
 
@@ -370,9 +377,9 @@ Usage:
             return -1;
         }
         nonce->type = LRPC_NONCE;
-        nonce->aux = malloc(sizeof(struct rdr_ds_s));
+        nonce->aux  = malloc(sizeof(struct rdr_ds_s));
         memcpy(nonce->aux, &n, sizeof(int));
-        nonce->u.binlen = sizeof(int);
+        nonce->u.binlen  = sizeof(int);
         nonce->nextinseq = expr;
 
         req = calloc(1, sizeof(*req));
@@ -382,47 +389,48 @@ Usage:
             return -1;
         }
         req->type = LRPC_PT_REQUEST;
-        req->aux = nonce;
-        expr = req;
+        req->aux  = nonce;
+        expr      = req;
     }
 
     reqlen = sizeof(tmp);
-    if (ccn_iribu_switch_prependCoding(CCN_IRIBU_ENC_LOCALRPC, &reqlen, tmp, &switchlen)) {
+    if (ccn_iribu_switch_prependCoding(CCN_IRIBU_ENC_LOCALRPC, &reqlen, tmp,
+                                       &switchlen)) {
         free(expr);
 
         return -1;
     }
-    memcpy(request, tmp+reqlen, switchlen);
+    memcpy(request, tmp + reqlen, switchlen);
 
-    if (ccn_iribu_rdr_serialize(expr, request + switchlen,
-                           sizeof(request) - switchlen, &reqlen)) {
+    if (ccn_iribu_rdr_serialize(expr, request + switchlen, sizeof(request) - switchlen,
+                                &reqlen)) {
         DEBUGMSG(ERROR, "could no serialize\n");
     }
     reqlen += switchlen;
 
-//    fprintf(stderr, "%p len=%d flatlen=%d\n", expr, reqlen, expr->flatlen);
-//    write(1, request, reqlen);
-/*
-    {
-        int fd = open("t.bin", O_WRONLY|O_CREAT|O_TRUNC);
-        write(fd, request, reqlen);
-        close(fd);
-    }
-*/
+    //    fprintf(stderr, "%p len=%d flatlen=%d\n", expr, reqlen, expr->flatlen);
+    //    write(1, request, reqlen);
+    /*
+        {
+            int fd = open("t.bin", O_WRONLY|O_CREAT|O_TRUNC);
+            write(fd, request, reqlen);
+            close(fd);
+        }
+    */
 
     srandom(time(NULL));
 
-    if (ux) { // use UNIX socket
-        struct sockaddr_un *su = (struct sockaddr_un*) &sa;
-        su->sun_family = AF_UNIX;
+    if (ux) {    // use UNIX socket
+        struct sockaddr_un *su = (struct sockaddr_un *) &sa;
+        su->sun_family         = AF_UNIX;
         strncpy(su->sun_path, ux, sizeof(su->sun_path));
         sock = ux_open();
-    } else { // UDP
-        struct sockaddr_in *si = (struct sockaddr_in*) &sa;
-        si->sin_family = PF_INET;
-        si->sin_addr.s_addr = inet_addr(addr);
-        si->sin_port = htons(port);
-        sock = udp_open();
+    } else {    // UDP
+        struct sockaddr_in *si = (struct sockaddr_in *) &sa;
+        si->sin_family         = PF_INET;
+        si->sin_addr.s_addr    = inet_addr(addr);
+        si->sin_port           = htons(port);
+        sock                   = udp_open();
     }
 
     for (cnt = 0; cnt < 3; cnt++) {
@@ -435,15 +443,15 @@ Usage:
             goto done;
         }
 
-        for (;;) { // wait for a content pkt (ignore interests)
+        for (;;) {    // wait for a content pkt (ignore interests)
             size_t offs = 0;
             ssize_t recvlen;
 
-            if (block_on_read(sock, wait) <= 0) {// timeout
+            if (block_on_read(sock, wait) <= 0) {    // timeout
                 break;
             }
             recvlen = recv(sock, reply, sizeof(reply), 0);
-            if (recvlen < 0) { //recv failure
+            if (recvlen < 0) {    // recv failure
                 DEBUGMSG(ERROR, "receive failed: %d\n", errno);
                 break;
             }
@@ -451,18 +459,17 @@ Usage:
 
             DEBUGMSG(DEBUG, "received %zu bytes\n", replen);
             if (replen > 0) {
-                DEBUGMSG(DEBUG, "  suite=%d\n",
-                         ccn_iribu_pkt2suite(reply, replen, NULL));
+                DEBUGMSG(DEBUG, "  suite=%d\n", ccn_iribu_pkt2suite(reply, replen, NULL));
             }
 
             if (replen <= 0) {
                 goto done;
             }
             if (ccn_iribu_pkt2suite(reply, replen, &offs) != CCN_IRIBU_SUITE_LOCALRPC ||
-                               reply[offs] != LRPC_PT_REPLY) {
+                reply[offs] != LRPC_PT_REPLY) {
                 // not a Reply pkt
-                DEBUGMSG(WARNING, "skipping non-Reply packet 0x%02x 0x%02x\n",
-                         *reply, reply[offs]);
+                DEBUGMSG(WARNING, "skipping non-Reply packet 0x%02x 0x%02x\n", *reply,
+                         reply[offs]);
                 continue;
             }
             write(1, reply, replen);
@@ -478,7 +485,7 @@ done:
     close(sock);
     myexit(-1);
 
-    return 0; // avoid a compiler warning
+    return 0;    // avoid a compiler warning
 }
 
 // eof

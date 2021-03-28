@@ -24,14 +24,14 @@
 #define CCN_IRIBU_SCHED_H
 
 #ifndef CCN_IRIBU_LINUXKERNEL
-#include <sys/time.h>
+#    include <sys/time.h>
 #endif
 
 struct ccn_iribu_relay_s;
 
 struct ccn_iribu_sched_s {
-    char mode; // 0=dummy, 1=pktrate
-    void (*rts)(struct ccn_iribu_sched_s* s, int cnt, int len, void *aux1, void *aux2);
+    char mode;    // 0=dummy, 1=pktrate
+    void (*rts)(struct ccn_iribu_sched_s *s, int cnt, int len, void *aux1, void *aux2);
     // private:
     void (*cts)(void *aux1, void *aux2);
     struct ccn_iribu_relay_s *ccn_iribu;
@@ -44,42 +44,35 @@ struct ccn_iribu_sched_s {
     void *pendingTimer;
     struct timeval nextTX;
     // simple packet rate limiter:
-    int ipi; // inter_packet_interval, minimum time between send() in usec
+    int ipi;    // inter_packet_interval, minimum time between send() in usec
 #endif
 };
 
-int 
-ccn_iribu_sched_init(void);
+int ccn_iribu_sched_init(void);
 
-void 
-ccn_iribu_sched_cleanup(void);
+void ccn_iribu_sched_cleanup(void);
 
-struct ccn_iribu_sched_s*
-ccn_iribu_sched_dummy_new(void (cts)(void *aux1, void *aux2),struct ccn_iribu_relay_s *ccn_iribu);
+struct ccn_iribu_sched_s *ccn_iribu_sched_dummy_new(void(cts)(void *aux1, void *aux2),
+                                                    struct ccn_iribu_relay_s *ccn_iribu);
 
-struct ccn_iribu_sched_s*
-ccn_iribu_sched_pktrate_new(void (cts)(void *aux1, void *aux2),
-        struct ccn_iribu_relay_s *ccn_iribu, int inter_packet_interval);
+struct ccn_iribu_sched_s *ccn_iribu_sched_pktrate_new(void(cts)(void *aux1, void *aux2),
+                                                      struct ccn_iribu_relay_s *ccn_iribu,
+                                                      int inter_packet_interval);
 
-void
-ccn_iribu_sched_destroy(struct ccn_iribu_sched_s *s);
+void ccn_iribu_sched_destroy(struct ccn_iribu_sched_s *s);
 
-void
-ccn_iribu_sched_RTS(struct ccn_iribu_sched_s *s, int cnt, int len,
-        void *aux1, void *aux2);
+void ccn_iribu_sched_RTS(struct ccn_iribu_sched_s *s, int cnt, int len, void *aux1,
+                         void *aux2);
 
-void
-ccn_iribu_sched_CTS_done(struct ccn_iribu_sched_s *s, int cnt, int len);
+void ccn_iribu_sched_CTS_done(struct ccn_iribu_sched_s *s, int cnt, int len);
 
-void
-ccn_iribu_sched_RX_ok(struct ccn_iribu_relay_s *ccn_iribu, int ifndx, int cnt);
+void ccn_iribu_sched_RX_ok(struct ccn_iribu_relay_s *ccn_iribu, int ifndx, int cnt);
 
-void
-ccn_iribu_sched_RX_loss(struct ccn_iribu_relay_s *ccn_iribu, int ifndx, int cnt);
+void ccn_iribu_sched_RX_loss(struct ccn_iribu_relay_s *ccn_iribu, int ifndx, int cnt);
 
-struct ccn_iribu_sched_s*
-ccn_iribu_sched_packetratelimiter_new(int inter_packet_interval,
-                                 void (*cts)(void *aux1, void *aux2),
-                                 void *aux1, void *aux2);
+struct ccn_iribu_sched_s *ccn_iribu_sched_packetratelimiter_new(int inter_packet_interval,
+                                                                void (*cts)(void *aux1,
+                                                                            void *aux2),
+                                                                void *aux1, void *aux2);
 
-#endif // EOF
+#endif    // EOF

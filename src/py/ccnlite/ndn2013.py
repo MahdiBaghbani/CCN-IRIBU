@@ -38,6 +38,7 @@ val2 = struct.Struct('>H')
 val4 = struct.Struct('>I')
 val8 = struct.Struct('>Q')
 
+
 def readTorL(f, maxlen):
     if maxlen == 0:
         raise EOFError
@@ -61,7 +62,7 @@ def readTorL(f, maxlen):
             maxlen = maxlen - 3
         return (val2.unpack(f.read(2))[0], maxlen)
     if maxlen > 0 and maxlen < 5:
-            raise EOFError
+        raise EOFError
     if b == 254:
         if maxlen > 0:
             maxlen = maxlen - 5
@@ -72,43 +73,46 @@ def readTorL(f, maxlen):
         maxlen = maxlen - 9
     return (val8.unpack(f.read(8))[0], maxlen)
 
+
 def readTL(f, maxlen):
     (t, maxlen) = readTorL(f, maxlen)
     (l, maxlen) = readTorL(f, maxlen)
     return (t, l, maxlen)
 
+
 # ----------------------------------------------------------------------
 
 ndntlv_types = {
-    0x05 : 'Interest',
-    0x06 : 'Data',
-    0x07 : 'Name',
-    0x08 : 'NameComponent',
-    0x09 : 'Selectors',
-    0x0a : 'Nonce',
-    0x0b : 'Scope',
-    0x0c : 'InterestLifeTime',
-    0x0d : 'MinSuffixComp',
-    0x0e : 'MaxSuffixComp',
-    0x0f : 'PublisherPubKeyLoc',
-    0x10 : 'Exclude',
-    0x11 : 'ChildSelector',
-    0x12 : 'MustBeFresh',
-    0x13 : 'Any',
-    0x14 : 'MetaInfo',
-    0x15 : 'Content',
-    0x16 : 'SignatureInfo',
-    0x17 : 'SignatureValue',
-    0x18 : 'ContentType',
-    0x19 : 'FreshnessPeriod',
-    0x1a : 'FinalBlockId',
-    0x1b : 'SignatureType',
-    0x1c : 'KeyLocator',
-    0x1d : 'KeyLocatorDigest'
-    }
+    0x05: 'Interest',
+    0x06: 'Data',
+    0x07: 'Name',
+    0x08: 'NameComponent',
+    0x09: 'Selectors',
+    0x0a: 'Nonce',
+    0x0b: 'Scope',
+    0x0c: 'InterestLifeTime',
+    0x0d: 'MinSuffixComp',
+    0x0e: 'MaxSuffixComp',
+    0x0f: 'PublisherPubKeyLoc',
+    0x10: 'Exclude',
+    0x11: 'ChildSelector',
+    0x12: 'MustBeFresh',
+    0x13: 'Any',
+    0x14: 'MetaInfo',
+    0x15: 'Content',
+    0x16: 'SignatureInfo',
+    0x17: 'SignatureValue',
+    0x18: 'ContentType',
+    0x19: 'FreshnessPeriod',
+    0x1a: 'FinalBlockId',
+    0x1b: 'SignatureType',
+    0x1c: 'KeyLocator',
+    0x1d: 'KeyLocatorDigest'
+}
 
-ndntlv_recurseSet = { 0x05, 0x06, 0x07, 0x09, 0x14, 0x16, 0x1c }
-ndntlv_isPrint = { 0x08, 0x15 }
+ndntlv_recurseSet = {0x05, 0x06, 0x07, 0x09, 0x14, 0x16, 0x1c}
+ndntlv_isPrint = {0x08, 0x15}
+
 
 def dump(f, lev, maxlen):
     while maxlen == -1 or maxlen > 0:
@@ -122,10 +126,11 @@ def dump(f, lev, maxlen):
             s = s + "type%d" % t
         print(s + " (%d bytes)" % l)
         if t in ndntlv_recurseSet:
-            dump(f, lev+1, l)
+            dump(f, lev + 1, l)
         elif l > 0:
-            util.hexDump(f, lev+1, t in ndntlv_isPrint, l)
+            util.hexDump(f, lev + 1, t in ndntlv_isPrint, l)
         maxlen -= l
+
 
 def isInterest(f):
     c = f.read(1);
@@ -134,12 +139,14 @@ def isInterest(f):
         raise EOFError
     return ord(c) == 0x05
 
+
 def isData(f):
     c = f.read(1);
     f.seek(-1, 1)
     if c == '':
         raise EOFError
     return ord(c) == 0x06
+
 
 def parseName(f, maxlen):
     name = []
@@ -151,6 +158,7 @@ def parseName(f, maxlen):
         maxlen -= l
     return name
 
+
 def parseInterest(f):
     (t, l, maxlen) = readTL(f, -1)
     if t != 0x05:
@@ -161,6 +169,7 @@ def parseInterest(f):
             return parseName(f, l)
         f.read(l)
     return None
+
 
 def parseData(f):
     (t, l, maxlen) = readTL(f, -1)
@@ -181,6 +190,7 @@ def parseData(f):
         pass
     return (name, cont)
 
+
 # ----------------------------------------------------------------------
 # creating NDN TLVs
 
@@ -188,6 +198,7 @@ if sys.version_info < (3,):
     LONG_IND = long(0x100000000)
 else:
     LONG_IND = 0x100000000
+
 
 def mkTorL(x):
     if x < 253:
@@ -203,6 +214,7 @@ def mkTorL(x):
         val8.pack_into(buf, 1, x)
     return buf
 
+
 def mkName(name):
     if (type(name[0]) is str):
         name = [n.encode() for n in name]
@@ -212,9 +224,10 @@ def mkName(name):
             c = name[i]
         else:
             c = name[i].getValue().toBytes()
-#        n = n + mkTorL(0x08) + mkTorL(len(name[i])) + name[i]
+        #        n = n + mkTorL(0x08) + mkTorL(len(name[i])) + name[i]
         n = n + mkTorL(0x08) + mkTorL(len(name[i])) + c
     return mkTorL(0x07) + mkTorL(len(n)) + n
+
 
 def mkInterest(name):
     n = mkName(name);
@@ -223,15 +236,15 @@ def mkInterest(name):
     n = n + nonce
     return mkTorL(0x05) + mkTorL(len(n)) + n
 
+
 def mkData(name, blob):
     if (type(blob) is str):
         blob = blob.encode()
     n = mkName(name);
-    meta = mkTorL(0x14) + mkTorL(0) # empty metadata
+    meta = mkTorL(0x14) + mkTorL(0)  # empty metadata
     nmb = n + meta + mkTorL(0x15) + mkTorL(len(blob)) + blob
     nmbs = nmb + bytearray([0x16, 0x03, 0x1b, 0x01, 0x00]) + \
-           bytearray([0x17, 0x00]) # DigestSha256 signature info + empty value
+           bytearray([0x17, 0x00])  # DigestSha256 signature info + empty value
     return mkTorL(0x06) + mkTorL(len(nmbs)) + nmbs
-  
 
 # eof

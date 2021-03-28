@@ -21,33 +21,33 @@
  */
 
 #ifndef CCN_IRIBU_LINUXKERNEL
-#include <stdio.h>
-#include "ccn-iribu-os-time.h"
-#include "ccn-iribu-buf.h"
-#include "ccn-iribu-logging.h"
-#include "ccn-iribu-relay.h"
-#include "ccn-iribu-forward.h"
-#include "ccn-iribu-prefix.h"
-#include "ccn-iribu-malloc.h"
+#    include "ccn-iribu-buf.h"
+#    include "ccn-iribu-forward.h"
+#    include "ccn-iribu-logging.h"
+#    include "ccn-iribu-malloc.h"
+#    include "ccn-iribu-os-time.h"
+#    include "ccn-iribu-prefix.h"
+#    include "ccn-iribu-relay.h"
+#    include <stdio.h>
 #else
-#include "../include/ccn-iribu-os-time.h"
-#include "../include/ccn-iribu-buf.h"
-#include "../include/ccn-iribu-logging.h"
-#include "../include/ccn-iribu-relay.h"
-#include "../include/ccn-iribu-forward.h"
-#include "../include/ccn-iribu-prefix.h"
-#include "../include/ccn-iribu-malloc.h"
+#    include "../include/ccn-iribu-buf.h"
+#    include "../include/ccn-iribu-forward.h"
+#    include "../include/ccn-iribu-logging.h"
+#    include "../include/ccn-iribu-malloc.h"
+#    include "../include/ccn-iribu-os-time.h"
+#    include "../include/ccn-iribu-prefix.h"
+#    include "../include/ccn-iribu-relay.h"
 #endif
 
-struct ccn_iribu_buf_s*
-ccn_iribu_buf_new(void *data, size_t len)
+struct ccn_iribu_buf_s *ccn_iribu_buf_new(void *data, size_t len)
 {
-    struct ccn_iribu_buf_s *b = (struct ccn_iribu_buf_s*) ccn_iribu_malloc(sizeof(*b) + len);
+    struct ccn_iribu_buf_s *b =
+        (struct ccn_iribu_buf_s *) ccn_iribu_malloc(sizeof(*b) + len);
 
     if (!b) {
         return NULL;
     }
-    b->next = NULL;
+    b->next    = NULL;
     b->datalen = len;
     if (data) {
         memcpy(b->data, data, len);
@@ -55,8 +55,7 @@ ccn_iribu_buf_new(void *data, size_t len)
     return b;
 }
 
-void
-ccn_iribu_core_cleanup(struct ccn_iribu_relay_s *ccn_iribu)
+void ccn_iribu_core_cleanup(struct ccn_iribu_relay_s *ccn_iribu)
 {
     int k;
 
@@ -65,7 +64,8 @@ ccn_iribu_core_cleanup(struct ccn_iribu_relay_s *ccn_iribu)
     while (ccn_iribu->pit)
         ccn_iribu_interest_remove(ccn_iribu, ccn_iribu->pit);
     while (ccn_iribu->faces)
-        ccn_iribu_face_remove(ccn_iribu, ccn_iribu->faces); // removes allmost all FWD entries
+        ccn_iribu_face_remove(ccn_iribu,
+                              ccn_iribu->faces);    // removes allmost all FWD entries
     while (ccn_iribu->fib) {
         struct ccn_iribu_forward_s *fwd = ccn_iribu->fib->next;
         ccn_iribu_prefix_free(ccn_iribu->fib->prefix);

@@ -19,27 +19,26 @@
  * 2017-06-20 created
  */
 #ifndef CCN_IRIBU_LINUXKERNEL
-#include "ccn-iribu-pkt-util.h"
-#include "ccn-iribu-defs.h"
-#include "ccn-iribu-os-time.h"
-#include "ccn-iribu-pkt-ccnb.h"
-#include "ccn-iribu-pkt-ccntlv.h"
-#include "ccn-iribu-pkt-ndntlv.h"
-#include "ccn-iribu-pkt-switch.h"
-#include "ccn-iribu-logging.h"
+#    include "ccn-iribu-pkt-util.h"
+#    include "ccn-iribu-defs.h"
+#    include "ccn-iribu-logging.h"
+#    include "ccn-iribu-os-time.h"
+#    include "ccn-iribu-pkt-ccnb.h"
+#    include "ccn-iribu-pkt-ccntlv.h"
+#    include "ccn-iribu-pkt-ndntlv.h"
+#    include "ccn-iribu-pkt-switch.h"
 #else
-#include "../include/ccn-iribu-pkt-util.h"
-#include "../include/ccn-iribu-defs.h"
-#include "../include/ccn-iribu-os-time.h"
-#include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ccnb.h"
-#include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ccntlv.h"
-#include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ndntlv.h"
-#include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-switch.h"
-#include "../include/ccn-iribu-logging.h"
+#    include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ccnb.h"
+#    include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ccntlv.h"
+#    include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ndntlv.h"
+#    include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-switch.h"
+#    include "../include/ccn-iribu-defs.h"
+#    include "../include/ccn-iribu-logging.h"
+#    include "../include/ccn-iribu-os-time.h"
+#    include "../include/ccn-iribu-pkt-util.h"
 #endif
 
-int
-ccn_iribu_str2suite(char *cp)
+int ccn_iribu_str2suite(char *cp)
 {
     if (!cp)
         return -1;
@@ -62,8 +61,7 @@ ccn_iribu_str2suite(char *cp)
     return -1;
 }
 
-const char*
-ccn_iribu_suite2str(int suite)
+const char *ccn_iribu_suite2str(int suite)
 {
 #ifdef USE_SUITE_CCNB
     if (suite == CCN_IRIBU_SUITE_CCNB)
@@ -84,8 +82,7 @@ ccn_iribu_suite2str(int suite)
     return CONSTSTR("?");
 }
 
-int
-ccn_iribu_suite2defaultPort(int suite)
+int ccn_iribu_suite2defaultPort(int suite)
 {
 #ifdef USE_SUITE_CCNB
     if (suite == CCN_IRIBU_SUITE_CCNB)
@@ -102,8 +99,7 @@ ccn_iribu_suite2defaultPort(int suite)
     return NDN_UDP_PORT;
 }
 
-uint8_t
-ccn_iribu_isSuite(int suite)
+uint8_t ccn_iribu_isSuite(int suite)
 {
 #ifdef USE_SUITE_CCNB
     if (suite == CCN_IRIBU_SUITE_CCNB)
@@ -124,8 +120,7 @@ ccn_iribu_isSuite(int suite)
     return false;
 }
 
-int
-ccn_iribu_pkt2suite(uint8_t *data, size_t len, size_t *skip)
+int ccn_iribu_pkt2suite(uint8_t *data, size_t len, size_t *skip)
 {
     int suite = -1;
     int32_t enc;
@@ -155,74 +150,69 @@ ccn_iribu_pkt2suite(uint8_t *data, size_t len, size_t *skip)
     if (*data == 0x04) {
         return CCN_IRIBU_SUITE_CCNB;
     }
-    if (*data == 0x01 && len > 1 && // check for CCNx2015 and Cisco collision:
-                                (data[1] != 0x00 && // interest
-                                 data[1] != 0x01 && // data
-                                 data[1] != 0x02 && // interestReturn
-                                 data[1] != 0x03)) {  // fragment
+    if (*data == 0x01 && len > 1 &&    // check for CCNx2015 and Cisco collision:
+        (data[1] != 0x00 &&            // interest
+         data[1] != 0x01 &&            // data
+         data[1] != 0x02 &&            // interestReturn
+         data[1] != 0x03)) {           // fragment
         return CCN_IRIBU_SUITE_CCNB;
     }
 #endif
 
 #ifdef USE_SUITE_CCNTLV
     if (data[0] == CCNX_TLV_V1 && len > 1) {
-        if (data[1] == CCNX_PT_Interest ||
-            data[1] == CCNX_PT_Data ||
-            data[1] == CCNX_PT_Fragment ||
-            data[1] == CCNX_PT_NACK) {
+        if (data[1] == CCNX_PT_Interest || data[1] == CCNX_PT_Data ||
+            data[1] == CCNX_PT_Fragment || data[1] == CCNX_PT_NACK) {
             return CCN_IRIBU_SUITE_CCNTLV;
         }
     }
 #endif
 
 #ifdef USE_SUITE_NDNTLV
-    if (*data == NDN_TLV_Interest || *data == NDN_TLV_Data ||
-        *data == NDN_TLV_Fragment) {
+    if (*data == NDN_TLV_Interest || *data == NDN_TLV_Data || *data == NDN_TLV_Fragment) {
         return CCN_IRIBU_SUITE_NDNTLV;
     }
 #endif
 
-/*
-#ifdef USE_SUITE_LOCALRPC
-        if (*data == LRPC_PT_REQUEST || *data == LRPC_PT_REPLY) {
-            return CCN_IRIBU_SUITE_LOCALRPC;
+    /*
+    #ifdef USE_SUITE_LOCALRPC
+            if (*data == LRPC_PT_REQUEST || *data == LRPC_PT_REPLY) {
+                return CCN_IRIBU_SUITE_LOCALRPC;
+            }
+    #endif
         }
-#endif
-    }
-*/
+    */
     return -1;
 }
 
-int
-ccn_iribu_cmp2int(unsigned char *cmp, size_t cmplen)
+int ccn_iribu_cmp2int(unsigned char *cmp, size_t cmplen)
 {
     if (cmp) {
         long int i;
-        char *str = (char *)ccn_iribu_malloc(cmplen+1);
+        char *str = (char *) ccn_iribu_malloc(cmplen + 1);
 
         DEBUGMSG(DEBUG, "  inter a: %zd\n", cmplen);
         DEBUGMSG(DEBUG, "  inter b\n");
 
-        memcpy(str, (char *)cmp, cmplen);
+        memcpy(str, (char *) cmp, cmplen);
         str[cmplen] = '\0';
-        
+
         DEBUGMSG(DEBUG, "  inter c: %s\n", str);
-        
+
         i = strtol(str, NULL, 0);
-        
+
         DEBUGMSG(DEBUG, "  inter d\n");
 
         ccn_iribu_free(str);
-        return (int)i;
+        return (int) i;
     }
 
     return 0;
 }
 
-uint64_t
-ccn_iribu_pkt_interest_lifetime(const struct ccn_iribu_pkt_s *pkt)
+uint64_t ccn_iribu_pkt_interest_lifetime(const struct ccn_iribu_pkt_s *pkt)
 {
-    switch(pkt->suite) {
+    switch (pkt->suite) {
 #ifdef USE_SUITE_CCNTLV
     case CCN_IRIBU_SUITE_CCNTLV:
         /* CCN-TLV parser does not support lifetime parsing, yet. */

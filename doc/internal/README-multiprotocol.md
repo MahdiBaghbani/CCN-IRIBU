@@ -6,39 +6,28 @@ christian.tschudin@unibas.ch, Dec 22, 2014
 
 ## 1) Introduction
 
-CCN-lite is more than a platform for experimenting with different ICN
-protocols: it has an active agenda to use Named-Function-Networking as
-universal ICN glue.
+CCN-lite is more than a platform for experimenting with different ICN protocols: it has an active agenda to use
+Named-Function-Networking as universal ICN glue.
 
-This means that a CCN-lite relay, listing on a given UDP port, is
-potentially confronted with packets encoded in different schemas like
-ccnb, CCNx2014 or NDN2013. In the past it was possible to discriminate
-among these packets because luckily enough the "type values" were
-sparsely populated and the programmers had chosen code points that do
-not overlap. But with new packet formats, there might be no sparsity
-anymore. Instead of letting the relay do clever guess and check work
-for deducing a packet's format, we suggest an explicit way of
-announcing a packet's encoding.
+This means that a CCN-lite relay, listing on a given UDP port, is potentially confronted with packets encoded in
+different schemas like ccnb, CCNx2014 or NDN2013. In the past it was possible to discriminate among these packets
+because luckily enough the "type values" were sparsely populated and the programmers had chosen code points that do not
+overlap. But with new packet formats, there might be no sparsity anymore. Instead of letting the relay do clever guess
+and check work for deducing a packet's format, we suggest an explicit way of announcing a packet's encoding.
 
 ## 2) Switching Encoding Style
 
-We state as a first requirement that encoding can be switched not only
-at the outer level, but potentially also inside an ICN packet. While
-the later can be handled through conventions (e.g. using a switching
-mechanism *inside* the opaque payload field), this is not possible at
-the outer level: The very first bytes have to act like magic bytes.
+We state as a first requirement that encoding can be switched not only at the outer level, but potentially also inside
+an ICN packet. While the later can be handled through conventions (e.g. using a switching mechanism *inside* the opaque
+payload field), this is not possible at the outer level: The very first bytes have to act like magic bytes.
 
-For the second requirement, we assume that a "frame" (e.g. Ethernet,
-UDP datagram) is used to carry multiple ICN packets which are placed
-back-to-back. Ideally, one "switch" would apply for the whole frame
-i.e., all ICN packets would be of the same sort. However, we wish to
-also switch the packet format inside a frame.
+For the second requirement, we assume that a "frame" (e.g. Ethernet, UDP datagram) is used to carry multiple ICN packets
+which are placed back-to-back. Ideally, one "switch" would apply for the whole frame i.e., all ICN packets would be of
+the same sort. However, we wish to also switch the packet format inside a frame.
 
-The third requirement is that code switching is done in the most
-byte-saving way possible. We therefore abandoned the path of using a
-TLV schema for doing the encoding and opt instead for a switch
-statement that carries only the switch signal while leaving the length
-encoding to the packets themselves.
+The third requirement is that code switching is done in the most byte-saving way possible. We therefore abandoned the
+path of using a TLV schema for doing the encoding and opt instead for a switch statement that carries only the switch
+signal while leaving the length encoding to the packets themselves.
 
 This results in the following frame layout (example):
 
@@ -54,8 +43,9 @@ encoding according to packet format "fmt".
 
 ## 3) Assigned numbers
 
-A 1+N byte schema is used to represent a switch signal, where N depends on the
-number that has been given to a packet format.
+A 1+N byte schema is used to represent a switch signal, where N depends on the number that has been given to a packet
+format.
+
 ```
              +------+---...+------+
 Enc(fmt) :== | 0x80 | VARINT(fmt) |
@@ -76,19 +66,17 @@ Enc(fmt) :== | 0x80 | VARINT(fmt) |
 
 ```
 
-The format numbers are defined in the ``ccnl_enc`` enum in file 
+The format numbers are defined in the ``ccnl_enc`` enum in file
 ``ccnl_defs.h``.
 
 ## 4) Backwards compatibility
 
-The switch value 0x80 has been chosen such that it does not collide
-with any of the pre-existing packet formats CCNB, NDN2013 and
-CCNX2014. It is suggested that these protocol suites leave out any
-type values that would lead to a starting 0x80 byte.
+The switch value 0x80 has been chosen such that it does not collide with any of the pre-existing packet formats CCNB,
+NDN2013 and CCNX2014. It is suggested that these protocol suites leave out any type values that would lead to a starting
+0x80 byte.
 
-In this way, the new Encoding-Switch style can be run in parallel and
-as a transition: existing code (not understanding packets starting
-with 0x80 byte) will drop them; new code can accept both plain CCNB,
-NDN2013 and CCNX2014 packets as well as serving the switch signal.
+In this way, the new Encoding-Switch style can be run in parallel and as a transition: existing code (not understanding
+packets starting with 0x80 byte) will drop them; new code can accept both plain CCNB, NDN2013 and CCNX2014 packets as
+well as serving the switch signal.
 
 // eof

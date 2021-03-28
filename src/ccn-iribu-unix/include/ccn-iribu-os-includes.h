@@ -22,90 +22,90 @@
 
 #ifndef CCN_IRIBU_LINUXKERNEL
 
-#include <assert.h>
-#include <ctype.h>
-#include <errno.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#    include <assert.h>
+#    include <ctype.h>
+#    include <errno.h>
+#    include <stdarg.h>
+#    include <stdio.h>
+#    include <stdlib.h>
+#    include <string.h>
 
-#ifdef CCN_IRIBU_UNIX
+#    ifdef CCN_IRIBU_UNIX
 
-# include <time.h>
-# include <getopt.h>
-# include <unistd.h>
-# include <fcntl.h>
-# include <sys/ioctl.h>
-# include <sys/select.h>
-# include <sys/socket.h>
-# include <sys/time.h>
-# include <sys/un.h>
-# include <sys/utsname.h>
+#        include <fcntl.h>
+#        include <getopt.h>
+#        include <sys/ioctl.h>
+#        include <sys/select.h>
+#        include <sys/socket.h>
+#        include <sys/time.h>
+#        include <sys/un.h>
+#        include <sys/utsname.h>
+#        include <time.h>
+#        include <unistd.h>
 
-#ifndef _DEFAULT_SOURCE
-#  define __USE_MISC
-#endif
+#        ifndef _DEFAULT_SOURCE
+#            define __USE_MISC
+#        endif
 
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <net/if.h> // IFNAMSIZE, if_nametoindex
+#        include <arpa/inet.h>
+#        include <net/if.h>    // IFNAMSIZE, if_nametoindex
+#        include <netinet/in.h>
 
-#ifdef _DEFAULT_SOURCE
-  int inet_aton(const char *cp, struct in_addr *inp);
-#endif
+#        ifdef _DEFAULT_SOURCE
+int inet_aton(const char *cp, struct in_addr *inp);
+#        endif
 
-#if defined(__FreeBSD__) || defined(__APPLE__)
-#  include <sys/types.h>
-#  undef USE_LINKLAYER
-   // ethernet support in FreeBSD is work in progress ...
-#elif defined(linux)
-#  include <endian.h>
-#  include <linux/if_ether.h>  // ETH_ALEN
-#  include <linux/if_packet.h> // sockaddr_ll
-#endif
+#        if defined(__FreeBSD__) || defined(__APPLE__)
+#            include <sys/types.h>
+#            undef USE_LINKLAYER
+// ethernet support in FreeBSD is work in progress ...
+#        elif defined(linux)
+#            include <endian.h>
+#            include <linux/if_ether.h>    // ETH_ALEN
+#            include <linux/if_packet.h>    // sockaddr_ll
+#        endif
 
-#ifdef USE_CCNxDIGEST
-#  include <openssl/sha.h>
-#endif
-#endif // CCN_IRIBU_UNIX
+#        ifdef USE_CCNxDIGEST
+#            include <openssl/sha.h>
+#        endif
+#    endif    // CCN_IRIBU_UNIX
 
-#else // else we are compiling for the Linux kernel
+#else    // else we are compiling for the Linux kernel
 
-#include <stddef.h>
+#    include <stddef.h>
 
-#include <linux/ctype.h>
-#include <linux/jiffies.h>
-#include <linux/kernel.h>
-#include <linux/module.h>
-#include <linux/moduleparam.h>
-#include <linux/namei.h>
-#include <linux/proc_fs.h>
-#include <linux/socket.h>
-#include <linux/string.h>
-#include <linux/syscalls.h>
-#include <linux/unistd.h>
-#include <linux/workqueue.h>
-#include <linux/version.h>
-#include <asm/uaccess.h>
+#    include <asm/uaccess.h>
+#    include <linux/ctype.h>
+#    include <linux/jiffies.h>
+#    include <linux/kernel.h>
+#    include <linux/module.h>
+#    include <linux/moduleparam.h>
+#    include <linux/namei.h>
+#    include <linux/proc_fs.h>
+#    include <linux/socket.h>
+#    include <linux/string.h>
+#    include <linux/syscalls.h>
+#    include <linux/unistd.h>
+#    include <linux/version.h>
+#    include <linux/workqueue.h>
 
-#include <linux/in.h>
-#include <linux/if_ether.h>
-#include <linux/if_packet.h>
-#include <linux/inet.h>  // in_aton
-#include <linux/net.h>
-#include <linux/netdevice.h>
-#include <linux/string.h>
-#include <linux/un.h>
+#    include <linux/if_ether.h>
+#    include <linux/if_packet.h>
+#    include <linux/in.h>
+#    include <linux/inet.h>    // in_aton
+#    include <linux/net.h>
+#    include <linux/netdevice.h>
+#    include <linux/string.h>
+#    include <linux/un.h>
 
-#include <net/inet_sock.h>
-#include <net/ip.h>
-#include <net/af_unix.h>
+#    include <net/af_unix.h>
+#    include <net/inet_sock.h>
+#    include <net/ip.h>
 
-#define strtol(s,p,b)	simple_strtol(s,p,b)
-#define inet_aton(s,p)	(p)->s_addr = in_aton(s)
-#define USE_LINKLAYER
+#    define strtol(s, p, b) simple_strtol(s, p, b)
+#    define inet_aton(s, p) (p)->s_addr = in_aton(s)
+#    define USE_LINKLAYER
 
-#endif // CCN_IRIBU_LINUXKERNEL
+#endif    // CCN_IRIBU_LINUXKERNEL
 
 // eof

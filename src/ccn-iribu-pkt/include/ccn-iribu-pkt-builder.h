@@ -21,77 +21,71 @@
 #define CCN_IRIBU_PKT_BUILDER
 
 #ifndef CCN_IRIBU_LINUXKERNEL
-#include "ccn-iribu-core.h"
+#    include "ccn-iribu-core.h"
 
-#include "ccn-iribu-pkt.h"
-#include "ccn-iribu-pkt-ccnb.h"
-#include "ccn-iribu-pkt-ccntlv.h"
-#include "ccn-iribu-pkt-ndntlv.h"
-#include "ccn-iribu-pkt-switch.h"
-#include "ccn-iribu-pkt-localrpc.h"
+#    include "ccn-iribu-pkt-ccnb.h"
+#    include "ccn-iribu-pkt-ccntlv.h"
+#    include "ccn-iribu-pkt-localrpc.h"
+#    include "ccn-iribu-pkt-ndntlv.h"
+#    include "ccn-iribu-pkt-switch.h"
+#    include "ccn-iribu-pkt.h"
 #else
-#include "../../ccn-iribu-core/include/ccn-iribu-core.h"
+#    include "../../ccn-iribu-core/include/ccn-iribu-core.h"
 
-#include "../../ccn-iribu-core/include/ccn-iribu-pkt.h"
-#include "../include/ccn-iribu-pkt-ccnb.h"
-#include "../include/ccn-iribu-pkt-ccntlv.h"
-#include "../include/ccn-iribu-pkt-ndntlv.h"
-#include "../include/ccn-iribu-pkt-switch.h"
-#include "../include/ccn-iribu-pkt-localrpc.h"
+#    include "../../ccn-iribu-core/include/ccn-iribu-pkt.h"
+#    include "../include/ccn-iribu-pkt-ccnb.h"
+#    include "../include/ccn-iribu-pkt-ccntlv.h"
+#    include "../include/ccn-iribu-pkt-localrpc.h"
+#    include "../include/ccn-iribu-pkt-ndntlv.h"
+#    include "../include/ccn-iribu-pkt-switch.h"
 #endif
-
 
 #ifdef USE_SUITE_CCNB
 int8_t ccnb_isContent(uint8_t *buf, size_t len);
-#endif // USE_SUITE_CCNB
+#endif    // USE_SUITE_CCNB
 
 #ifdef USE_SUITE_CCNTLV
 
-struct ccnx_tlvhdr_ccnx2015_s*
-ccntlv_isHeader(uint8_t *buf, size_t len);
+struct ccnx_tlvhdr_ccnx2015_s *ccntlv_isHeader(uint8_t *buf, size_t len);
 
 int8_t ccntlv_isData(uint8_t *buf, size_t len);
 
 int8_t ccntlv_isFragment(uint8_t *buf, size_t len);
-#endif // USE_SUITE_CCNTLV
+#endif    // USE_SUITE_CCNTLV
 
-#ifdef  USE_SUITE_NDNTLV
+#ifdef USE_SUITE_NDNTLV
 int8_t ndntlv_isData(uint8_t *buf, size_t len);
-#endif //USE_SUITE_NDNTLV
+#endif    // USE_SUITE_NDNTLV
 
-int8_t
-ccn_iribu_isContent(uint8_t *buf, size_t len, int suite);
+int8_t ccn_iribu_isContent(uint8_t *buf, size_t len, int suite);
 
-int8_t
-ccn_iribu_isFragment(uint8_t *buf, size_t len, int suite);
+int8_t ccn_iribu_isFragment(uint8_t *buf, size_t len, int suite);
 
 #ifdef NEEDS_PACKET_CRAFTING
 
-struct ccn_iribu_content_s *
-ccn_iribu_mkContentObject(struct ccn_iribu_prefix_s *name,
-                     uint8_t *payload, size_t paylen,
-                     ccn_iribu_data_opts_u *opts);
+struct ccn_iribu_content_s *ccn_iribu_mkContentObject(struct ccn_iribu_prefix_s *name,
+                                                      uint8_t *payload, size_t paylen,
+                                                      ccn_iribu_data_opts_u *opts);
 
-struct ccn_iribu_buf_s*
-ccn_iribu_mkSimpleContent(struct ccn_iribu_prefix_s *name,
-                     uint8_t *payload, size_t paylen, size_t *payoffset,
-                     ccn_iribu_data_opts_u *opts);
+struct ccn_iribu_buf_s *ccn_iribu_mkSimpleContent(struct ccn_iribu_prefix_s *name,
+                                                  uint8_t *payload, size_t paylen,
+                                                  size_t *payoffset,
+                                                  ccn_iribu_data_opts_u *opts);
 
-int8_t
-ccn_iribu_mkContent(struct ccn_iribu_prefix_s *name, uint8_t *payload, size_t paylen, uint8_t *tmp,
-               size_t *len, size_t *contentpos, size_t *offs, ccn_iribu_data_opts_u *opts);
+int8_t ccn_iribu_mkContent(struct ccn_iribu_prefix_s *name, uint8_t *payload,
+                           size_t paylen, uint8_t *tmp, size_t *len, size_t *contentpos,
+                           size_t *offs, ccn_iribu_data_opts_u *opts);
 
+struct ccn_iribu_interest_s *ccn_iribu_mkInterestObject(struct ccn_iribu_prefix_s *name,
+                                                        ccn_iribu_interest_opts_u *opts);
 
-struct ccn_iribu_interest_s *
-ccn_iribu_mkInterestObject(struct ccn_iribu_prefix_s *name, ccn_iribu_interest_opts_u *opts);
+struct ccn_iribu_buf_s *ccn_iribu_mkSimpleInterest(struct ccn_iribu_prefix_s *name,
+                                                   ccn_iribu_interest_opts_u *opts);
 
-struct ccn_iribu_buf_s*
-ccn_iribu_mkSimpleInterest(struct ccn_iribu_prefix_s *name, ccn_iribu_interest_opts_u *opts);
-
-int8_t
-ccn_iribu_mkInterest(struct ccn_iribu_prefix_s *name, ccn_iribu_interest_opts_u *opts,
-                uint8_t *tmp, uint8_t *tmpend, size_t *len, size_t *offs);
+int8_t ccn_iribu_mkInterest(struct ccn_iribu_prefix_s *name,
+                            ccn_iribu_interest_opts_u *opts, uint8_t *tmp,
+                            uint8_t *tmpend, size_t *len, size_t *offs);
 
 #endif
 
-#endif //CCN_IRIBU_PKT_BUILDER
+#endif    // CCN_IRIBU_PKT_BUILDER

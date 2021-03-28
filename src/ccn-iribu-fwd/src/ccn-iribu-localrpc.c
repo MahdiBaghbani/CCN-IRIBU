@@ -22,95 +22,93 @@
 
 #ifdef USE_SUITE_LOCALRPC
 
-#include "ccn-iribu-localrpc.h"
+#    include "ccn-iribu-localrpc.h"
 
-#include <string.h>
-#include <stdio.h>
-#include <time.h> 
+#    include <stdio.h>
+#    include <string.h>
+#    include <time.h>
 
-#include "ccn-iribu-os-time.h"
-#include "ccn-iribu-fwd.h"
-#include "ccn-iribu-malloc.h"
+#    include "ccn-iribu-fwd.h"
+#    include "ccn-iribu-malloc.h"
+#    include "ccn-iribu-os-time.h"
 
-#include "ccn-iribu-pkt-localrpc.h"
-#include "ccn-iribu-pkt-ccnb.h"
-#include "ccn-iribu-pkt-ccntlv.h"
-#include "ccn-iribu-pkt-ndntlv.h"
-#include "ccn-iribu-pkt-switch.h"
+#    include "ccn-iribu-pkt-ccnb.h"
+#    include "ccn-iribu-pkt-ccntlv.h"
+#    include "ccn-iribu-pkt-localrpc.h"
+#    include "ccn-iribu-pkt-ndntlv.h"
+#    include "ccn-iribu-pkt-switch.h"
 
-#include "ccn-iribu-logging.h"
+#    include "ccn-iribu-logging.h"
 
-
-#ifdef CCN_IRIBU_ARDUINO
+#    ifdef CCN_IRIBU_ARDUINO
 static const char compile_string[] PROGMEM = ""
-#else
+#    else
 static const char *compile_string = ""
-#endif
+#    endif
 
-#ifdef USE_CCNxDIGEST
-        "CCNxDIGEST, "
-#endif
-#ifdef USE_DEBUG
-        "DEBUG, "
-#endif
-#ifdef USE_DEBUG_MALLOC
-        "DEBUG_MALLOC, "
-#endif
-#ifdef USE_ECHO
-        "ECHO, "
-#endif
-#ifdef USE_LINKLAYER
-        "ETHERNET, "
-#endif
-#ifdef USE_WPAN
-        "WPAN, "
-#endif
-#ifdef USE_FRAG
-        "FRAG, "
-#endif
-#ifdef USE_HMAC256
-        "HMAC256, "
-#endif
-#ifdef USE_HTTP_STATUS
-        "HTTP_STATUS, "
-#endif
-#ifdef USE_KITE
-        "KITE, "
-#endif
-#ifdef USE_LOGGING
-        "LOGGING, "
-#endif
-#ifdef USE_MGMT
-        "MGMT, "
-#endif
-#ifdef USE_SCHEDULER
-        "SCHEDULER, "
-#endif
-#ifdef USE_SIGNATURES
-        "SIGNATURES, "
-#endif
-#ifdef USE_SUITE_CCNB
-        "SUITE_CCNB, "
-#endif
-#ifdef USE_SUITE_CCNTLV
-        "SUITE_CCNTLV, "
-#endif
-#ifdef USE_SUITE_LOCALRPC
-        "SUITE_LOCALRPC, "
-#endif
-#ifdef USE_SUITE_NDNTLV
-        "SUITE_NDNTLV, "
-#endif
-#ifdef USE_UNIXSOCKET
-        "UNIXSOCKET, "
-#endif
-        ;
-
+#    ifdef USE_CCNxDIGEST
+                                             "CCNxDIGEST, "
+#    endif
+#    ifdef USE_DEBUG
+                                             "DEBUG, "
+#    endif
+#    ifdef USE_DEBUG_MALLOC
+                                             "DEBUG_MALLOC, "
+#    endif
+#    ifdef USE_ECHO
+                                             "ECHO, "
+#    endif
+#    ifdef USE_LINKLAYER
+                                             "ETHERNET, "
+#    endif
+#    ifdef USE_WPAN
+                                             "WPAN, "
+#    endif
+#    ifdef USE_FRAG
+                                             "FRAG, "
+#    endif
+#    ifdef USE_HMAC256
+                                             "HMAC256, "
+#    endif
+#    ifdef USE_HTTP_STATUS
+                                             "HTTP_STATUS, "
+#    endif
+#    ifdef USE_KITE
+                                             "KITE, "
+#    endif
+#    ifdef USE_LOGGING
+                                             "LOGGING, "
+#    endif
+#    ifdef USE_MGMT
+                                             "MGMT, "
+#    endif
+#    ifdef USE_SCHEDULER
+                                             "SCHEDULER, "
+#    endif
+#    ifdef USE_SIGNATURES
+                                             "SIGNATURES, "
+#    endif
+#    ifdef USE_SUITE_CCNB
+                                             "SUITE_CCNB, "
+#    endif
+#    ifdef USE_SUITE_CCNTLV
+                                             "SUITE_CCNTLV, "
+#    endif
+#    ifdef USE_SUITE_LOCALRPC
+                                             "SUITE_LOCALRPC, "
+#    endif
+#    ifdef USE_SUITE_NDNTLV
+                                             "SUITE_NDNTLV, "
+#    endif
+#    ifdef USE_UNIXSOCKET
+                                             "UNIXSOCKET, "
+#    endif
+    ;
 
 int ccn_iribu_rdr_dump(int lev, struct rdr_ds_s *x)
 {
     int i, t;
-    char *n; //, tmp[20];
+    char *n;    //, tmp[20];
 
     t = ccn_iribu_rdr_getType(x);
     if (t < LRPC_NOT_SERIALIZED)
@@ -123,27 +121,38 @@ int ccn_iribu_rdr_dump(int lev, struct rdr_ds_s *x)
     */
     switch (t) {
     case LRPC_PT_REQUEST:
-        n = "REQ"; break;
+        n = "REQ";
+        break;
     case LRPC_PT_REPLY:
-        n = "REP"; break;
+        n = "REP";
+        break;
     case LRPC_APPLICATION:
-        n = "APP"; break;
+        n = "APP";
+        break;
     case LRPC_LAMBDA:
-        n = "LBD"; break;
+        n = "LBD";
+        break;
     case LRPC_SEQUENCE:
-        n = "SEQ"; break;
+        n = "SEQ";
+        break;
     case LRPC_FLATNAME:
-        n = "VAR"; break;
+        n = "VAR";
+        break;
     case LRPC_NONNEGINT:
-        n = "INT"; break;
+        n = "INT";
+        break;
     case LRPC_BIN:
-        n = "BIN"; break;
+        n = "BIN";
+        break;
     case LRPC_STR:
-        n = "STR"; break;
+        n = "STR";
+        break;
     case LRPC_NONCE:
-        n = "NCE"; break;
+        n = "NCE";
+        break;
     default:
-        n = "???"; break;
+        n = "???";
+        break;
     }
     for (i = 0; i < lev; i++)
         fprintf(stderr, "  ");
@@ -156,10 +165,10 @@ int ccn_iribu_rdr_dump(int lev, struct rdr_ds_s *x)
     case LRPC_PT_REQUEST:
     case LRPC_PT_REPLY:
     case LRPC_APPLICATION:
-        ccn_iribu_rdr_dump(lev+1, x->u.fct);
+        ccn_iribu_rdr_dump(lev + 1, x->u.fct);
         break;
     case LRPC_LAMBDA:
-        ccn_iribu_rdr_dump(lev+1, x->u.lambdavar);
+        ccn_iribu_rdr_dump(lev + 1, x->u.lambdavar);
         break;
     case LRPC_SEQUENCE:
         break;
@@ -173,7 +182,7 @@ int ccn_iribu_rdr_dump(int lev, struct rdr_ds_s *x)
     }
     x = x->aux;
     while (x) {
-        ccn_iribu_rdr_dump(lev+1, x);
+        ccn_iribu_rdr_dump(lev + 1, x);
         x = x->nextinseq;
     }
     return 0;
@@ -181,10 +190,9 @@ int ccn_iribu_rdr_dump(int lev, struct rdr_ds_s *x)
 
 // ----------------------------------------------------------------------
 
-int8_t
-ccn_iribu_emit_RpcReturn(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-                    struct rdr_ds_s *nonce, int rc, char *reason,
-                    struct rdr_ds_s *content)
+int8_t ccn_iribu_emit_RpcReturn(struct ccn_iribu_relay_s *relay,
+                                struct ccn_iribu_face_s *from, struct rdr_ds_s *nonce,
+                                int rc, char *reason, struct rdr_ds_s *content)
 {
 
     struct ccn_iribu_buf_s *pkt;
@@ -192,7 +200,7 @@ ccn_iribu_emit_RpcReturn(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_
     size_t len = 0, switchlen = 0;
     unsigned char tmp[10];
 
-    len = strlen(reason) + 50; // add some headroom
+    len = strlen(reason) + 50;    // add some headroom
     if (content) {
         if (ccn_iribu_rdr_getFlatLen(content, &len)) {
             return -1;
@@ -204,8 +212,8 @@ ccn_iribu_emit_RpcReturn(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_
     }
 
     // we build a sequence, and later change the type in the flattened bytes
-    seq = ccn_iribu_rdr_mkSeq();
-    element = ccn_iribu_rdr_mkNonce((uint8_t*)nonce->aux, nonce->u.binlen);
+    seq     = ccn_iribu_rdr_mkSeq();
+    element = ccn_iribu_rdr_mkNonce((uint8_t *) nonce->aux, nonce->u.binlen);
     ccn_iribu_rdr_seqAppend(seq, element);
     element = ccn_iribu_rdr_mkNonNegInt((uint64_t) rc);
     ccn_iribu_rdr_seqAppend(seq, element);
@@ -224,18 +232,18 @@ ccn_iribu_emit_RpcReturn(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_
 
     memcpy(pkt->data, tmp + len, switchlen);
 
-    if (ccn_iribu_rdr_serialize(seq, pkt->data + switchlen,
-                           pkt->datalen - switchlen, &len)) {
+    if (ccn_iribu_rdr_serialize(seq, pkt->data + switchlen, pkt->datalen - switchlen,
+                                &len)) {
         ccn_iribu_rdr_free(seq);
         ccn_iribu_free(pkt);
         return -1;
     }
     ccn_iribu_rdr_free(seq);
 
-//    fprintf(stderr, "%d bytes to return face=%p\n", len, from);
+    //    fprintf(stderr, "%d bytes to return face=%p\n", len, from);
 
     *(pkt->data + switchlen) = LRPC_PT_REPLY;
-    pkt->datalen = switchlen + len;
+    pkt->datalen             = switchlen + len;
     ccn_iribu_face_enqueue(relay, from, pkt);
 
     return 0;
@@ -243,15 +251,15 @@ ccn_iribu_emit_RpcReturn(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_
 
 // ----------------------------------------------------------------------
 
-
-struct rpc_exec_s* rpc_exec_new(void)
+struct rpc_exec_s *rpc_exec_new(void)
 {
     return ccn_iribu_calloc(1, sizeof(struct rpc_exec_s));
 }
 
 void rpc_exec_free(struct rpc_exec_s *exec)
 {
-    if (!exec) return;
+    if (!exec)
+        return;
     if (exec->ostack)
         ccn_iribu_rdr_free(exec->ostack);
     ccn_iribu_free(exec);
@@ -259,13 +267,11 @@ void rpc_exec_free(struct rpc_exec_s *exec)
 
 // ----------------------------------------------------------------------
 
-int
-rpc_syslog(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-           struct rdr_ds_s *nonce, struct rpc_exec_s *exec,
-           struct rdr_ds_s *param)
+int rpc_syslog(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
+               struct rdr_ds_s *nonce, struct rpc_exec_s *exec, struct rdr_ds_s *param)
 {
     DEBUGMSG(DEBUG, "rpc_syslog\n");
-    (void)exec;
+    (void) exec;
     if (ccn_iribu_rdr_getType(param) == LRPC_STR) {
         char *cp = ccn_iribu_malloc(param->u.strlen + 1);
         memcpy(cp, param->aux, param->u.strlen);
@@ -275,31 +281,28 @@ rpc_syslog(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
         ccn_iribu_emit_RpcReturn(relay, from, nonce, 200, "ok", NULL);
     } else {
         DEBUGMSG(DEBUG, "rpc_syslog: unknown param type\n");
-        ccn_iribu_emit_RpcReturn(relay, from, nonce,
-                            415, "rpc_syslog: unknown param type", NULL);
+        ccn_iribu_emit_RpcReturn(relay, from, nonce, 415,
+                                 "rpc_syslog: unknown param type", NULL);
     }
     return 0;
 }
 
-int
-rpc_cacheAdd(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-             struct rdr_ds_s *nonce, struct rpc_exec_s *exec,
-             struct rdr_ds_s *param)
+int rpc_cacheAdd(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
+                 struct rdr_ds_s *nonce, struct rpc_exec_s *exec, struct rdr_ds_s *param)
 {
     int len, cnt = 0;
     (void) exec;
     DEBUGMSG(DEBUG, "rpc_cacheAdd\n");
 
     if (!ccn_iribu_is_local_addr(&from->peer)) {
-        ccn_iribu_emit_RpcReturn(relay, from, nonce,
-                            403, "invalid access: non-local address", NULL);
+        ccn_iribu_emit_RpcReturn(relay, from, nonce, 403,
+                                 "invalid access: non-local address", NULL);
         return 0;
     }
 
     while (param) {
         if (ccn_iribu_rdr_getType(param) != LRPC_BIN) {
-            ccn_iribu_emit_RpcReturn(relay, from, nonce,
-                                415, "invalid or no data", NULL);
+            ccn_iribu_emit_RpcReturn(relay, from, nonce, 415, "invalid or no data", NULL);
             return 0;
         }
         /*
@@ -315,23 +318,22 @@ rpc_cacheAdd(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
         cnt++;
         param = param->nextinseq;
     }
-    ccn_iribu_emit_RpcReturn(relay, from, nonce,
-                        415, "rpc_cacheAdd: not implemented yet", NULL);
+    ccn_iribu_emit_RpcReturn(relay, from, nonce, 415, "rpc_cacheAdd: not implemented yet",
+                             NULL);
     return 0;
 }
 
-int
-rpc_cacheRemove(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-                struct rdr_ds_s *nonce, struct rpc_exec_s *exec,
-                struct rdr_ds_s *param)
+int rpc_cacheRemove(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
+                    struct rdr_ds_s *nonce, struct rpc_exec_s *exec,
+                    struct rdr_ds_s *param)
 {
     int cnt = 0;
-    (void)exec;
+    (void) exec;
     DEBUGMSG(DEBUG, "rpc_cacheRemove\n");
 
     if (!ccn_iribu_is_local_addr(&from->peer)) {
-        ccn_iribu_emit_RpcReturn(relay, from, nonce,
-                            403, "invalid access: non-local address", NULL);
+        ccn_iribu_emit_RpcReturn(relay, from, nonce, 403,
+                                 "invalid access: non-local address", NULL);
         return 0;
     }
 
@@ -341,21 +343,20 @@ rpc_cacheRemove(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
         struct ccn_iribu_prefix_s *prefix;
 
         if (ccn_iribu_rdr_getType(param) != LRPC_FLATNAME) {
-            ccn_iribu_emit_RpcReturn(relay, from, nonce,
-                                415, "rpc_cacheRemove: invalid name", NULL);
+            ccn_iribu_emit_RpcReturn(relay, from, nonce, 415,
+                                     "rpc_cacheRemove: invalid name", NULL);
             return 0;
         }
         p = ccn_iribu_malloc(param->u.strlen + 1);
         memcpy(p, param->aux, param->u.strlen);
         p[param->u.strlen] = '\0';
-        prefix = ccn_iribu_URItoPrefix(p, CCN_IRIBU_SUITE_DEFAULT, NULL);
+        prefix             = ccn_iribu_URItoPrefix(p, CCN_IRIBU_SUITE_DEFAULT, NULL);
 
         while (c) {
             if (!ccn_iribu_prefix_cmp(c->pkt->pfx, NULL, prefix, CMP_EXACT)) {
                 struct ccn_iribu_content_s *tmp = c->next;
                 ccn_iribu_content_remove(relay, c);
-                DEBUGMSG(DEBUG, "content %s removed\n",
-                         ccn_iribu_prefix_to_path(prefix));
+                DEBUGMSG(DEBUG, "content %s removed\n", ccn_iribu_prefix_to_path(prefix));
                 cnt++;
                 c = tmp;
             } else
@@ -376,76 +377,74 @@ rpc_cacheRemove(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
     return 0;
 }
 
-int
-rpc_forward(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-            struct rdr_ds_s *nonce, struct rpc_exec_s *exec,
-            struct rdr_ds_s *param)
+int rpc_forward(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
+                struct rdr_ds_s *nonce, struct rpc_exec_s *exec, struct rdr_ds_s *param)
 {
     int encoding;
     size_t len;
     char *cp;
     unsigned char *ucp;
-    (void)exec;
+    (void) exec;
     DEBUGMSG(DEBUG, "rpc_forward\n");
 
     if (ccn_iribu_rdr_getType(param) != LRPC_FLATNAME) {
-        ccn_iribu_emit_RpcReturn(relay, from, nonce,
-                            415, "rpc_forward: expected encoding name", NULL);
+        ccn_iribu_emit_RpcReturn(relay, from, nonce, 415,
+                                 "rpc_forward: expected encoding name", NULL);
         return 0;
     }
 
     cp = ccn_iribu_malloc(param->u.namelen + 1);
     memcpy(cp, param->aux, param->u.namelen);
     cp[param->u.namelen] = '\0';
-#ifdef CCN_IRIBU_SUITE_CCNB
+#    ifdef CCN_IRIBU_SUITE_CCNB
     if (!strcmp(cp, "/rpc/const/encoding/ccnb"))
         encoding = CCN_IRIBU_SUITE_CCNB;
     else
-#endif
-#ifdef CCN_IRIBU_SUITE_CCNTLV
-    if (!strcmp(cp, "/rpc/const/encoding/ccnx2014"))
+#    endif
+#    ifdef CCN_IRIBU_SUITE_CCNTLV
+        if (!strcmp(cp, "/rpc/const/encoding/ccnx2014"))
         encoding = CCN_IRIBU_SUITE_CCNTLV;
     else
-#endif
-#ifdef CCN_IRIBU_SUITE_NDNTLV
-    if (!strcmp(cp,      "/rpc/const/encoding/ndn2013"))
+#    endif
+#    ifdef CCN_IRIBU_SUITE_NDNTLV
+        if (!strcmp(cp, "/rpc/const/encoding/ndn2013"))
         encoding = CCN_IRIBU_SUITE_NDNTLV;
     else
-#endif
+#    endif
         encoding = -1;
     ccn_iribu_free(cp);
 
     if (encoding < 0) {
-        ccn_iribu_emit_RpcReturn(relay, from, nonce,
-                            415, "rpc_forward: no such encoding", NULL);
+        ccn_iribu_emit_RpcReturn(relay, from, nonce, 415, "rpc_forward: no such encoding",
+                                 NULL);
         return 0;
     }
     while (param->nextinseq) {
         param = param->nextinseq;
         if (ccn_iribu_rdr_getType(param) != LRPC_BIN) {
-            ccn_iribu_emit_RpcReturn(relay, from, nonce,
-                                415, "rpc_forward: invalid or no data", NULL);
+            ccn_iribu_emit_RpcReturn(relay, from, nonce, 415,
+                                     "rpc_forward: invalid or no data", NULL);
             return 0;
         }
 
-        ucp = (unsigned char*) param->aux;
+        ucp = (unsigned char *) param->aux;
         len = param->u.binlen;
-        switch(encoding) {
-#ifdef USE_SUITE_CCNB
+        switch (encoding) {
+#    ifdef USE_SUITE_CCNB
         case CCN_IRIBU_SUITE_CCNB:
             ccn_iribu_ccnb_forwarder(relay, from, &ucp, &len);
             break;
-#endif
-#ifdef USE_SUITE_CCNTLV
+#    endif
+#    ifdef USE_SUITE_CCNTLV
         case CCN_IRIBU_SUITE_CCNTLV:
             ccn_iribu_ccntlv_forwarder(relay, from, &ucp, &len);
             break;
-#endif
-#ifdef USE_SUITE_NDNTLV
+#    endif
+#    ifdef USE_SUITE_NDNTLV
         case CCN_IRIBU_SUITE_NDNTLV:
             ccn_iribu_ndntlv_forwarder(relay, from, &ucp, &len);
             break;
-#endif
+#    endif
         default:
             break;
         }
@@ -453,54 +452,48 @@ rpc_forward(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
     return 0;
 }
 
-int
-rpc_lookup(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-           struct rdr_ds_s *nonce, struct rpc_exec_s *exec,
-           struct rdr_ds_s *param)
+int rpc_lookup(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
+               struct rdr_ds_s *nonce, struct rpc_exec_s *exec, struct rdr_ds_s *param)
 {
     DEBUGMSG(DEBUG, "rpc_lookup\n");
-    (void)exec;
+    (void) exec;
     if (ccn_iribu_rdr_getType(param) == LRPC_FLATNAME) {
-        char *cp = ccn_iribu_malloc(param->u.namelen + 1);
+        char *cp             = ccn_iribu_malloc(param->u.namelen + 1);
         struct rdr_ds_s *val = 0;
         memcpy(cp, param->aux, param->u.namelen);
         cp[param->u.namelen] = '\0';
         if (!strcmp(cp, "/rpc/config/compileString")) {
-          val = ccn_iribu_rdr_mkStr((char*)compile_string);
+            val = ccn_iribu_rdr_mkStr((char *) compile_string);
         } else if (!strcmp(cp, "/rpc/config/localTime")) {
-            time_t t = time(NULL);
-            char *p = ctime(&t);
+            time_t t         = time(NULL);
+            char *p          = ctime(&t);
             p[strlen(p) - 1] = '\0';
-            val = ccn_iribu_rdr_mkStr(p);
+            val              = ccn_iribu_rdr_mkStr(p);
         }
         ccn_iribu_free(cp);
         if (val)
             ccn_iribu_emit_RpcReturn(relay, from, nonce, 200, "ok", val);
         else
-            ccn_iribu_emit_RpcReturn(relay, from, nonce,
-                            415, "rpc_lookup: no such variable", NULL);
+            ccn_iribu_emit_RpcReturn(relay, from, nonce, 415,
+                                     "rpc_lookup: no such variable", NULL);
     } else {
-        ccn_iribu_emit_RpcReturn(relay, from, nonce,
-                            415, "rpc_lookup: not a variable name", NULL);
+        ccn_iribu_emit_RpcReturn(relay, from, nonce, 415,
+                                 "rpc_lookup: not a variable name", NULL);
     }
     return 0;
 }
 
-
 struct x_s {
     char *name;
     rpcBuiltinFct *fct;
-} builtin[] = {
-    {"/rpc/builtin/cache/add",    rpc_cacheAdd},
-    {"/rpc/builtin/cache/remove", rpc_cacheRemove},
-    {"/rpc/builtin/forward",      rpc_forward},
-    {"/rpc/builtin/lookup",       rpc_lookup},
-    {"/rpc/builtin/syslog",       rpc_syslog},
-    {NULL, NULL}
-};
+} builtin[] = {{"/rpc/builtin/cache/add", rpc_cacheAdd},
+               {"/rpc/builtin/cache/remove", rpc_cacheRemove},
+               {"/rpc/builtin/forward", rpc_forward},
+               {"/rpc/builtin/lookup", rpc_lookup},
+               {"/rpc/builtin/syslog", rpc_syslog},
+               {NULL, NULL}};
 
-rpcBuiltinFct*
-rpc_getBuiltinFct(struct rdr_ds_s *var)
+rpcBuiltinFct *rpc_getBuiltinFct(struct rdr_ds_s *var)
 {
     struct x_s *x = builtin;
 
@@ -515,30 +508,28 @@ rpc_getBuiltinFct(struct rdr_ds_s *var)
     return NULL;
 }
 
-int
-ccn_iribu_localrpc_handleReply(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-                           struct rdr_ds_s *aux)
+int ccn_iribu_localrpc_handleReply(struct ccn_iribu_relay_s *relay,
+                                   struct ccn_iribu_face_s *from, struct rdr_ds_s *aux)
 {
     (void) relay;
     (void) from;
-    DEBUGMSG(DEBUG, "ccn_iribu_localrpc_handleReply %d %d\n",
-             ccn_iribu_rdr_getType(aux), ccn_iribu_rdr_getType(aux->nextinseq));
+    DEBUGMSG(DEBUG, "ccn_iribu_localrpc_handleReply %d %d\n", ccn_iribu_rdr_getType(aux),
+             ccn_iribu_rdr_getType(aux->nextinseq));
 
     return 0;
 }
 
-int
-ccn_iribu_localrpc_handleRequest(struct ccn_iribu_relay_s *relay,
-                            struct ccn_iribu_face_s *from,
-//                            struct rdr_ds_s *fexpr, struct rdr_ds_s *args)
-                            struct rdr_ds_s *req)
+int ccn_iribu_localrpc_handleRequest(
+    struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
+    //                            struct rdr_ds_s *fexpr, struct rdr_ds_s *args)
+    struct rdr_ds_s *req)
 {
     struct rdr_ds_s *nonce, *fexpr;
     struct rpc_exec_s *exec;
     int ftype, ntype, rc = -1;
     rpcBuiltinFct *fct;
 
-    DEBUGMSG(DEBUG, "ccn_iribu_localrpc_handleRequest face=%p\n", (void*) from);
+    DEBUGMSG(DEBUG, "ccn_iribu_localrpc_handleRequest face=%p\n", (void *) from);
 
     nonce = req->aux;
     if (!nonce)
@@ -549,15 +540,14 @@ ccn_iribu_localrpc_handleRequest(struct ccn_iribu_relay_s *relay,
 
     if (ntype != LRPC_NONCE || ftype != LRPC_APPLICATION) {
         DEBUGMSG(DEBUG, " malformed RPC request (%02x %02x)\n", ntype, ftype);
-        ccn_iribu_emit_RpcReturn(relay, from, nonce,
-                            404, "malformed RPC request", NULL);
+        ccn_iribu_emit_RpcReturn(relay, from, nonce, 404, "malformed RPC request", NULL);
         goto done;
     }
     ftype = ccn_iribu_rdr_getType(fexpr->u.fct);
     if (ftype != LRPC_FLATNAME) {
         DEBUGMSG(DEBUG, " (%02x) only constant fct names supported yet\n", ftype);
-        ccn_iribu_emit_RpcReturn(relay, from, nonce,
-                            404, "only constant fct names supported yet", NULL);
+        ccn_iribu_emit_RpcReturn(relay, from, nonce, 404,
+                                 "only constant fct names supported yet", NULL);
         goto done;
     }
     fct = rpc_getBuiltinFct(fexpr->u.fct);
@@ -565,25 +555,24 @@ ccn_iribu_localrpc_handleRequest(struct ccn_iribu_relay_s *relay,
         DEBUGMSG(DEBUG, "  unknown RPC builtin function (type=0x%02x)\n", ftype);
         ccn_iribu_emit_RpcReturn(relay, from, nonce, 501, "unknown function", NULL);
         goto done;
-
     }
     exec = rpc_exec_new();
-    rc = fct(relay, from, nonce, exec, fexpr->aux);
+    rc   = fct(relay, from, nonce, exec, fexpr->aux);
     rpc_exec_free(exec);
 done:
 
     return rc;
 }
- 
-int8_t
-ccn_iribu_localrpc_exec(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-                   uint8_t **buf, size_t *buflen)
+
+int8_t ccn_iribu_localrpc_exec(struct ccn_iribu_relay_s *relay,
+                               struct ccn_iribu_face_s *from, uint8_t **buf,
+                               size_t *buflen)
 {
-    struct rdr_ds_s *a; // , *fct;
+    struct rdr_ds_s *a;    // , *fct;
     int rc = 0, type;
 
     DEBUGMSG(DEBUG, "ccn_iribu_localrpc_exec: %zu bytes from face=%p (id=%d.%d)\n",
-             *buflen, (void*)from, relay->id, from ? from->faceid : -1);
+             *buflen, (void *) from, relay->id, from ? from->faceid : -1);
 
     while (rc == 0 && *buflen > 0) {
         if (**buf && **buf != LRPC_PT_REQUEST && **buf != LRPC_PT_REPLY) {
@@ -609,7 +598,6 @@ ccn_iribu_localrpc_exec(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s
             return -1;
         }
 
-
         /*
         fct = a->u.fct;
         if (ccn_iribu_rdr_getType(fct) == LRPC_NONNEGINT) // RPC return msg
@@ -617,8 +605,8 @@ ccn_iribu_localrpc_exec(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s
         */
 
         if (rc < 0) {
-//          DEBUGMSG(WARNING, "  error processing RPC msg\n");
-//          return rc;
+            //          DEBUGMSG(WARNING, "  error processing RPC msg\n");
+            //          return rc;
         }
         ccn_iribu_rdr_free(a);
         *buf += a->flatlen;
@@ -632,7 +620,7 @@ ccn_iribu_localrpc_exec(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s
     return 0;
 }
 
-#endif //USE_SUITE_LOCALRPC
+#endif    // USE_SUITE_LOCALRPC
 
 /* suppress empty translation unit error */
 typedef int unused_typedef;

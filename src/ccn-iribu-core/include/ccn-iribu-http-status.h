@@ -21,42 +21,39 @@
 
 #ifdef USE_HTTP_STATUS
 
-#include "ccn-iribu-core.h"
-#include "ccn-iribu-sockunion.h"
-#include <time.h>
+#    include "ccn-iribu-core.h"
+#    include "ccn-iribu-sockunion.h"
+#    include <time.h>
 
 struct ccn_iribu_http_s {
-    int server, client; // socket
-    unsigned char in[512], *out; // ring buffers
+    int server, client;             // socket
+    unsigned char in[512], *out;    // ring buffers
     int inoffs, outoffs, inlen, outlen;
 };
 
+struct ccn_iribu_http_s *ccn_iribu_http_new(struct ccn_iribu_relay_s *ccn_iribu,
+                                            int serverport);
 
-struct ccn_iribu_http_s*
-ccn_iribu_http_new(struct ccn_iribu_relay_s *ccn_iribu, int serverport);
+int ccn_iribu_http_status(struct ccn_iribu_relay_s *ccn_iribu,
+                          struct ccn_iribu_http_s *http);
 
-int ccn_iribu_http_status(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_http_s *http);
+struct ccn_iribu_http_s *ccn_iribu_http_cleanup(struct ccn_iribu_http_s *http);
 
-struct ccn_iribu_http_s*
-ccn_iribu_http_cleanup(struct ccn_iribu_http_s *http);
+int ccn_iribu_http_anteselect(struct ccn_iribu_relay_s *ccn_iribu,
+                              struct ccn_iribu_http_s *http, fd_set *readfs,
+                              fd_set *writefs, int *maxfd);
 
-int
-ccn_iribu_http_anteselect(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_http_s *http,
-                     fd_set *readfs, fd_set *writefs, int *maxfd);
+int ccn_iribu_http_postselect(struct ccn_iribu_relay_s *ccn_iribu,
+                              struct ccn_iribu_http_s *http, fd_set *readfs,
+                              fd_set *writefs);
 
-int
-ccn_iribu_http_postselect(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_http_s *http,
-                     fd_set *readfs, fd_set *writefs);
+int ccn_iribu_cmpfaceid(const void *a, const void *b);
 
-int
-ccn_iribu_cmpfaceid(const void *a, const void *b);
+int ccn_iribu_cmpfib(const void *a, const void *b);
 
-int
-ccn_iribu_cmpfib(const void *a, const void *b);
+int ccn_iribu_http_status(struct ccn_iribu_relay_s *ccn_iribu,
+                          struct ccn_iribu_http_s *http);
 
-int
-ccn_iribu_http_status(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_http_s *http);
+#endif    // USE_HTTP_STATUS
 
-#endif //USE_HTTP_STATUS
-
-#endif //CCN_LITE_CCN_IRIBU_HTTP_STATUS_H
+#endif    // CCN_LITE_CCN_IRIBU_HTTP_STATUS_H

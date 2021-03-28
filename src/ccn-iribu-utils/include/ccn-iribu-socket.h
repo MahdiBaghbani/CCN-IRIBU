@@ -20,22 +20,22 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #ifndef CCN_IRIBU_SOCKET_H
-#define CCN_IRIBU_SOCKET_H
+#    define CCN_IRIBU_SOCKET_H
 
-#include <ctype.h>
-#include <getopt.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#    include <ctype.h>
+#    include <getopt.h>
+#    include <stdio.h>
+#    include <stdlib.h>
+#    include <string.h>
+#    include <unistd.h>
 
-#include <sys/types.h>
-#include <sys/select.h>
-#include <sys/socket.h>
-#include <sys/un.h>
+#    include <sys/select.h>
+#    include <sys/socket.h>
+#    include <sys/types.h>
+#    include <sys/un.h>
 
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#    include <arpa/inet.h>
+#    include <netinet/in.h>
 
 void myexit(int rc);
 
@@ -43,15 +43,14 @@ int udp_open(void);
 
 int udp_sendto(int sock, char *dest, unsigned char *data, int len);
 
-
 int ux_open(void);
 
 ssize_t ux_sendto(int sock, char *topath, uint8_t *data, size_t len);
 
 int block_on_read(int sock, float wait);
 
-void request_content(int sock, int (*sendproc)(int,char*,unsigned char*,int),
-                char *dest, unsigned char *out, int len, float wait);
+void request_content(int sock, int (*sendproc)(int, char *, unsigned char *, int),
+                     char *dest, unsigned char *out, int len, float wait);
 
-#endif 
+#endif
 /** @} */

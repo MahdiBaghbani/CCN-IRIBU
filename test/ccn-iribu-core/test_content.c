@@ -16,14 +16,14 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+#include <cmocka.h>
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-#include <cmocka.h>
- 
-#include "ccnl-pkt.h"
-#include "ccnl-malloc.h"
+
 #include "ccnl-content.h"
+#include "ccnl-malloc.h"
+#include "ccnl-pkt.h"
 
 void test_ccnl_content_new_invalid()
 {
@@ -31,15 +31,15 @@ void test_ccnl_content_new_invalid()
     assert_null(content);
 }
 
-void test_ccnl_content_free_invalid() 
+void test_ccnl_content_free_invalid()
 {
-    int result = ccnl_content_free(NULL); 
+    int result = ccnl_content_free(NULL);
     assert_int_equal(result, -1);
 }
 
-void test_ccnl_content_new_valid() 
+void test_ccnl_content_new_valid()
 {
-    struct ccnl_pkt_s *packet = ccnl_malloc(sizeof(struct ccnl_pkt_s));
+    struct ccnl_pkt_s *packet      = ccnl_malloc(sizeof(struct ccnl_pkt_s));
     struct ccnl_content_s *content = ccnl_content_new(&packet);
 
     assert_non_null(content);
@@ -53,17 +53,17 @@ void test_ccnl_content_new_valid()
     assert_int_equal(result, 0);
 }
 
-void test_ccnl_content_free_valid() 
+void test_ccnl_content_free_valid()
 {
-    struct ccnl_pkt_s *packet = ccnl_malloc(sizeof(struct ccnl_pkt_s));
+    struct ccnl_pkt_s *packet      = ccnl_malloc(sizeof(struct ccnl_pkt_s));
     struct ccnl_content_s *content = ccnl_content_new(&packet);
-    
+
     assert_non_null(content);
 
     content->pkt = NULL;
     ccnl_pkt_free(packet);
-    
-    int result = ccnl_content_free(content); 
+
+    int result = ccnl_content_free(content);
     assert_int_equal(result, 0);
 }
 
@@ -75,6 +75,6 @@ int main(void)
         unit_test(test_ccnl_content_free_invalid),
         unit_test(test_ccnl_content_free_valid),
     };
-    
+
     return run_tests(tests);
 }

@@ -18,33 +18,27 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 #ifndef CCN_IRIBU_PKT_UTIL_H
 #define CCN_IRIBU_PKT_UTIL_H
 
 #ifndef CCN_IRIBU_LINUXKERNEL
-#include <stdint.h>
+#    include <stdint.h>
 #else
-#include <linux/types.h>
+#    include <linux/types.h>
 #endif
 #include <stddef.h>
 
 #include "ccn-iribu-pkt.h"
 
-uint8_t
-ccn_iribu_isSuite(int suite);
+uint8_t ccn_iribu_isSuite(int suite);
 
-int
-ccn_iribu_suite2defaultPort(int suite);
+int ccn_iribu_suite2defaultPort(int suite);
 
-const char*
-ccn_iribu_suite2str(int suite);
+const char *ccn_iribu_suite2str(int suite);
 
-int
-ccn_iribu_str2suite(char *cp);
+int ccn_iribu_str2suite(char *cp);
 
-int
-ccn_iribu_pkt2suite(uint8_t *data, size_t len, size_t *skip);
+int ccn_iribu_pkt2suite(uint8_t *data, size_t len, size_t *skip);
 
 /**
  * Returns the integer representation of a string
@@ -53,10 +47,10 @@ ccn_iribu_pkt2suite(uint8_t *data, size_t len, size_t *skip);
  * @param[in] cmplen The length of the string
  *
  * @return Upon success returns the converted integral number as a long int value
- * @return Upon failure the function returns 0 (e.g. if no valid conversion could be performed)
+ * @return Upon failure the function returns 0 (e.g. if no valid conversion could be
+ * performed)
  */
-int
-ccn_iribu_cmp2int(unsigned char *cmp, size_t cmplen);
+int ccn_iribu_cmp2int(unsigned char *cmp, size_t cmplen);
 
 /**
  * Returns the Interest lifetime in seconds
@@ -65,7 +59,6 @@ ccn_iribu_cmp2int(unsigned char *cmp, size_t cmplen);
  *
  * @return        The interest lifetime in seconds
  */
-uint64_t
-ccn_iribu_pkt_interest_lifetime(const struct ccn_iribu_pkt_s *pkt);
+uint64_t ccn_iribu_pkt_interest_lifetime(const struct ccn_iribu_pkt_s *pkt);
 
 #endif

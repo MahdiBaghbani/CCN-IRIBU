@@ -21,15 +21,15 @@
  * Define the log level of the CCN-IRIBU stack
  */
 #ifndef LOG_LEVEL
-#define LOG_LEVEL LOG_DEBUG
+#    define LOG_LEVEL LOG_DEBUG
 #endif
 
 #include "log.h"
 
- /**
+/**
  * Closing an interface or socket from CCN-IRIBU
  */
-#define ccn_iribu_close_socket(s)            close(s)
+#define ccn_iribu_close_socket(s) close(s)
 
 /**
  * @name Log levels used by CCN-IRIBU debugging
@@ -52,8 +52,10 @@
  *
  * @{
  */
-#define DEBUGMSG(LVL, ...) do {       \
-        if ((LVL)>debug_level) break;   \
+#define DEBUGMSG(LVL, ...)       \
+    do {                         \
+        if ((LVL) > debug_level) \
+            break;               \
         LOG(LVL, __VA_ARGS__);   \
     } while (0)
 
@@ -62,15 +64,21 @@
 #define DEBUGMSG_CUTL(...) DEBUGMSG(__VA_ARGS__)
 #define DEBUGMSG_PIOT(...) DEBUGMSG(__VA_ARGS__)
 
-#define DEBUGSTMT(LVL, ...) do { \
-        if ((LVL)>debug_level) break; \
-        __VA_ARGS__; \
-     } while (0)
+#define DEBUGSTMT(LVL, ...)      \
+    do {                         \
+        if ((LVL) > debug_level) \
+            break;               \
+        __VA_ARGS__;             \
+    } while (0)
 
-#define TRACEIN(...)                    do {} while(0)
-#define TRACEOUT(...)                   do {} while(0)
+#define TRACEIN(...) \
+    do {             \
+    } while (0)
+#define TRACEOUT(...) \
+    do {              \
+    } while (0)
 /**
  * @}
  */
 
- #endif
+#endif

@@ -20,7 +20,6 @@
  * 2014-03-17  created <christopher.scherb@unibas.ch>
  */
 
-
 #include <ctype.h>
 #include <getopt.h>
 #include <stdio.h>
@@ -28,29 +27,27 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <sys/types.h>
 #include <sys/select.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <sys/un.h>
 
-#include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
 
 #include "ccn-iribu-defs.h"
 #include "ccn-iribu-socket.h"
 
 char *unix_path;
 
-void
-myexit(int rc)
+void myexit(int rc)
 {
     if (unix_path)
         unlink(unix_path);
     exit(rc);
 }
 
-int
-udp_open()
+int udp_open()
 {
     int s;
     struct sockaddr_in si;
@@ -61,9 +58,9 @@ udp_open()
         exit(1);
     }
     si.sin_addr.s_addr = INADDR_ANY;
-    si.sin_port = htons(0);
-    si.sin_family = PF_INET;
-    if (bind(s, (struct sockaddr *)&si, sizeof(si)) < 0) {
+    si.sin_port        = htons(0);
+    si.sin_family      = PF_INET;
+    if (bind(s, (struct sockaddr *) &si, sizeof(si)) < 0) {
         perror("udp sock bind");
         exit(1);
     }
@@ -71,24 +68,22 @@ udp_open()
     return s;
 }
 
-int
-udp_sendto(int sock, char *dest, unsigned char *data, int len)
+int udp_sendto(int sock, char *dest, unsigned char *data, int len)
 {
     struct sockaddr_in dst;
     char buf[256];
     strncpy(buf, dest, sizeof(buf));
 
-    dst.sin_family = PF_INET;
+    dst.sin_family      = PF_INET;
     dst.sin_addr.s_addr = inet_addr(strtok(buf, "/"));
-    dst.sin_port = htons((int)strtol(strtok(NULL, "/"), (char**)NULL, 10));
+    dst.sin_port        = htons((int) strtol(strtok(NULL, "/"), (char **) NULL, 10));
 
-    return sendto(sock, data, len, 0, (struct sockaddr*) &dst, sizeof(dst));
+    return sendto(sock, data, len, 0, (struct sockaddr *) &dst, sizeof(dst));
 }
 
 // ----------------------------------------------------------------------
 
-int
-ux_open()
+int ux_open()
 {
     static char mysockname[200];
     int sock, bufsize;
@@ -104,8 +99,7 @@ ux_open()
     }
     name.sun_family = AF_UNIX;
     strncpy(name.sun_path, mysockname, sizeof(name.sun_path));
-    if (bind(sock, (struct sockaddr *) &name,
-             sizeof(struct sockaddr_un))) {
+    if (bind(sock, (struct sockaddr *) &name, sizeof(struct sockaddr_un))) {
         perror("binding path name to datagram socket");
         exit(1);
     }
@@ -118,22 +112,20 @@ ux_open()
     return sock;
 }
 
-ssize_t
-ux_sendto(int sock, char *topath, uint8_t *data, size_t len)
+ssize_t ux_sendto(int sock, char *topath, uint8_t *data, size_t len)
 {
     struct sockaddr_un name;
 
     name.sun_family = AF_UNIX;
     strncpy(name.sun_path, topath, sizeof(name.sun_path));
 
-    return sendto(sock, data, len, 0, (struct sockaddr*) &name,
+    return sendto(sock, data, len, 0, (struct sockaddr *) &name,
                   sizeof(struct sockaddr_un));
 }
 
 // ----------------------------------------------------------------------
 
-int
-block_on_read(int sock, float wait)
+int block_on_read(int sock, float wait)
 {
     fd_set readfs;
     struct timeval timeout;
@@ -141,19 +133,18 @@ block_on_read(int sock, float wait)
 
     FD_ZERO(&readfs);
     FD_SET(sock, &readfs);
-    timeout.tv_sec = wait;
+    timeout.tv_sec  = wait;
     timeout.tv_usec = 1000000.0 * (wait - timeout.tv_sec);
-    rc = select(sock+1, &readfs, NULL, NULL, &timeout);
+    rc              = select(sock + 1, &readfs, NULL, NULL, &timeout);
     if (rc < 0)
         perror("select()");
     return rc;
 }
 
-void
-request_content(int sock, int (*sendproc)(int,char*,unsigned char*,int),
-                char *dest, unsigned char *out, int len, float wait)
+void request_content(int sock, int (*sendproc)(int, char *, unsigned char *, int),
+                     char *dest, unsigned char *out, int len, float wait)
 {
-    unsigned char buf[64*1024];
+    unsigned char buf[64 * 1024];
     int len2 = sendproc(sock, dest, out, len), rc;
 
     if (len2 < 0) {

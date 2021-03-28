@@ -19,51 +19,49 @@
  * 2017-06-20 created
  */
 #ifndef CCN_IRIBU_LINUXKERNEL
-#include "ccn-iribu-dispatch.h"
+#    include "ccn-iribu-dispatch.h"
 
-#include "ccn-iribu-os-time.h"
+#    include "ccn-iribu-os-time.h"
 
-#include "ccn-iribu-localrpc.h"
+#    include "ccn-iribu-localrpc.h"
 
-#include "ccn-iribu-relay.h"
-#include "ccn-iribu-pkt-util.h"
+#    include "ccn-iribu-pkt-util.h"
+#    include "ccn-iribu-relay.h"
 
-#include "ccn-iribu-fwd.h"
+#    include "ccn-iribu-fwd.h"
 
-#include "ccn-iribu-pkt-ccnb.h"
-#include "ccn-iribu-pkt-ccntlv.h"
-#include "ccn-iribu-pkt-ndntlv.h"
-#include "ccn-iribu-pkt-switch.h"
-#include "ccn-iribu-pkt-localrpc.h"
+#    include "ccn-iribu-pkt-ccnb.h"
+#    include "ccn-iribu-pkt-ccntlv.h"
+#    include "ccn-iribu-pkt-localrpc.h"
+#    include "ccn-iribu-pkt-ndntlv.h"
+#    include "ccn-iribu-pkt-switch.h"
 
-#include "ccn-iribu-logging.h"
+#    include "ccn-iribu-logging.h"
 #else
-#include "../include/ccn-iribu-dispatch.h"
+#    include "../include/ccn-iribu-dispatch.h"
 
-#include "../../ccn-iribu-core/include/ccn-iribu-os-time.h"
+#    include "../../ccn-iribu-core/include/ccn-iribu-os-time.h"
 
-#include "../include/ccn-iribu-localrpc.h"
+#    include "../include/ccn-iribu-localrpc.h"
 
-#include "../../ccn-iribu-core/include/ccn-iribu-relay.h"
-#include "../../ccn-iribu-core/include/ccn-iribu-pkt-util.h"
+#    include "../../ccn-iribu-core/include/ccn-iribu-pkt-util.h"
+#    include "../../ccn-iribu-core/include/ccn-iribu-relay.h"
 
-#include "../include/ccn-iribu-fwd.h"
+#    include "../include/ccn-iribu-fwd.h"
 
-#include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ccnb.h"
-#include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ccntlv.h"
-#include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ndntlv.h"
-#include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-switch.h"
-#include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-localrpc.h"
+#    include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ccnb.h"
+#    include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ccntlv.h"
+#    include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-localrpc.h"
+#    include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ndntlv.h"
+#    include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-switch.h"
 
-#include "../../ccn-iribu-core/include/ccn-iribu-logging.h"
+#    include "../../ccn-iribu-core/include/ccn-iribu-logging.h"
 #endif
-
 
 struct ccn_iribu_suite_s ccn_iribu_core_suites[CCN_IRIBU_SUITE_LAST];
 
-void
-ccn_iribu_core_RX(struct ccn_iribu_relay_s *relay, int ifndx, uint8_t *data,
-             size_t datalen, struct sockaddr *sa, size_t addrlen)
+void ccn_iribu_core_RX(struct ccn_iribu_relay_s *relay, int ifndx, uint8_t *data,
+                       size_t datalen, struct sockaddr *sa, size_t addrlen)
 {
     uint8_t *base = data;
     struct ccn_iribu_face_s *from;
@@ -73,7 +71,7 @@ ccn_iribu_core_RX(struct ccn_iribu_relay_s *relay, int ifndx, uint8_t *data,
     dispatchFct dispatch;
     (void) enc;
 
-    (void) base; // silence compiler warning (if USE_DEBUG is not set)
+    (void) base;    // silence compiler warning (if USE_DEBUG is not set)
 
     DEBUGMSG_CORE(DEBUG, "ccn_iribu_core_RX ifndx=%d, %zu bytes\n", ifndx, datalen);
     //    DEBUGMSG_ON(DEBUG, "ccn_iribu_core_RX ifndx=%d, %d bytes\n", ifndx, datalen);
@@ -90,7 +88,7 @@ ccn_iribu_core_RX(struct ccn_iribu_relay_s *relay, int ifndx, uint8_t *data,
         return;
     } else {
         DEBUGMSG_CORE(DEBUG, "  face %d, peer=%s\n", from->faceid,
-                    ccn_iribu_addr2ascii(&from->peer));
+                      ccn_iribu_addr2ascii(&from->peer));
     }
 
     // loop through all packets in the received frame (UDP, Ethernet etc)
@@ -102,15 +100,19 @@ ccn_iribu_core_RX(struct ccn_iribu_relay_s *relay, int ifndx, uint8_t *data,
             suite = ccn_iribu_pkt2suite(data, datalen, &skip);
 
         if (!ccn_iribu_isSuite(suite)) {
-            DEBUGMSG_CORE(WARNING, "?unknown packet format? ccn_iribu_core_RX ifndx=%d, %zu bytes starting with 0x%02x at offset %zd\n",
-                     ifndx, datalen, *data, (data - base));
+            DEBUGMSG_CORE(WARNING,
+                          "?unknown packet format? ccn_iribu_core_RX ifndx=%d, %zu bytes "
+                          "starting with 0x%02x at offset %zd\n",
+                          ifndx, datalen, *data, (data - base));
             return;
         }
 
         dispatch = ccn_iribu_core_suites[suite].RX;
         if (!dispatch) {
-            DEBUGMSG_CORE(ERROR, "Forwarder not initialized or dispatcher "
-                     "for suite %s does not exist.\n", ccn_iribu_suite2str(suite));
+            DEBUGMSG_CORE(ERROR,
+                          "Forwarder not initialized or dispatcher "
+                          "for suite %s does not exist.\n",
+                          ccn_iribu_suite2str(suite));
             return;
         }
         if (dispatch(relay, from, &data, &datalen) < 0) {
@@ -124,23 +126,23 @@ ccn_iribu_core_RX(struct ccn_iribu_relay_s *relay, int ifndx, uint8_t *data,
 
 // ----------------------------------------------------------------------
 
-void
-ccn_iribu_core_init(void)
+void ccn_iribu_core_init(void)
 {
 #ifdef USE_SUITE_CCNB
-    ccn_iribu_core_suites[CCN_IRIBU_SUITE_CCNB].RX         = ccn_iribu_ccnb_forwarder;
-    ccn_iribu_core_suites[CCN_IRIBU_SUITE_CCNB].cMatch     = ccn_iribu_ccnb_cMatch;
+    ccn_iribu_core_suites[CCN_IRIBU_SUITE_CCNB].RX     = ccn_iribu_ccnb_forwarder;
+    ccn_iribu_core_suites[CCN_IRIBU_SUITE_CCNB].cMatch = ccn_iribu_ccnb_cMatch;
 #endif
 #ifdef USE_SUITE_CCNTLV
-    ccn_iribu_core_suites[CCN_IRIBU_SUITE_CCNTLV].RX       = ccn_iribu_ccntlv_forwarder;
-    ccn_iribu_core_suites[CCN_IRIBU_SUITE_CCNTLV].cMatch   = ccn_iribu_ccntlv_cMatch;
+    ccn_iribu_core_suites[CCN_IRIBU_SUITE_CCNTLV].RX     = ccn_iribu_ccntlv_forwarder;
+    ccn_iribu_core_suites[CCN_IRIBU_SUITE_CCNTLV].cMatch = ccn_iribu_ccntlv_cMatch;
 #endif
 #ifdef USE_SUITE_LOCALRPC
-    ccn_iribu_core_suites[CCN_IRIBU_SUITE_LOCALRPC].RX     = ccn_iribu_localrpc_exec;
-    //    ccn_iribu_core_suites[CCN_IRIBU_SUITE_LOCALRPC].cMatch = ccn_iribu_localrpc_cMatch;
+    ccn_iribu_core_suites[CCN_IRIBU_SUITE_LOCALRPC].RX = ccn_iribu_localrpc_exec;
+    //    ccn_iribu_core_suites[CCN_IRIBU_SUITE_LOCALRPC].cMatch =
+    //    ccn_iribu_localrpc_cMatch;
 #endif
 #ifdef USE_SUITE_NDNTLV
-    ccn_iribu_core_suites[CCN_IRIBU_SUITE_NDNTLV].RX       = ccn_iribu_ndntlv_forwarder;
-    ccn_iribu_core_suites[CCN_IRIBU_SUITE_NDNTLV].cMatch   = ccn_iribu_ndntlv_cMatch;
+    ccn_iribu_core_suites[CCN_IRIBU_SUITE_NDNTLV].RX     = ccn_iribu_ndntlv_forwarder;
+    ccn_iribu_core_suites[CCN_IRIBU_SUITE_NDNTLV].cMatch = ccn_iribu_ndntlv_cMatch;
 #endif
 }

@@ -20,49 +20,46 @@
  * 2017-06-16 created
  */
 
-
 #ifndef CCN_IRIBU_LINUXKERNEL
-#include "ccn-iribu-prefix.h"
-#include "ccn-iribu-pkt-ndntlv.h"
-#include "ccn-iribu-pkt-ccntlv.h"
-#include <string.h>
-#include <stdio.h>
-#include <ctype.h>
-#if !defined(CCN_IRIBU_RIOT) && !defined(CCN_IRIBU_ANDROID)
-#include <openssl/sha.h>
-#endif // !defined(CCN_IRIBU_RIOT) && !defined(CCN_IRIBU_ANDROID)
-#else //CCN_IRIBU_LINUXKERNEL
-#include "../include/ccn-iribu-prefix.h"
-#include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ndntlv.h"
-#include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ccntlv.h"
+#    include "ccn-iribu-prefix.h"
+#    include "ccn-iribu-pkt-ccntlv.h"
+#    include "ccn-iribu-pkt-ndntlv.h"
+#    include <ctype.h>
+#    include <stdio.h>
+#    include <string.h>
+#    if !defined(CCN_IRIBU_RIOT) && !defined(CCN_IRIBU_ANDROID)
+#        include <openssl/sha.h>
+#    endif    // !defined(CCN_IRIBU_RIOT) && !defined(CCN_IRIBU_ANDROID)
+#else         // CCN_IRIBU_LINUXKERNEL
+#    include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ccntlv.h"
+#    include "../../ccn-iribu-pkt/include/ccn-iribu-pkt-ndntlv.h"
+#    include "../include/ccn-iribu-prefix.h"
 
-#endif //CCN_IRIBU_LINUXKERNEL
+#endif    // CCN_IRIBU_LINUXKERNEL
 
-
-struct ccn_iribu_prefix_s*
-ccn_iribu_prefix_new(char suite, uint32_t cnt)
+struct ccn_iribu_prefix_s *ccn_iribu_prefix_new(char suite, uint32_t cnt)
 {
     struct ccn_iribu_prefix_s *p;
 
-    p = (struct ccn_iribu_prefix_s *) ccn_iribu_calloc(1, sizeof(struct ccn_iribu_prefix_s));
-    if (!p){
+    p = (struct ccn_iribu_prefix_s *) ccn_iribu_calloc(1,
+                                                       sizeof(struct ccn_iribu_prefix_s));
+    if (!p) {
         return NULL;
     }
-    p->comp = (uint8_t **) ccn_iribu_malloc(cnt * sizeof(uint8_t*));
+    p->comp    = (uint8_t **) ccn_iribu_malloc(cnt * sizeof(uint8_t *));
     p->complen = (size_t *) ccn_iribu_malloc(cnt * sizeof(size_t));
     if (!p->comp || !p->complen) {
         ccn_iribu_prefix_free(p);
         return NULL;
     }
-    p->compcnt = cnt;
-    p->suite = suite;
+    p->compcnt  = cnt;
+    p->suite    = suite;
     p->chunknum = NULL;
 
     return p;
 }
 
-void
-ccn_iribu_prefix_free(struct ccn_iribu_prefix_s *p)
+void ccn_iribu_prefix_free(struct ccn_iribu_prefix_s *p)
 {
     ccn_iribu_free(p->bytes);
     ccn_iribu_free(p->comp);
@@ -71,25 +68,24 @@ ccn_iribu_prefix_free(struct ccn_iribu_prefix_s *p)
     ccn_iribu_free(p);
 }
 
-struct ccn_iribu_prefix_s*
-ccn_iribu_prefix_dup(struct ccn_iribu_prefix_s *prefix)
+struct ccn_iribu_prefix_s *ccn_iribu_prefix_dup(struct ccn_iribu_prefix_s *prefix)
 {
     uint32_t i = 0;
     size_t len;
     struct ccn_iribu_prefix_s *p;
 
     p = ccn_iribu_prefix_new(prefix->suite, prefix->compcnt);
-    if (!p){
+    if (!p) {
         return NULL;
     }
 
-    p->compcnt = prefix->compcnt;
+    p->compcnt  = prefix->compcnt;
     p->chunknum = prefix->chunknum;
 
     for (i = 0, len = 0; i < prefix->compcnt; i++) {
         len += prefix->complen[i];
     }
-    p->bytes = (unsigned char*) ccn_iribu_malloc(len);
+    p->bytes = (unsigned char *) ccn_iribu_malloc(len);
     if (!p->bytes) {
         ccn_iribu_prefix_free(p);
         return NULL;
@@ -97,27 +93,26 @@ ccn_iribu_prefix_dup(struct ccn_iribu_prefix_s *prefix)
 
     for (i = 0, len = 0; i < prefix->compcnt; i++) {
         p->complen[i] = prefix->complen[i];
-        p->comp[i] = p->bytes + len;
+        p->comp[i]    = p->bytes + len;
         memcpy(p->bytes + len, prefix->comp[i], p->complen[i]);
         len += p->complen[i];
     }
 
     if (prefix->chunknum) {
-        p->chunknum = (uint32_t *) ccn_iribu_malloc(sizeof(uint32_t));
+        p->chunknum  = (uint32_t *) ccn_iribu_malloc(sizeof(uint32_t));
         *p->chunknum = *prefix->chunknum;
     }
 
     return p;
 }
 
-int8_t
-ccn_iribu_prefix_appendCmp(struct ccn_iribu_prefix_s *prefix, uint8_t *cmp,
-                      size_t cmplen)
+int8_t ccn_iribu_prefix_appendCmp(struct ccn_iribu_prefix_s *prefix, uint8_t *cmp,
+                                  size_t cmplen)
 {
-    uint32_t lastcmp = prefix->compcnt, i;
+    uint32_t lastcmp   = prefix->compcnt, i;
     size_t *oldcomplen = prefix->complen;
-    uint8_t **oldcomp = prefix->comp;
-    uint8_t *oldbytes = prefix->bytes;
+    uint8_t **oldcomp  = prefix->comp;
+    uint8_t *oldbytes  = prefix->bytes;
 
     size_t prefixlen = 0;
 
@@ -129,15 +124,16 @@ ccn_iribu_prefix_appendCmp(struct ccn_iribu_prefix_s *prefix, uint8_t *cmp,
     }
 
     prefix->compcnt++;
-    prefix->comp = (uint8_t **) ccn_iribu_malloc(prefix->compcnt * sizeof(unsigned char*));
+    prefix->comp =
+        (uint8_t **) ccn_iribu_malloc(prefix->compcnt * sizeof(unsigned char *));
     if (!prefix->comp) {
         prefix->comp = oldcomp;
         return -1;
     }
-    prefix->complen = (size_t*) ccn_iribu_malloc(prefix->compcnt * sizeof(size_t));
+    prefix->complen = (size_t *) ccn_iribu_malloc(prefix->compcnt * sizeof(size_t));
     if (!prefix->complen) {
         ccn_iribu_free(prefix->comp);
-        prefix->comp = oldcomp;
+        prefix->comp    = oldcomp;
         prefix->complen = oldcomplen;
         return -1;
     }
@@ -145,9 +141,9 @@ ccn_iribu_prefix_appendCmp(struct ccn_iribu_prefix_s *prefix, uint8_t *cmp,
     if (!prefix->bytes) {
         ccn_iribu_free(prefix->comp);
         ccn_iribu_free(prefix->complen);
-        prefix->comp = oldcomp;
+        prefix->comp    = oldcomp;
         prefix->complen = oldcomplen;
-        prefix->bytes = oldbytes;
+        prefix->bytes   = oldbytes;
         return -1;
     }
 
@@ -156,11 +152,11 @@ ccn_iribu_prefix_appendCmp(struct ccn_iribu_prefix_s *prefix, uint8_t *cmp,
 
     prefixlen = 0;
     for (i = 0; i < lastcmp; i++) {
-        prefix->comp[i] = &prefix->bytes[prefixlen];
+        prefix->comp[i]    = &prefix->bytes[prefixlen];
         prefix->complen[i] = oldcomplen[i];
         prefixlen += oldcomplen[i];
     }
-    prefix->comp[lastcmp] = &prefix->bytes[prefixlen];
+    prefix->comp[lastcmp]    = &prefix->bytes[prefixlen];
     prefix->complen[lastcmp] = cmplen;
 
     ccn_iribu_free(oldcomp);
@@ -170,93 +166,91 @@ ccn_iribu_prefix_appendCmp(struct ccn_iribu_prefix_s *prefix, uint8_t *cmp,
     return 0;
 }
 
-// TODO: This function should probably be moved to another file to indicate that it should only be used by application level programs
-// and not in the ccn iribu core. Chunknumbers for NDNTLV are only a convention and there no specification on the packet encoding level.
-int
-ccn_iribu_prefix_addChunkNum(struct ccn_iribu_prefix_s *prefix, uint32_t chunknum)
+// TODO: This function should probably be moved to another file to indicate that it should
+// only be used by application level programs and not in the ccn iribu core. Chunknumbers
+// for NDNTLV are only a convention and there no specification on the packet encoding
+// level.
+int ccn_iribu_prefix_addChunkNum(struct ccn_iribu_prefix_s *prefix, uint32_t chunknum)
 {
     if (chunknum >= 0xff) {
-      DEBUGMSG_CUTL(WARNING, "addChunkNum is only implemented for "
-               "chunknum smaller than 0xff (%lu)\n", (long unsigned) chunknum);
+        DEBUGMSG_CUTL(WARNING,
+                      "addChunkNum is only implemented for "
+                      "chunknum smaller than 0xff (%lu)\n",
+                      (long unsigned) chunknum);
         return -1;
     }
 
-    switch(prefix->suite) {
+    switch (prefix->suite) {
 #ifdef USE_SUITE_NDNTLV
-        case CCN_IRIBU_SUITE_NDNTLV: {
-            uint8_t cmp[2];
-            uint32_t *oldchunknum = prefix->chunknum;
-            cmp[0] = NDN_Marker_SegmentNumber;
-            // TODO: this only works for chunknums smaller than 255
-            cmp[1] = (uint8_t) chunknum;
-            if (ccn_iribu_prefix_appendCmp(prefix, cmp, 2) < 0) {
-                return -1;
-            }
-            prefix->chunknum = (uint32_t *) ccn_iribu_malloc(sizeof(uint32_t));
-            if (!prefix->chunknum) {
-                prefix->chunknum = oldchunknum;
-                return -1;
-            }
-            *prefix->chunknum = chunknum;
-            if (oldchunknum) {
-                ccn_iribu_free(oldchunknum);
-            }
+    case CCN_IRIBU_SUITE_NDNTLV: {
+        uint8_t cmp[2];
+        uint32_t *oldchunknum = prefix->chunknum;
+        cmp[0]                = NDN_Marker_SegmentNumber;
+        // TODO: this only works for chunknums smaller than 255
+        cmp[1] = (uint8_t) chunknum;
+        if (ccn_iribu_prefix_appendCmp(prefix, cmp, 2) < 0) {
+            return -1;
         }
-        break;
+        prefix->chunknum = (uint32_t *) ccn_iribu_malloc(sizeof(uint32_t));
+        if (!prefix->chunknum) {
+            prefix->chunknum = oldchunknum;
+            return -1;
+        }
+        *prefix->chunknum = chunknum;
+        if (oldchunknum) {
+            ccn_iribu_free(oldchunknum);
+        }
+    } break;
 #endif
 
 #ifdef USE_SUITE_CCNTLV
-        case CCN_IRIBU_SUITE_CCNTLV: {
-            uint8_t cmp[5];
-            uint32_t *oldchunknum = prefix->chunknum;
-            cmp[0] = 0;
-            // TODO: this only works for chunknums smaller than 255
-            cmp[1] = CCNX_TLV_N_Chunk;
-            cmp[2] = 0;
-            cmp[3] = 1;
-            cmp[4] = (uint8_t) chunknum;
-            if(ccn_iribu_prefix_appendCmp(prefix, cmp, 5) < 0) {
-                return -1;
-            }
-            prefix->chunknum = (uint32_t *) ccn_iribu_malloc(sizeof(uint32_t));
-            if (!prefix->chunknum) {
-                prefix->chunknum = oldchunknum;
-                return -1;
-            }
-            *prefix->chunknum = chunknum;
-            if (oldchunknum) {
-                ccn_iribu_free(oldchunknum);
-            }
+    case CCN_IRIBU_SUITE_CCNTLV: {
+        uint8_t cmp[5];
+        uint32_t *oldchunknum = prefix->chunknum;
+        cmp[0]                = 0;
+        // TODO: this only works for chunknums smaller than 255
+        cmp[1] = CCNX_TLV_N_Chunk;
+        cmp[2] = 0;
+        cmp[3] = 1;
+        cmp[4] = (uint8_t) chunknum;
+        if (ccn_iribu_prefix_appendCmp(prefix, cmp, 5) < 0) {
+            return -1;
         }
-        break;
+        prefix->chunknum = (uint32_t *) ccn_iribu_malloc(sizeof(uint32_t));
+        if (!prefix->chunknum) {
+            prefix->chunknum = oldchunknum;
+            return -1;
+        }
+        *prefix->chunknum = chunknum;
+        if (oldchunknum) {
+            ccn_iribu_free(oldchunknum);
+        }
+    } break;
 #endif
 
-        default:
-            DEBUGMSG_CUTL(WARNING,
-                     "add chunk number not implemented for suite %d\n",
-                     prefix->suite);
-            return -1;
+    default:
+        DEBUGMSG_CUTL(WARNING, "add chunk number not implemented for suite %d\n",
+                      prefix->suite);
+        return -1;
     }
 
     return 0;
 }
 
 // TODO: move to a util file?
-uint8_t
-hex2int(char c)
+uint8_t hex2int(char c)
 {
     if (c >= '0' && c <= '9') {
-        return (uint8_t) (c - '0');
+        return (uint8_t)(c - '0');
     }
     c = (char) tolower(c);
     if (c >= 'a' && c <= 'f') {
-        return (uint8_t) (c - 'a' + 0x0a);
+        return (uint8_t)(c - 'a' + 0x0a);
     }
     return 0;
 }
 
-size_t
-unescape_component(char *comp)
+size_t unescape_component(char *comp)
 {
     char *in = comp, *out = comp;
     size_t len;
@@ -272,8 +266,7 @@ unescape_component(char *comp)
     return len;
 }
 
-uint32_t
-ccn_iribu_URItoComponents(char **compVector, size_t *compLens, char *uri)
+uint32_t ccn_iribu_URItoComponents(char **compVector, size_t *compLens, char *uri)
 {
     uint32_t i;
     size_t len;
@@ -304,8 +297,7 @@ ccn_iribu_URItoComponents(char **compVector, size_t *compLens, char *uri)
     return i;
 }
 
-struct ccn_iribu_prefix_s *
-ccn_iribu_URItoPrefix(char* uri, int suite, uint32_t *chunknum)
+struct ccn_iribu_prefix_s *ccn_iribu_URItoPrefix(char *uri, int suite, uint32_t *chunknum)
 {
     struct ccn_iribu_prefix_s *p;
     char *compvect[CCN_IRIBU_MAX_NAME_COMP];
@@ -313,7 +305,7 @@ ccn_iribu_URItoPrefix(char* uri, int suite, uint32_t *chunknum)
     uint32_t cnt, i;
 
     DEBUGMSG_CUTL(TRACE, "ccn_iribu_URItoPrefix(suite=%s, uri=%s)\n",
-             ccn_iribu_suite2str(suite), uri);
+                  ccn_iribu_suite2str(suite), uri);
 
     if (strlen(uri)) {
         cnt = ccn_iribu_URItoComponents(compvect, complens, uri);
@@ -331,11 +323,11 @@ ccn_iribu_URItoPrefix(char* uri, int suite, uint32_t *chunknum)
     }
 #ifdef USE_SUITE_CCNTLV
     if (suite == CCN_IRIBU_SUITE_CCNTLV) {
-        len += cnt * 4; // add TL size
+        len += cnt * 4;    // add TL size
     }
 #endif
 
-    p->bytes = (unsigned char*) ccn_iribu_malloc(len);
+    p->bytes = (unsigned char *) ccn_iribu_malloc(len);
     if (!p->bytes) {
         ccn_iribu_prefix_free(p);
         return NULL;
@@ -343,10 +335,10 @@ ccn_iribu_URItoPrefix(char* uri, int suite, uint32_t *chunknum)
 
     for (i = 0, len = 0; i < cnt; i++) {
         char *cp = compvect[i];
-        tlen = complens[i];
+        tlen     = complens[i];
 
-        p->comp[i] = p->bytes + len;
-        tlen = ccn_iribu_pkt_mkComponent(suite, p->comp[i], cp, tlen);
+        p->comp[i]    = p->bytes + len;
+        tlen          = ccn_iribu_pkt_mkComponent(suite, p->comp[i], cp, tlen);
         p->complen[i] = tlen;
         len += tlen;
     }
@@ -354,7 +346,7 @@ ccn_iribu_URItoPrefix(char* uri, int suite, uint32_t *chunknum)
     p->compcnt = cnt;
 
     if (chunknum) {
-        p->chunknum = (uint32_t*) ccn_iribu_malloc(sizeof(uint32_t));
+        p->chunknum = (uint32_t *) ccn_iribu_malloc(sizeof(uint32_t));
         if (!p->chunknum) {
             ccn_iribu_prefix_free(p);
             return NULL;
@@ -367,8 +359,7 @@ ccn_iribu_URItoPrefix(char* uri, int suite, uint32_t *chunknum)
 
 #ifdef NEEDS_PREFIX_MATCHING
 
-const char*
-ccn_iribu_matchMode2str(int mode)
+const char *ccn_iribu_matchMode2str(int mode)
 {
     switch (mode) {
     case CMP_EXACT:
@@ -382,9 +373,8 @@ ccn_iribu_matchMode2str(int mode)
     return CONSTSTR("?");
 }
 
-int32_t
-ccn_iribu_prefix_cmp(struct ccn_iribu_prefix_s *pfx, unsigned char *md,
-                struct ccn_iribu_prefix_s *nam, int mode)
+int32_t ccn_iribu_prefix_cmp(struct ccn_iribu_prefix_s *pfx, unsigned char *md,
+                             struct ccn_iribu_prefix_s *nam, int mode)
 /* returns -1 if no match at all (all modes) or exact match failed
    returns  0 if full match (mode = CMP_EXACT) or no components match (mode = CMP_MATCH)
    returns n>0 for matched components (mode = CMP_MATCH, CMP_LONGEST) */
@@ -399,7 +389,8 @@ ccn_iribu_prefix_cmp(struct ccn_iribu_prefix_s *pfx, unsigned char *md,
     DEBUGMSG(VERBOSE, "prefix=<%s>(%p) of? ",
              ccn_iribu_prefix_to_str(pfx, s, CCN_IRIBU_MAX_PREFIX_SIZE), (void *) pfx);
     DEBUGMSG(VERBOSE, "name=<%s>(%p) digest=%p\n",
-             ccn_iribu_prefix_to_str(nam, s, CCN_IRIBU_MAX_PREFIX_SIZE), (void *) nam, (void *) md);
+             ccn_iribu_prefix_to_str(nam, s, CCN_IRIBU_MAX_PREFIX_SIZE), (void *) nam,
+             (void *) md);
 
     if (mode == CMP_EXACT) {
         if (plen != nam->compcnt) {
@@ -420,7 +411,7 @@ ccn_iribu_prefix_cmp(struct ccn_iribu_prefix_s *pfx, unsigned char *md,
 
     for (i = 0; i < plen && i < nam->compcnt; ++i) {
         comp = i < pfx->compcnt ? pfx->comp[i] : md;
-        clen = i < pfx->compcnt ? pfx->complen[i] : 32; // SHA256_DIGEST_LEN
+        clen = i < pfx->compcnt ? pfx->complen[i] : 32;    // SHA256_DIGEST_LEN
         if (clen != nam->complen[i] || memcmp(comp, nam->comp[i], nam->complen[i])) {
             rc = mode == CMP_EXACT ? -1 : (int32_t) i;
             DEBUGMSG(VERBOSE, "component mismatch: %lu\n", (long unsigned) i);
@@ -431,13 +422,13 @@ ccn_iribu_prefix_cmp(struct ccn_iribu_prefix_s *pfx, unsigned char *md,
     rc = (mode == CMP_EXACT) ? 0 : (int32_t) i;
 done:
     DEBUGMSG(TRACE, "  cmp result: pfxlen=%lu cmplen=%lu namlen=%lu matchlen=%ld\n",
-             (long unsigned) pfx->compcnt, (long unsigned) plen, (long unsigned) nam->compcnt, (long) rc);
+             (long unsigned) pfx->compcnt, (long unsigned) plen,
+             (long unsigned) nam->compcnt, (long) rc);
     return rc;
 }
 
-int8_t
-ccn_iribu_i_prefixof_c(struct ccn_iribu_prefix_s *prefix,
-                  uint64_t minsuffix, uint64_t maxsuffix, struct ccn_iribu_content_s *c)
+int8_t ccn_iribu_i_prefixof_c(struct ccn_iribu_prefix_s *prefix, uint64_t minsuffix,
+                              uint64_t maxsuffix, struct ccn_iribu_content_s *c)
 {
     struct ccn_iribu_prefix_s *p = c->pkt->pfx;
 
@@ -446,7 +437,8 @@ ccn_iribu_i_prefixof_c(struct ccn_iribu_prefix_s *prefix,
     DEBUGMSG(VERBOSE, "ccn_iribu_i_prefixof_c prefix=<%s> ",
              ccn_iribu_prefix_to_str(prefix, s, CCN_IRIBU_MAX_PREFIX_SIZE));
     DEBUGMSG(VERBOSE, "content=<%s> min=%llu max=%llu\n",
-             ccn_iribu_prefix_to_str(p, s, CCN_IRIBU_MAX_PREFIX_SIZE), (unsigned long long) minsuffix, (unsigned long long)maxsuffix);
+             ccn_iribu_prefix_to_str(p, s, CCN_IRIBU_MAX_PREFIX_SIZE),
+             (unsigned long long) minsuffix, (unsigned long long) maxsuffix);
     //
     // CONFORM: we do prefix match, honour min. and maxsuffix,
 
@@ -454,8 +446,8 @@ ccn_iribu_i_prefixof_c(struct ccn_iribu_prefix_s *prefix,
     // all of the specifications given in the Interest Message."
     // >> CCNL does not honour the exclusion filtering
 
-    if ( (prefix->compcnt + minsuffix) > (p->compcnt + 1) ||
-         (prefix->compcnt + maxsuffix) < (p->compcnt + 1)) {
+    if ((prefix->compcnt + minsuffix) > (p->compcnt + 1) ||
+        (prefix->compcnt + maxsuffix) < (p->compcnt + 1)) {
         DEBUGMSG(TRACE, "  mismatch in # of components\n");
         return -2;
     }
@@ -474,17 +466,14 @@ ccn_iribu_i_prefixof_c(struct ccn_iribu_prefix_s *prefix,
 
     int32_t cmp = ccn_iribu_prefix_cmp(p, md, prefix, CMP_EXACT);
     return cmp;
-
 }
 
-#endif // NEEDS_PREFIX_MATCHING
-
+#endif    // NEEDS_PREFIX_MATCHING
 
 #ifndef CCN_IRIBU_LINUXKERNEL
 
-char*
-ccn_iribu_prefix_to_path_detailed(struct ccn_iribu_prefix_s *pr, int ccntlv_skip,
-                             int escape_components, int call_slash)
+char *ccn_iribu_prefix_to_path_detailed(struct ccn_iribu_prefix_s *pr, int ccntlv_skip,
+                                        int escape_components, int call_slash)
 {
     (void) ccntlv_skip;
     (void) call_slash;
@@ -510,46 +499,50 @@ ccn_iribu_prefix_to_path_detailed(struct ccn_iribu_prefix_s *pr, int ccntlv_skip
     else
         buf = prefix_buf2;
     */
-    char *buf = (char*) ccn_iribu_malloc(CCN_IRIBU_MAX_PREFIX_SIZE+1);
+    char *buf = (char *) ccn_iribu_malloc(CCN_IRIBU_MAX_PREFIX_SIZE + 1);
     if (!buf) {
-        DEBUGMSG_CUTL(ERROR, "ccn_iribu_prefix_to_path_detailed: malloc failed, exiting\n");
+        DEBUGMSG_CUTL(ERROR,
+                      "ccn_iribu_prefix_to_path_detailed: malloc failed, exiting\n");
         return NULL;
     }
-    memset(buf, 0, CCN_IRIBU_MAX_PREFIX_SIZE+1);
-    return ccn_iribu_prefix_to_str_detailed(pr, ccntlv_skip, escape_components, call_slash, buf, CCN_IRIBU_MAX_PREFIX_SIZE);
+    memset(buf, 0, CCN_IRIBU_MAX_PREFIX_SIZE + 1);
+    return ccn_iribu_prefix_to_str_detailed(pr, ccntlv_skip, escape_components,
+                                            call_slash, buf, CCN_IRIBU_MAX_PREFIX_SIZE);
 }
 
-char*
-ccn_iribu_prefix_to_str_detailed(struct ccn_iribu_prefix_s *pr, int ccntlv_skip, int escape_components, int call_slash,
-                            char *buf, size_t buflen) {
+char *ccn_iribu_prefix_to_str_detailed(struct ccn_iribu_prefix_s *pr, int ccntlv_skip,
+                                       int escape_components, int call_slash, char *buf,
+                                       size_t buflen)
+{
     size_t len = 0, i, j;
     int result;
-    (void)i;
-    (void)j;
-    (void)len;
+    (void) i;
+    (void) j;
+    (void) len;
     (void) call_slash;
     (void) ccntlv_skip;
 
     uint8_t skip = 0;
 
-#if defined(USE_SUITE_CCNTLV) 
+#    if defined(USE_SUITE_CCNTLV)
     // In the future it is possibly helpful to see the type information
     // in the logging output. However, this does not work with NFN because
     // it uses this function to create the names in NFN expressions
     // resulting in CCNTLV type information names within expressions.
     if (ccntlv_skip && (0
-#ifdef USE_SUITE_CCNTLV
-       || pr->suite == CCN_IRIBU_SUITE_CCNTLV
-#endif
-                         )) {
+#        ifdef USE_SUITE_CCNTLV
+                        || pr->suite == CCN_IRIBU_SUITE_CCNTLV
+#        endif
+                        )) {
         skip = 4;
     }
-#endif
+#    endif
 
     for (i = 0; i < (size_t) pr->compcnt; i++) {
         result = snprintf(buf + len, buflen - len, "/");
-        DEBUGMSG(TRACE, "result: %d, buf: %s, avail size: %zd, buflen: %zd\n", result, buf+len, buflen - len, buflen);
-        if (!(result > -1 && (size_t)result < (buflen - len))) {
+        DEBUGMSG(TRACE, "result: %d, buf: %s, avail size: %zd, buflen: %zd\n", result,
+                 buf + len, buflen - len, buflen);
+        if (!(result > -1 && (size_t) result < (buflen - len))) {
             DEBUGMSG(ERROR, "Could not print prefix, since out of allocated memory");
             return NULL;
         }
@@ -558,27 +551,30 @@ ccn_iribu_prefix_to_str_detailed(struct ccn_iribu_prefix_s *pr, int ccntlv_skip,
         for (j = skip; j < pr->complen[i]; j++) {
             char c = pr->comp[i][j];
             char *fmt;
-            fmt = (c < 0x20 || c == 0x7f
-                            || (escape_components && c == '/' )) ?
-#ifdef CCN_IRIBU_ARDUINO
-                  (char*)PSTR("%%%02x") : (char*)PSTR("%c");
+            fmt = (c < 0x20 || c == 0x7f || (escape_components && c == '/'))
+                      ?
+#    ifdef CCN_IRIBU_ARDUINO
+                      (char *) PSTR("%%%02x")
+                      : (char *) PSTR("%c");
             result = snprintf_P(buf + len, buflen - len, fmt, c);
-            if (!(result > -1 && (size_t)result < (buflen - len))) {
+            if (!(result > -1 && (size_t) result < (buflen - len))) {
                 DEBUGMSG(ERROR, "Could not print prefix, since out of allocated memory");
                 return NULL;
             }
             len += result;
-#else
-                  (char *) "%%%02x" : (char *) "%c";
+#    else
+                      (char *) "%%%02x"
+                      : (char *) "%c";
             result = snprintf(buf + len, buflen - len, fmt, c);
-            DEBUGMSG(TRACE, "result: %d, buf: %s, avail size: %zd, buflen: %zd\n", result, buf+len, buflen - len, buflen);
-            if (!(result > -1 && (size_t)result < (buflen - len))) {
+            DEBUGMSG(TRACE, "result: %d, buf: %s, avail size: %zd, buflen: %zd\n", result,
+                     buf + len, buflen - len, buflen);
+            if (!(result > -1 && (size_t) result < (buflen - len))) {
                 DEBUGMSG(ERROR, "Could not print prefix, since out of allocated memory");
                 return NULL;
             }
             len += result;
-#endif
-            if(len > CCN_IRIBU_MAX_PREFIX_SIZE) {
+#    endif
+            if (len > CCN_IRIBU_MAX_PREFIX_SIZE) {
                 DEBUGMSG(ERROR, "BUFSIZE SMALLER THAN OUTPUT LEN");
                 break;
             }
@@ -588,30 +584,32 @@ ccn_iribu_prefix_to_str_detailed(struct ccn_iribu_prefix_s *pr, int ccntlv_skip,
     return buf;
 }
 
-#else // CCN_IRIBU_LINUXKERNEL
+#else    // CCN_IRIBU_LINUXKERNEL
 
 /**
-* Transforms a prefix into a string, since returning static buffer cannot be called twice into the same statement
-* @param[in] pr the prefix to be transformed
-* @return a static buffer containing the prefix transformed into a string.
-*/
-char*
-ccn_iribu_prefix_to_path(struct ccn_iribu_prefix_s *pr)
+ * Transforms a prefix into a string, since returning static buffer cannot be called twice
+ * into the same statement
+ * @param[in] pr the prefix to be transformed
+ * @return a static buffer containing the prefix transformed into a string.
+ */
+char *ccn_iribu_prefix_to_path(struct ccn_iribu_prefix_s *pr)
 {
     static char prefix_buf[4096];
-    int len= 0, i;
+    int len = 0, i;
     int result;
 
     if (!pr)
         return NULL;
-    return ccn_iribu_prefix_to_str(pr, prefix_buf,4096);
+    return ccn_iribu_prefix_to_str(pr, prefix_buf, 4096);
     /*
     for (i = 0; i < pr->compcnt; i++) {
-        if(!strncmp("call", (char*)pr->comp[i], 4) && strncmp((char*)pr->comp[pr->compcnt-1], "NFN", 3)){
-            result = snprintf(prefix_buf + len, CCN_IRIBU_MAX_PREFIX_SIZE - len, "%.*s", pr->complen[i], pr->comp[i]);
+        if(!strncmp("call", (char*)pr->comp[i], 4) &&
+    strncmp((char*)pr->comp[pr->compcnt-1], "NFN", 3)){ result = snprintf(prefix_buf +
+    len, CCN_IRIBU_MAX_PREFIX_SIZE - len, "%.*s", pr->complen[i], pr->comp[i]);
         }
         else{
-            result = snprintf(prefix_buf + len, CCN_IRIBU_MAX_PREFIX_SIZE - len, "/%.*s", pr->complen[i], pr->comp[i]);
+            result = snprintf(prefix_buf + len, CCN_IRIBU_MAX_PREFIX_SIZE - len, "/%.*s",
+    pr->complen[i], pr->comp[i]);
         }
         if (!(result > -1 && result < (CCN_IRIBU_MAX_PREFIX_SIZE - len))) {
             DEBUGMSG(ERROR, "Could not print prefix, since out of allocated memory");
@@ -623,79 +621,78 @@ ccn_iribu_prefix_to_path(struct ccn_iribu_prefix_s *pr)
     return prefix_buf;*/
 }
 
-
-char*
-ccn_iribu_prefix_to_str(struct ccn_iribu_prefix_s *pr, char *buf, size_t buflen) {
+char *ccn_iribu_prefix_to_str(struct ccn_iribu_prefix_s *pr, char *buf, size_t buflen)
+{
     size_t len = 0, i, j;
     int result;
     int skip = 0;
-    (void)i;
-    (void)j;
-    (void)len;
+    (void) i;
+    (void) j;
+    (void) len;
 
-#if defined(USE_SUITE_CCNTLV)
+#    if defined(USE_SUITE_CCNTLV)
     // In the future it is possibly helpful to see the type information
     // in the logging output. However, this does not work with NFN because
     // it uses this function to create the names in NFN expressions
     // resulting in CCNTLV type information names within expressions.
     if (1 && (0
-#ifdef USE_SUITE_CCNTLV
-       || pr->suite == CCN_IRIBU_SUITE_CCNTLV
-#endif
-                         ))
+#        ifdef USE_SUITE_CCNTLV
+              || pr->suite == CCN_IRIBU_SUITE_CCNTLV
+#        endif
+              ))
         skip = 4;
-#endif
+#    endif
 
-    for (i = 0; i < (size_t)pr->compcnt; i++) {
+    for (i = 0; i < (size_t) pr->compcnt; i++) {
 
-            result = snprintf(buf + len, buflen - len, "/");
-            if (!(result > -1 && (size_t)result < (buflen - len))) {
-                DEBUGMSG(ERROR, "Could not print prefix, since out of allocated memory");
-                return NULL;
-            }
-            len += result;
+        result = snprintf(buf + len, buflen - len, "/");
+        if (!(result > -1 && (size_t) result < (buflen - len))) {
+            DEBUGMSG(ERROR, "Could not print prefix, since out of allocated memory");
+            return NULL;
+        }
+        len += result;
 
-        for (j = skip; j < (size_t)pr->complen[i]; j++) {
+        for (j = skip; j < (size_t) pr->complen[i]; j++) {
             char c = pr->comp[i][j];
             char *fmt;
-            fmt = (c < 0x20 || c == 0x7f
-                            || (0 && c == '/' )) ?
-#ifdef CCN_IRIBU_ARDUINO
-                  (char*)PSTR("%%%02x") : (char*)PSTR("%c");
+            fmt    = (c < 0x20 || c == 0x7f || (0 && c == '/')) ?
+#    ifdef CCN_IRIBU_ARDUINO
+                                                                (char *) PSTR("%%%02x")
+                                                                : (char *) PSTR("%c");
             result = snprintf_P(buf + len, buflen - len, fmt, c);
-            if (!(result > -1 && (size_t)result < (buflen - len))) {
+            if (!(result > -1 && (size_t) result < (buflen - len))) {
                 DEBUGMSG(ERROR, "Could not print prefix, since out of allocated memory");
                 return NULL;
             }
             len += result;
-#else
-                  (char *) "%%%02x" : (char *) "%c";
+#    else
+                                                             (char *) "%%%02x"
+                                                             : (char *) "%c";
             result = snprintf(buf + len, buflen - len, fmt, c);
-            if (!(result > -1 && (size_t)result < (buflen - len))) {
+            if (!(result > -1 && (size_t) result < (buflen - len))) {
                 DEBUGMSG(ERROR, "Could not print prefix, since out of allocated memory");
                 return NULL;
             }
             len += result;
-#endif
-            if(len > CCN_IRIBU_MAX_PREFIX_SIZE) {
+#    endif
+            if (len > CCN_IRIBU_MAX_PREFIX_SIZE) {
                 DEBUGMSG(ERROR, "BUFSIZE SMALLER THAN OUTPUT LEN");
                 break;
             }
         }
     }
 
-
     return buf;
 }
 
-#endif // CCN_IRIBU_LINUXKERNEL
+#endif    // CCN_IRIBU_LINUXKERNEL
 
-char*
-ccn_iribu_prefix_debug_info(struct ccn_iribu_prefix_s *p) {
+char *ccn_iribu_prefix_debug_info(struct ccn_iribu_prefix_s *p)
+{
     size_t len = 0;
     uint32_t i = 0;
     int result;
-    char *buf = (char*) ccn_iribu_malloc(CCN_IRIBU_MAX_PACKET_SIZE);
+    char *buf = (char *) ccn_iribu_malloc(CCN_IRIBU_MAX_PACKET_SIZE);
     if (buf == NULL) {
         DEBUGMSG_CUTL(ERROR, "ccn_iribu_prefix_debug_info: malloc failed, exiting\n");
         return NULL;
@@ -717,7 +714,8 @@ ccn_iribu_prefix_debug_info(struct ccn_iribu_prefix_s *p) {
     }
     len += result;
 
-    result = snprintf(buf + len, CCN_IRIBU_MAX_PACKET_SIZE - len, "compcnt:%lu ", (long unsigned) p->compcnt);
+    result = snprintf(buf + len, CCN_IRIBU_MAX_PACKET_SIZE - len, "compcnt:%lu ",
+                      (long unsigned) p->compcnt);
     if (!(result > -1 && (unsigned) result < (CCN_IRIBU_MAX_PACKET_SIZE - len))) {
         DEBUGMSG(ERROR, "Could not print prefix, since out of allocated memory");
         ccn_iribu_free(buf);
@@ -733,7 +731,8 @@ ccn_iribu_prefix_debug_info(struct ccn_iribu_prefix_s *p) {
     }
     len += result;
     for (i = 0; i < p->compcnt; i++) {
-        result = snprintf(buf + len, CCN_IRIBU_MAX_PACKET_SIZE - len, "%zd", p->complen[i]);
+        result =
+            snprintf(buf + len, CCN_IRIBU_MAX_PACKET_SIZE - len, "%zd", p->complen[i]);
         if (!(result > -1 && (unsigned) result < (CCN_IRIBU_MAX_PACKET_SIZE - len))) {
             DEBUGMSG(ERROR, "Could not print prefix, since out of allocated memory");
             ccn_iribu_free(buf);
@@ -766,7 +765,8 @@ ccn_iribu_prefix_debug_info(struct ccn_iribu_prefix_s *p) {
     }
     len += result;
     for (i = 0; i < p->compcnt; i++) {
-        result = snprintf(buf + len, CCN_IRIBU_MAX_PACKET_SIZE - len, "%.*s", (int) p->complen[i], p->comp[i]);
+        result = snprintf(buf + len, CCN_IRIBU_MAX_PACKET_SIZE - len, "%.*s",
+                          (int) p->complen[i], p->comp[i]);
         if (!(result > -1 && (unsigned) result < (CCN_IRIBU_MAX_PACKET_SIZE - len))) {
             DEBUGMSG(ERROR, "Could not print prefix, since out of allocated memory");
             ccn_iribu_free(buf);
@@ -800,4 +800,3 @@ ccn_iribu_prefix_debug_info(struct ccn_iribu_prefix_s *p) {
 
     return buf;
 }
-

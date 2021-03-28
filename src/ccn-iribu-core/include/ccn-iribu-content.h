@@ -3,7 +3,7 @@
  * @{
  *
  * @file ccn-iribu-content.h
- * @brief CCN lite, core CCNx content store definition and helper functions 
+ * @brief CCN lite, core CCNx content store definition and helper functions
  *
  * Copyright (C) 2011-18 University of Basel
  *
@@ -21,19 +21,19 @@
  */
 
 #ifndef CCN_IRIBU_CONTENT_H
-#define CCN_IRIBU_CONTENT_H
+#    define CCN_IRIBU_CONTENT_H
 
-#include <stdbool.h>
-#ifndef CCN_IRIBU_LINUXKERNEL
-#include <stdint.h>
-#else
-#include <linux/types.h>
+#    include <stdbool.h>
+#    ifndef CCN_IRIBU_LINUXKERNEL
+#        include <stdint.h>
+#    else
+#        include <linux/types.h>
 
-#endif
+#    endif
 
-#ifdef CCN_IRIBU_RIOT
-#include "evtimer_msg.h"
-#endif
+#    ifdef CCN_IRIBU_RIOT
+#        include "evtimer_msg.h"
+#    endif
 
 struct ccn_iribu_pkt_s;
 struct ccn_iribu_prefix_s;
@@ -43,56 +43,60 @@ struct ccn_iribu_prefix_s;
  * static or stale.
  */
 typedef enum ccn_iribu_content_flags_e {
-    CCN_IRIBU_CONTENT_FLAGS_NOT_STALE = 0x0, /**< content is not stale */
-    CCN_IRIBU_CONTENT_FLAGS_STATIC = 0x01,   /**< content is static */
-    CCN_IRIBU_CONTENT_FLAGS_STALE = 0x02,    /**< content is stale */
-    CCN_IRIBU_CONTENT_DO_NOT_USE = UINT8_MAX /**< for internal use only, sets the width of the enum to sizeof(uint8_t) */
+    CCN_IRIBU_CONTENT_FLAGS_NOT_STALE = 0x0,  /**< content is not stale */
+    CCN_IRIBU_CONTENT_FLAGS_STATIC    = 0x01, /**< content is static */
+    CCN_IRIBU_CONTENT_FLAGS_STALE     = 0x02, /**< content is stale */
+    CCN_IRIBU_CONTENT_DO_NOT_USE = UINT8_MAX /**< for internal use only, sets the width of
+                                                the enum to sizeof(uint8_t) */
 } ccn_iribu_content_flags;
 
 /**
  * @brief Defines an entry in the content store.
  *
  * The content store is implemented as linked list and stores the
- * full byte representation (the packet) of an content object 
+ * full byte representation (the packet) of an content object
  * (and not just the content itself).
  */
 typedef struct ccn_iribu_content_s {
-    struct ccn_iribu_content_s *next;          /**< pointer to the next element in the content store */
-    struct ccn_iribu_content_s *prev;          /**< pointer to the previous element in the content store */
-    struct ccn_iribu_pkt_s *pkt;               /**< a byte representation of received content (the actual packet) */
+    struct ccn_iribu_content_s
+        *next; /**< pointer to the next element in the content store */
+    struct ccn_iribu_content_s
+        *prev; /**< pointer to the previous element in the content store */
+    struct ccn_iribu_pkt_s
+        *pkt; /**< a byte representation of received content (the actual packet) */
 
-    ccn_iribu_content_flags flags;             /**< indicates if content is marked static or stale */
+    ccn_iribu_content_flags flags; /**< indicates if content is marked static or stale */
 
     // NON-CONFORM: "The [ContentSTore] MUST also implement the Staleness Bit."
     // >> CCNL: currently no stale bit, old content is fully removed <<
 
-    uint32_t last_used;                   /**< indicates when the stored content was last used */
-#ifdef CCN_IRIBU_RIOT
-    evtimer_msg_event_t evtmsg_cstimeout; /**< event timer message which is triggered when a timeout in the content store occurs */
-#endif
-    int served_cnt;                       /**< determines how often the content has been served */
+    uint32_t last_used; /**< indicates when the stored content was last used */
+#    ifdef CCN_IRIBU_RIOT
+    evtimer_msg_event_t evtmsg_cstimeout; /**< event timer message which is triggered when
+                                             a timeout in the content store occurs */
+#    endif
+    int served_cnt; /**< determines how often the content has been served */
 } ccn_iribu_content;
 
 /**
  * @brief Wraps a \p packet into a \ref ccn_iribu_content data structure
- * 
- * The function does not add the packet to the content store! 
+ *
+ * The function does not add the packet to the content store!
  *
  * @param[in] packet The packet to be wrapped into a \ref ccn_iribu_content data structure
- * 
- * @return Upon success, the \p packet wrapped into a \ref ccn_iribu_content data structure
+ *
+ * @return Upon success, the \p packet wrapped into a \ref ccn_iribu_content data
+ * structure
  * @return NULL if the operation fails
  */
-struct ccn_iribu_content_s*
-ccn_iribu_content_new(struct ccn_iribu_pkt_s **packet);
+struct ccn_iribu_content_s *ccn_iribu_content_new(struct ccn_iribu_pkt_s **packet);
 
 /**
  * @brief Frees a \p content object.
 
- * @param[in] content The content object which will be freed 
+ * @param[in] content The content object which will be freed
  */
-int
-ccn_iribu_content_free(struct ccn_iribu_content_s *content);
+int ccn_iribu_content_free(struct ccn_iribu_content_s *content);
 
-#endif // EOF
+#endif    // EOF
 /** @} */

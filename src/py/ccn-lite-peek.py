@@ -54,9 +54,11 @@ if __name__ == "__main__":
     def onData(q, pkts):
         # callback: prints packet/content, unblocks the requestor via queue q
         if pkts != None and pkts[0] != None:
-            print pkts[0],
+            print
+            pkts[0],
         if q:
             q.put(None)
+
 
     # attach to the ICN network
     nw = ccniribu.client.Access()
@@ -66,7 +68,7 @@ if __name__ == "__main__":
     # retrieve content
     q = Queue.Queue()
     nw.getLabeledContent(args.lci, raw=not args.c,
-                         callback=lambda data:onData(q, data))
+                         callback=lambda data: onData(q, data))
     q.get()
 
     ''' Alternative: synchronous/blocking call:

@@ -21,18 +21,17 @@
  */
 
 #ifndef CCN_IRIBU_LINUXKERNEL
-#include "ccn-iribu-sched.h"
-#include "ccn-iribu-malloc.h"
-#include "ccn-iribu-os-time.h"
-#include "ccn-iribu-logging.h"
-#include <string.h>
+#    include "ccn-iribu-sched.h"
+#    include "ccn-iribu-logging.h"
+#    include "ccn-iribu-malloc.h"
+#    include "ccn-iribu-os-time.h"
+#    include <string.h>
 #else
-#include "../include/ccn-iribu-sched.h"
-#include "../include/ccn-iribu-malloc.h"
-#include "../include/ccn-iribu-os-time.h"
-#include "../include/ccn-iribu-logging.h"
+#    include "../include/ccn-iribu-logging.h"
+#    include "../include/ccn-iribu-malloc.h"
+#    include "../include/ccn-iribu-os-time.h"
+#    include "../include/ccn-iribu-sched.h"
 #endif
-
 
 int ccn_iribu_sched_init(void)
 {
@@ -48,8 +47,7 @@ int ccn_iribu_sched_init(void)
     engine = cfl_engine_create(core, "ccn-iribu-engine");
     if (!engine)
         goto err_out;
-    if (cf_engine_set_op_callback(engine, &ecb, NULL) ||
-        cfl_engine_start(engine))
+    if (cf_engine_set_op_callback(engine, &ecb, NULL) || cfl_engine_start(engine))
         goto err_out;
     // create TCP server and connect to the core
     server = cfs_start("ccn-iribu-server", core, core_lock, 1974);
@@ -60,7 +58,7 @@ int ccn_iribu_sched_init(void)
 err_out:
     if (core) {
         cf_core_destroy(core);
-        core = NULL;
+        core   = NULL;
         engine = NULL;
     }
     return -1;
@@ -79,41 +77,42 @@ void ccn_iribu_sched_cleanup(void)
     }
     if (core) {
         cf_core_destroy(core);
-        core = NULL;
+        core   = NULL;
         engine = NULL;
     }
 #endif
 }
 
-struct ccn_iribu_sched_s*
-ccn_iribu_sched_dummy_new(void (cts)(void *aux1, void *aux2),
-                     struct ccn_iribu_relay_s *ccn_iribu)
+struct ccn_iribu_sched_s *ccn_iribu_sched_dummy_new(void(cts)(void *aux1, void *aux2),
+                                                    struct ccn_iribu_relay_s *ccn_iribu)
 {
     struct ccn_iribu_sched_s *s;
 
     DEBUGMSG(TRACE, "ccn_iribu_sched_dummy_new()\n");
 
-    s = (struct ccn_iribu_sched_s*) ccn_iribu_calloc(1, sizeof(struct ccn_iribu_sched_s));
+    s = (struct ccn_iribu_sched_s *) ccn_iribu_calloc(1,
+                                                      sizeof(struct ccn_iribu_sched_s));
     if (s) {
-    s->cts = cts;
-    s->ccn_iribu = ccn_iribu;
+        s->cts       = cts;
+        s->ccn_iribu = ccn_iribu;
     }
     return s;
 }
 
-struct ccn_iribu_sched_s*
-ccn_iribu_sched_pktrate_new(void (cts)(void *aux1, void *aux2),
-                       struct ccn_iribu_relay_s *ccn_iribu, int inter_packet_interval)
+struct ccn_iribu_sched_s *ccn_iribu_sched_pktrate_new(void(cts)(void *aux1, void *aux2),
+                                                      struct ccn_iribu_relay_s *ccn_iribu,
+                                                      int inter_packet_interval)
 {
     struct ccn_iribu_sched_s *s;
 
     DEBUGMSG(TRACE, "ccn_iribu_sched_pktrate_new()\n");
 
-    s = (struct ccn_iribu_sched_s*) ccn_iribu_calloc(1, sizeof(struct ccn_iribu_sched_s));
+    s = (struct ccn_iribu_sched_s *) ccn_iribu_calloc(1,
+                                                      sizeof(struct ccn_iribu_sched_s));
     if (!s)
         return NULL;
-    s->mode = 1;
-    s->cts = cts;
+    s->mode      = 1;
+    s->cts       = cts;
     s->ccn_iribu = ccn_iribu;
 #ifdef USE_CHEMFLOW
     if (cfnl_sched_create_default_rnet(s, inter_packet_interval)) {
@@ -128,18 +127,17 @@ ccn_iribu_sched_pktrate_new(void (cts)(void *aux1, void *aux2),
     return s;
 }
 
-void
-ccn_iribu_sched_destroy(struct ccn_iribu_sched_s *s)
+void ccn_iribu_sched_destroy(struct ccn_iribu_sched_s *s)
 {
-  DEBUGMSG(TRACE, "ccn_iribu_sched_destroy %p\n", (void*)s);
+    DEBUGMSG(TRACE, "ccn_iribu_sched_destroy %p\n", (void *) s);
 
     if (s) {
 #ifdef USE_CHEMFLOW
         if (s->mode) {
-            s->q->minput->obj.destroylock = 0;
+            s->q->minput->obj.destroylock  = 0;
             s->q->moutput->obj.destroylock = 0;
-            s->q->obj.destroylock = 0;
-            s->rn->obj.destroylock = 0;
+            s->q->obj.destroylock          = 0;
+            s->rn->obj.destroylock         = 0;
             cf_rnet_destroy(s->rn);
         }
 #endif
@@ -147,10 +145,8 @@ ccn_iribu_sched_destroy(struct ccn_iribu_sched_s *s)
     }
 }
 
-
-void
-ccn_iribu_sched_RTS(struct ccn_iribu_sched_s *s, int cnt, int len,
-               void *aux1, void *aux2)
+void ccn_iribu_sched_RTS(struct ccn_iribu_sched_s *s, int cnt, int len, void *aux1,
+                         void *aux2)
 {
 #ifdef USE_CHEMFLOW
     cf_time now = ccn_iribu_cf_now();
@@ -161,11 +157,11 @@ ccn_iribu_sched_RTS(struct ccn_iribu_sched_s *s, int cnt, int len,
 
     if (!s) {
         DEBUGMSG(VERBOSE, "ccn_iribu_sched_RTS sched=%p len=%d aux1=%p aux2=%p\n",
-             (void*)s, len, (void*)aux1, (void*)aux2);
+                 (void *) s, len, (void *) aux1, (void *) aux2);
         return;
     }
     DEBUGMSG(VERBOSE, "ccn_iribu_sched_RTS sched=%p/%d len=%d aux1=%p aux2=%p\n",
-             (void*)s, s->mode, len, (void*)aux1, (void*)aux2);
+             (void *) s, s->mode, len, (void *) aux1, (void *) aux2);
 
     s->cnt += cnt;
     s->aux1 = aux1;
@@ -195,15 +191,16 @@ ccn_iribu_sched_RTS(struct ccn_iribu_sched_s *s, int cnt, int len,
         return;
     }
     DEBUGMSG(VERBOSE, "since=%ld\n", since);
-//    ccn_iribu_set_timer(since, (void(*)(void*,int))signal_cts, ccn_iribu, ifndx);
+    //    ccn_iribu_set_timer(since, (void(*)(void*,int))signal_cts, ccn_iribu, ifndx);
     s->pendingTimer = ccn_iribu_set_timer(since, s->cts, aux1, aux2);
-    s->nextTX.tv_sec += s->ipi / 1000000;;
-    s->nextTX.tv_usec += s->ipi % 1000000;;
+    s->nextTX.tv_sec += s->ipi / 1000000;
+    ;
+    s->nextTX.tv_usec += s->ipi % 1000000;
+    ;
 #endif
 }
 
-void
-ccn_iribu_sched_CTS_done(struct ccn_iribu_sched_s *s, int cnt, int len)
+void ccn_iribu_sched_CTS_done(struct ccn_iribu_sched_s *s, int cnt, int len)
 {
 #ifdef USE_CHEMFLOW
     cf_time now = ccn_iribu_cf_now();
@@ -213,12 +210,12 @@ ccn_iribu_sched_CTS_done(struct ccn_iribu_sched_s *s, int cnt, int len)
 #endif
 
     if (!s) {
-        DEBUGMSG(VERBOSE, "ccn_iribu_sched_CTS_done sched=%p cnt=%d len=%d\n",
-             (void*)s, cnt, len);
+        DEBUGMSG(VERBOSE, "ccn_iribu_sched_CTS_done sched=%p cnt=%d len=%d\n", (void *) s,
+                 cnt, len);
         return;
     }
     DEBUGMSG(VERBOSE, "ccn_iribu_sched_CTS_done sched=%p/%d cnt=%d len=%d (mycnt=%d)\n",
-             (void*)s, s->mode, cnt, len, s->cnt);
+             (void *) s, s->mode, cnt, len, s->cnt);
 
     s->cnt -= cnt;
     if (s->cnt <= 0)
@@ -248,49 +245,49 @@ ccn_iribu_sched_CTS_done(struct ccn_iribu_sched_s *s, int cnt, int len)
         return;
     }
     DEBUGMSG(VERBOSE, "since=%ld\n", since);
-//    ccn_iribu_set_timer(since, (void(*)(void*,int))signal_cts, ccn_iribu, ifndx);
+    //    ccn_iribu_set_timer(since, (void(*)(void*,int))signal_cts, ccn_iribu, ifndx);
     s->pendingTimer = ccn_iribu_set_timer(since, s->cts, s->aux1, s->aux2);
-    s->nextTX.tv_sec += s->ipi / 1000000;;
-    s->nextTX.tv_usec += s->ipi % 1000000;;
+    s->nextTX.tv_sec += s->ipi / 1000000;
+    ;
+    s->nextTX.tv_usec += s->ipi % 1000000;
+    ;
 
 //    s->cts();
 #endif
 }
 
-void
-ccn_iribu_sched_RX_ok(struct ccn_iribu_relay_s *ccn_iribu, int ifndx, int cnt)
+void ccn_iribu_sched_RX_ok(struct ccn_iribu_relay_s *ccn_iribu, int ifndx, int cnt)
 {
-    (void)ccn_iribu;
-    (void)ifndx;
-    (void)cnt;
+    (void) ccn_iribu;
+    (void) ifndx;
+    (void) cnt;
     DEBUGMSG(TRACE, "ccn_iribu_sched_X_ok()\n");
     // here a chemflow reaction NW could act on pkt reception events
 }
 
-
-void
-ccn_iribu_sched_RX_loss(struct ccn_iribu_relay_s *ccn_iribu, int ifndx, int cnt)
+void ccn_iribu_sched_RX_loss(struct ccn_iribu_relay_s *ccn_iribu, int ifndx, int cnt)
 {
-    (void)ccn_iribu;
-    (void)ifndx;
-    (void)cnt;
+    (void) ccn_iribu;
+    (void) ifndx;
+    (void) cnt;
     DEBUGMSG(TRACE, "ccn_iribu_sched_RX_loss()\n");
     // here a chemflow reaction NW could act on pkt loss events
 }
 
 // ----------------------------------------------------------------------
 
-struct ccn_iribu_sched_s*
-ccn_iribu_sched_packetratelimiter_new(int inter_packet_interval,
-                                 void (*cts)(void *aux1, void *aux2),
-                                 void *aux1, void *aux2)
+struct ccn_iribu_sched_s *ccn_iribu_sched_packetratelimiter_new(int inter_packet_interval,
+                                                                void (*cts)(void *aux1,
+                                                                            void *aux2),
+                                                                void *aux1, void *aux2)
 {
     struct ccn_iribu_sched_s *s;
     DEBUGMSG(TRACE, "ccn_iribu_rate:limiter_new()\n");
 
-    s = (struct ccn_iribu_sched_s*) ccn_iribu_calloc(1, sizeof(struct ccn_iribu_sched_s));
+    s = (struct ccn_iribu_sched_s *) ccn_iribu_calloc(1,
+                                                      sizeof(struct ccn_iribu_sched_s));
     if (s) {
-        s->cts = cts;
+        s->cts  = cts;
         s->aux1 = aux1;
         s->aux2 = aux2;
 #ifndef USE_CHEMFLOW
@@ -301,12 +298,10 @@ ccn_iribu_sched_packetratelimiter_new(int inter_packet_interval,
     return s;
 }
 
-
-
-
 // ----------------------------------------------------------------------
 #ifdef USE_CHEMFLOW
-int cfnl_sched_create_default_rnet(struct ccn_iribu_sched_s *sched, int inter_packet_interval)
+int cfnl_sched_create_default_rnet(struct ccn_iribu_sched_s *sched,
+                                   int inter_packet_interval)
 {
     char name[32];
     int law, k1, k2, e0;
@@ -318,14 +313,14 @@ int cfnl_sched_create_default_rnet(struct ccn_iribu_sched_s *sched, int inter_pa
 
     if (inter_packet_interval) {
         law = CF_LAW_MASS_ACTION;
-        k1 = 100;
-        k2 = 10;
-        e0 = 1000000 / (k2 * inter_packet_interval);
+        k1  = 100;
+        k2  = 10;
+        e0  = 1000000 / (k2 * inter_packet_interval);
     } else {
         law = CF_LAW_IMMEDIATE;
-        k1 = 0;
-        k2 = 0;
-        e0 = 1;
+        k1  = 0;
+        k2  = 0;
+        e0  = 1;
     }
 
     // create reaction network
@@ -343,10 +338,10 @@ int cfnl_sched_create_default_rnet(struct ccn_iribu_sched_s *sched, int inter_pa
         goto err_out;
 
     // create molecules, and reactions
-    s = cf_molecule_create(sched->rn, "S", cf_handle_null);
-    e = cf_molecule_create(sched->rn, "E", cf_handle_null);
+    s  = cf_molecule_create(sched->rn, "S", cf_handle_null);
+    e  = cf_molecule_create(sched->rn, "E", cf_handle_null);
     es = cf_molecule_create(sched->rn, "ES", cf_handle_null);
-    p = cf_molecule_create(sched->rn, "P", cf_handle_null);
+    p  = cf_molecule_create(sched->rn, "P", cf_handle_null);
     r1 = cf_reaction_create(sched->rn, "r1", cf_handle_null);
     r2 = cf_reaction_create(sched->rn, "r2", cf_handle_null);
     if (!s || !e || !es || !p || !r1 || !r2)
@@ -355,12 +350,10 @@ int cfnl_sched_create_default_rnet(struct ccn_iribu_sched_s *sched, int inter_pa
     // configure molecules and reactions
     if (cf_molecule_set_initial_concentration(e, e0) ||
         cf_reaction_set_law(r1, law, cf_uint_to_dfp(k1), 0) ||
-        cf_reaction_add_reactant(r1, s) ||
-        cf_reaction_add_reactant(r1, e) ||
+        cf_reaction_add_reactant(r1, s) || cf_reaction_add_reactant(r1, e) ||
         cf_reaction_add_product(r1, es) ||
         cf_reaction_set_law(r2, law, cf_uint_to_dfp(k2), 0) ||
-        cf_reaction_add_reactant(r2, es) ||
-        cf_reaction_add_product(r2, e) ||
+        cf_reaction_add_reactant(r2, es) || cf_reaction_add_product(r2, e) ||
         cf_reaction_add_product(r2, p))
         goto err_out;
 
@@ -381,9 +374,9 @@ int cfnl_sched_create_default_rnet(struct ccn_iribu_sched_s *sched, int inter_pa
     // prevent destruction of the created reaction network, queue and
     // linked molecules by the user via the chemflow configuration interface
     sched->rn->obj.destroylock = 1;
-    sched->q->obj.destroylock = 1;
-    s->obj.destroylock = 1;
-    p->obj.destroylock = 1;
+    sched->q->obj.destroylock  = 1;
+    s->obj.destroylock         = 1;
+    p->obj.destroylock         = 1;
 
     now = ccn_iribu_cf_now();
     cf_rnet_reset(sched->rn, now);
@@ -396,11 +389,11 @@ err_out:
     if (sched->rn) {
         cf_rnet_destroy(sched->rn);
         sched->rn = NULL;
-        sched->q = NULL;
+        sched->q  = NULL;
     }
     return -1;
 }
-#endif // USE_CHEMFLOW
+#endif    // USE_CHEMFLOW
 
 #ifdef USE_CHEMFLOW
 
@@ -409,14 +402,14 @@ static cf_time ccn_iribu_cf_now()
     struct timeval now;
 
     ccn_iribu_get_timeval(&now);
-    return ((cf_time)now.tv_sec) * 1000000000 + now.tv_usec * 1000;
+    return ((cf_time) now.tv_sec) * 1000000000 + now.tv_usec * 1000;
 }
 
-static struct cf_core *core = NULL;
+static struct cf_core *core      = NULL;
 static pthread_mutex_t core_lock = PTHREAD_MUTEX_INITIALIZER;
-static struct cf_engine *engine = NULL;
-static void *engine_timer = NULL;
-static struct cf_server *server = NULL;
+static struct cf_engine *engine  = NULL;
+static void *engine_timer        = NULL;
+static struct cf_server *server  = NULL;
 
 // callback from the CCNL timer; execute pending reactions
 static void ccn_iribu_sched_cf_timeout(void *aux1, void *aux2)
@@ -426,8 +419,10 @@ static void ccn_iribu_sched_cf_timeout(void *aux1, void *aux2)
     cf_engine_execute_pending_reactions_and_set_timer(engine, ccn_iribu_cf_now());
 }
 
-// callback from the chemflow engine when a timer for the first reaction shall be set/changed/canceled
-static int ccn_iribu_sched_cf_engine_set_timer(struct cf_engine *e, void *userptr, cf_time time)
+// callback from the chemflow engine when a timer for the first reaction shall be
+// set/changed/canceled
+static int ccn_iribu_sched_cf_engine_set_timer(struct cf_engine *e, void *userptr,
+                                               cf_time time)
 {
     struct timeval tv;
 
@@ -440,20 +435,20 @@ static int ccn_iribu_sched_cf_engine_set_timer(struct cf_engine *e, void *userpt
     }
     // start the timer
     if (time < CF_TIME_INF) {
-        tv.tv_sec = cf_u64_div(time, 1000000000);
+        tv.tv_sec  = cf_u64_div(time, 1000000000);
         tv.tv_usec = cf_u64_mod(time, 1000000000) / 1000;
-        engine_timer = ccn_iribu_set_absolute_timer(tv, ccn_iribu_sched_cf_timeout, NULL, NULL);
+        engine_timer =
+            ccn_iribu_set_absolute_timer(tv, ccn_iribu_sched_cf_timeout, NULL, NULL);
     }
 
     return CF_OK;
 }
 
-static struct cf_engine_op_cb ecb = {
-    .set_timer = ccn_iribu_sched_cf_engine_set_timer
-};
+static struct cf_engine_op_cb ecb = {.set_timer = ccn_iribu_sched_cf_engine_set_timer};
 
 // callback from the chemflow queue when the next packet shall be dequeued; CTS
-static void ccn_iribu_sched_cf_queue_serve_cb(struct cf_queue *q, void *userptr, cf_time now)
+static void ccn_iribu_sched_cf_queue_serve_cb(struct cf_queue *q, void *userptr,
+                                              cf_time now)
 {
     struct ccn_iribu_sched_s *s = userptr;
 
@@ -468,11 +463,8 @@ static void ccn_iribu_sched_cf_queue_serve_cb(struct cf_queue *q, void *userptr,
 }
 
 static struct cf_queue_op_cb qcb = {
-    .serve = ccn_iribu_sched_cf_queue_serve_cb,
-    .drop = NULL,
-    .reset = NULL
-};
+    .serve = ccn_iribu_sched_cf_queue_serve_cb, .drop = NULL, .reset = NULL};
 
-#endif // USE_CHEMFLOW
+#endif    // USE_CHEMFLOW
 
 // ----------------------------------------------------------------------

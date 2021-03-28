@@ -20,20 +20,20 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #ifndef CCN_IRIBU_EXT_MAC_H_
-#define CCN_IRIBU_EXT_MAC_H_
+#    define CCN_IRIBU_EXT_MAC_H_
 
-#include "lib-sha256.h"
+#    include "lib-sha256.h"
 
-#include "ccn-iribu-pkt-ccnb.h"
-#include "ccn-iribu-pkt-ccntlv.h"
-#include "ccn-iribu-pkt-localrpc.h"
-#include "ccn-iribu-pkt-ndntlv.h"
-#include "ccn-iribu-pkt-switch.h"
+#    include "ccn-iribu-pkt-ccnb.h"
+#    include "ccn-iribu-pkt-ccntlv.h"
+#    include "ccn-iribu-pkt-localrpc.h"
+#    include "ccn-iribu-pkt-ndntlv.h"
+#    include "ccn-iribu-pkt-switch.h"
 
 /**
  * @brief Generates an HMAC key
- * 
- * @note The \p keyval must be of at least 64 bytes (block length). 
+ *
+ * @note The \p keyval must be of at least 64 bytes (block length).
  *
  * The function either copies \p klen bytes of \p key or generates a new
  * key.
@@ -42,38 +42,33 @@
  * @param[in] klen The length of the key
  * @param[in] keyval The (final) key (to be copied or generated)
  */
-void
-ccn_iribu_hmac256_keyval(uint8_t *key, size_t klen,
-                    uint8_t *keyval);
+void ccn_iribu_hmac256_keyval(uint8_t *key, size_t klen, uint8_t *keyval);
 
 /**
  * @brief TODO
- * 
- * @note The \p keyid must be of at least 32 bytes (digest length). 
+ *
+ * @note The \p keyid must be of at least 32 bytes (digest length).
  *
  * @param[in] key The actual key
  * @param[in] klen The length of the key
  * @param[in] keyid TODO
  */
-void
-ccn_iribu_hmac256_keyid(uint8_t *key, size_t klen,
-                   uint8_t *keyid);
+void ccn_iribu_hmac256_keyid(uint8_t *key, size_t klen, uint8_t *keyid);
 
 /**
- * @brief Adds padding bytes to a key 
- * 
+ * @brief Adds padding bytes to a key
+ *
  * @param[in] ctx Context 'object' of the underlying SHA256 implementation
  * @param[in] keyval The key to pad
  * @param[in] kvlen The length of the key
  * @param[in] pad The padding byte
  */
-void
-ccn_iribu_hmac256_keysetup(SHA256_CTX_t *ctx, uint8_t *keyval, size_t kvlen,
-                      uint8_t pad);
+void ccn_iribu_hmac256_keysetup(SHA256_CTX_t *ctx, uint8_t *keyval, size_t kvlen,
+                                uint8_t pad);
 
 /**
  * @brief Generates an HMAC signature
- * 
+ *
  * @param[in]  keyval The key
  * @param[in]  kvlen The lengthof the key
  * @param[in]  data The data to sign
@@ -81,14 +76,11 @@ ccn_iribu_hmac256_keysetup(SHA256_CTX_t *ctx, uint8_t *keyval, size_t kvlen,
  * @param[in]  md The message digest
  * @param[out] mlen The length of the message digest
  */
-void
-ccn_iribu_hmac256_sign(uint8_t *keyval, size_t kvlen,
-                  uint8_t *data, size_t dlen,
-                  uint8_t *md, size_t *mlen);
+void ccn_iribu_hmac256_sign(uint8_t *keyval, size_t kvlen, uint8_t *data, size_t dlen,
+                            uint8_t *md, size_t *mlen);
 
-
-#ifdef NEEDS_PACKET_CRAFTING
-#ifdef USE_SUITE_CCNTLV
+#    ifdef NEEDS_PACKET_CRAFTING
+#        ifdef USE_SUITE_CCNTLV
 /**
  * @brief Signs CCNx content and prepends signature with the header
  *
@@ -107,17 +99,17 @@ ccn_iribu_hmac256_sign(uint8_t *keyval, size_t kvlen,
  *
  * @return Upon success, the function returns the number of used bytes
  */
-int8_t
-ccn_iribu_ccntlv_prependSignedContentWithHdr(struct ccn_iribu_prefix_s *name,
-                                        uint8_t *payload, size_t paylen,
-                                        uint32_t *lastchunknum,
-                                        size_t *contentpos,
-                                        uint8_t *keyval, // 64B
-                                        uint8_t *keydigest, // 32B
-                                        size_t *offset, uint8_t *buf, size_t *retlen);
-#endif // USE_SUITE_CCNTLV
+int8_t ccn_iribu_ccntlv_prependSignedContentWithHdr(struct ccn_iribu_prefix_s *name,
+                                                    uint8_t *payload, size_t paylen,
+                                                    uint32_t *lastchunknum,
+                                                    size_t *contentpos,
+                                                    uint8_t *keyval,       // 64B
+                                                    uint8_t *keydigest,    // 32B
+                                                    size_t *offset, uint8_t *buf,
+                                                    size_t *retlen);
+#        endif    // USE_SUITE_CCNTLV
 
-#ifdef USE_SUITE_NDNTLV
+#        ifdef USE_SUITE_NDNTLV
 /**
  * @brief Signs an NDO and prepends signature
  *
@@ -133,15 +125,15 @@ ccn_iribu_ccntlv_prependSignedContentWithHdr(struct ccn_iribu_prefix_s *name,
  *
  * @return 0 upon success, nonzero upon failure
  */
-int8_t
-ccn_iribu_ndntlv_prependSignedContent(struct ccn_iribu_prefix_s *name,
-                                 uint8_t *payload, size_t paylen,
-                                 uint32_t *final_block_id, size_t *contentpos,
-                                 uint8_t *keyval, // 64B
-                                 uint8_t *keydigest, // 32B
-                                 size_t *offset, uint8_t *buf, size_t *reslen);
-#endif // USE_SUITE_NDNTLV
-#endif // NEEDS_PACKET_CRAFTING
+int8_t ccn_iribu_ndntlv_prependSignedContent(struct ccn_iribu_prefix_s *name,
+                                             uint8_t *payload, size_t paylen,
+                                             uint32_t *final_block_id, size_t *contentpos,
+                                             uint8_t *keyval,       // 64B
+                                             uint8_t *keydigest,    // 32B
+                                             size_t *offset, uint8_t *buf,
+                                             size_t *reslen);
+#        endif    // USE_SUITE_NDNTLV
+#    endif    // NEEDS_PACKET_CRAFTING
 
-#endif 
+#endif
 /** @} */

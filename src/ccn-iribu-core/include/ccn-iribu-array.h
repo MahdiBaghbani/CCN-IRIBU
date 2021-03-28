@@ -20,50 +20,40 @@
  * 2017-06-16 created
  */
 #ifndef CCN_IRIBU_LINUXKERNEL
-#define CCN_IRIBU_ARRAY_DEFAULT_CAPACITY 4
-#define CCN_IRIBU_ARRAY_CHECK_BOUNDS
-#define CCN_IRIBU_ARRAY_NOT_FOUND -1
+#    define CCN_IRIBU_ARRAY_DEFAULT_CAPACITY 4
+#    define CCN_IRIBU_ARRAY_CHECK_BOUNDS
+#    define CCN_IRIBU_ARRAY_NOT_FOUND -1
 
-struct ccn_iribu_array_s
-{
+struct ccn_iribu_array_s {
     int count;
     int capacity;
     void **items;
 };
 
-struct ccn_iribu_array_s*
-ccn_iribu_array_new(int capacity);
+struct ccn_iribu_array_s *ccn_iribu_array_new(int capacity);
 
-void
-ccn_iribu_array_free(struct ccn_iribu_array_s *array);
+void ccn_iribu_array_free(struct ccn_iribu_array_s *array);
 
 // Insert an item at the end of the array, possibly realocating the array.
-void
-ccn_iribu_array_push(struct ccn_iribu_array_s *array, void *item);
+void ccn_iribu_array_push(struct ccn_iribu_array_s *array, void *item);
 
 // Return and remove the last item.
-void*
-ccn_iribu_array_pop(struct ccn_iribu_array_s *array);
+void *ccn_iribu_array_pop(struct ccn_iribu_array_s *array);
 
-// Insert item at index by pushing down all subsequent items by one, 
+// Insert item at index by pushing down all subsequent items by one,
 // possibly reallocating the array.
-void
-ccn_iribu_array_insert(struct ccn_iribu_array_s *array, void *item, int index);
+void ccn_iribu_array_insert(struct ccn_iribu_array_s *array, void *item, int index);
 
 // Remove all occurrences of item by moving up the subsequent items.
-void 
-ccn_iribu_array_remove(struct ccn_iribu_array_s *array, void *item);
+void ccn_iribu_array_remove(struct ccn_iribu_array_s *array, void *item);
 
 // Remove the item at index by moving up all subsequent items by one.
-void 
-ccn_iribu_array_remove_index(struct ccn_iribu_array_s *array, int index);
+void ccn_iribu_array_remove_index(struct ccn_iribu_array_s *array, int index);
 
 // Returns the index of the first occurrence of item, or CCN_IRIBU_ARRAY_NOT_FOUND.
-int 
-ccn_iribu_array_find(struct ccn_iribu_array_s *array, void *item);
+int ccn_iribu_array_find(struct ccn_iribu_array_s *array, void *item);
 
 // Returns 1 if the item can be found in the array.
-int 
-ccn_iribu_array_contains(struct ccn_iribu_array_s *array, void *item);
+int ccn_iribu_array_contains(struct ccn_iribu_array_s *array, void *item);
 
 #endif

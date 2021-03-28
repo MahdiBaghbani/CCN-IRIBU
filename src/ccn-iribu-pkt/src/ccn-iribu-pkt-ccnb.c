@@ -23,38 +23,31 @@
  * 2014-11-05 merged from pkt-ccnb-dec.c and pkt-ccnb-enc.c
  */
 
-
-
 #ifdef USE_SUITE_CCNB
 
-#ifndef CCN_IRIBU_LINUXKERNEL
-#include "ccn-iribu-pkt-ccnb.h"
-#include "ccn-iribu-core.h"
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <arpa/inet.h>
-#include <ctype.h>
-#include <assert.h>
-#else
-#include "../include/ccn-iribu-pkt-ccnb.h"
-#include "../../ccn-iribu-core/include/ccn-iribu-core.h"
-#endif
-
-
+#    ifndef CCN_IRIBU_LINUXKERNEL
+#        include "ccn-iribu-pkt-ccnb.h"
+#        include "ccn-iribu-core.h"
+#        include <arpa/inet.h>
+#        include <assert.h>
+#        include <ctype.h>
+#        include <stdio.h>
+#        include <stdlib.h>
+#        include <string.h>
+#    else
+#        include "../../ccn-iribu-core/include/ccn-iribu-core.h"
+#        include "../include/ccn-iribu-pkt-ccnb.h"
+#    endif
 
 // ----------------------------------------------------------------------
 // ccnb parsing support
 
-
-
-int8_t
-ccn_iribu_ccnb_dehead(uint8_t **buf, size_t *len, uint64_t *num, uint8_t *typ)
+int8_t ccn_iribu_ccnb_dehead(uint8_t **buf, size_t *len, uint64_t *num, uint8_t *typ)
 {
     size_t i;
     uint64_t val = 0;
 
-    if (*len > 0 && **buf == 0) { // end
+    if (*len > 0 && **buf == 0) {    // end
         *num = *typ = 0;
         *buf += 1;
         *len -= 1;
@@ -62,11 +55,11 @@ ccn_iribu_ccnb_dehead(uint8_t **buf, size_t *len, uint64_t *num, uint8_t *typ)
     }
     for (i = 0; i < sizeof(i) && i < *len; i++) {
         uint8_t c = (*buf)[i];
-        if ( c & 0x80 ) {
+        if (c & 0x80) {
             *num = (val << 4) | ((c >> 3) & 0xf);
-            *typ = (uint8_t) (c & 0x7);
-            *buf += i+1;
-            *len -= i+1;
+            *typ = (uint8_t)(c & 0x7);
+            *buf += i + 1;
+            *len -= i + 1;
             return 0;
         }
         val = (val << 7) | c;
@@ -74,9 +67,8 @@ ccn_iribu_ccnb_dehead(uint8_t **buf, size_t *len, uint64_t *num, uint8_t *typ)
     return -1;
 }
 
-static int8_t
-ccn_iribu_ccnb_hunt_for_end(uint8_t **buf, size_t *len,
-                       uint8_t **valptr, size_t *vallen)
+static int8_t ccn_iribu_ccnb_hunt_for_end(uint8_t **buf, size_t *len, uint8_t **valptr,
+                                          size_t *vallen)
 {
     uint8_t typ;
     uint64_t num;
@@ -92,9 +84,8 @@ ccn_iribu_ccnb_hunt_for_end(uint8_t **buf, size_t *len,
     return -1;
 }
 
-int8_t
-ccn_iribu_ccnb_consume(int8_t typ, uint64_t num, uint8_t **buf, size_t *len,
-                  uint8_t **valptr, size_t *vallen)
+int8_t ccn_iribu_ccnb_consume(int8_t typ, uint64_t num, uint8_t **buf, size_t *len,
+                              uint8_t **valptr, size_t *vallen)
 {
     if (typ == CCN_TT_BLOB || typ == CCN_TT_UDATA) {
         if (valptr) {
@@ -112,13 +103,12 @@ ccn_iribu_ccnb_consume(int8_t typ, uint64_t num, uint8_t **buf, size_t *len,
     if (typ == CCN_TT_DTAG || typ == CCN_TT_DATTR) {
         return ccn_iribu_ccnb_hunt_for_end(buf, len, valptr, vallen);
     }
-//  case CCN_TT_TAG, CCN_TT_ATTR:
-//  case DTAG, DATTR:
+    //  case CCN_TT_TAG, CCN_TT_ATTR:
+    //  case DTAG, DATTR:
     return -1;
 }
 
-int8_t
-ccn_iribu_ccnb_data2uint(uint8_t *cp, size_t len, uint64_t *retval)
+int8_t ccn_iribu_ccnb_data2uint(uint8_t *cp, size_t len, uint64_t *retval)
 {
     size_t i;
     uint64_t val;
@@ -134,8 +124,8 @@ ccn_iribu_ccnb_data2uint(uint8_t *cp, size_t len, uint64_t *retval)
     return 0;
 }
 
-struct ccn_iribu_pkt_s*
-ccn_iribu_ccnb_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
+struct ccn_iribu_pkt_s *ccn_iribu_ccnb_bytes2pkt(uint8_t *start, uint8_t **data,
+                                                 size_t *datalen)
 {
     struct ccn_iribu_pkt_s *pkt;
     uint8_t *cp;
@@ -146,16 +136,16 @@ ccn_iribu_ccnb_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
 
     DEBUGMSG(TRACE, "ccn_iribu_ccnb_extract\n");
 
-    //pkt = (struct ccn_iribu_pkt_s *) ccn_iribu_calloc(1, sizeof(*pkt));
+    // pkt = (struct ccn_iribu_pkt_s *) ccn_iribu_calloc(1, sizeof(*pkt));
     pkt = (struct ccn_iribu_pkt_s *) ccn_iribu_calloc(1, sizeof(*pkt));
     if (!pkt) {
         return NULL;
     }
-    pkt->suite = CCN_IRIBU_SUITE_CCNB;
+    pkt->suite              = CCN_IRIBU_SUITE_CCNB;
     pkt->val.final_block_id = -1;
-    pkt->s.ccnb.scope = 3;
-    pkt->s.ccnb.aok = 3;
-    pkt->s.ccnb.maxsuffix = CCN_IRIBU_MAX_NAME_COMP;
+    pkt->s.ccnb.scope       = 3;
+    pkt->s.ccnb.aok         = 3;
+    pkt->s.ccnb.maxsuffix   = CCN_IRIBU_MAX_NAME_COMP;
 
     pkt->pfx = p = ccn_iribu_prefix_new(CCN_IRIBU_SUITE_CCNB, CCN_IRIBU_MAX_NAME_COMP);
     if (!p) {
@@ -166,7 +156,7 @@ ccn_iribu_ccnb_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
 
     oldpos = *data - start;
     while (!ccn_iribu_ccnb_dehead(data, datalen, &num, &typ)) {
-        if (num == 0 && typ == 0) { // end
+        if (num == 0 && typ == 0) {    // end
             break;
         }
         if (typ == CCN_TT_DTAG) {
@@ -182,8 +172,9 @@ ccn_iribu_ccnb_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
                     }
                     if (typ == CCN_TT_DTAG && num == CCN_DTAG_COMPONENT &&
                         p->compcnt < CCN_IRIBU_MAX_NAME_COMP) {
-                        if (ccn_iribu_ccnb_hunt_for_end(data, datalen, p->comp + p->compcnt,
-                                                   (p->complen + p->compcnt))) {
+                        if (ccn_iribu_ccnb_hunt_for_end(data, datalen,
+                                                        p->comp + p->compcnt,
+                                                        (p->complen + p->compcnt))) {
                             goto Bail;
                         }
                         p->compcnt++;
@@ -196,8 +187,8 @@ ccn_iribu_ccnb_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
                 p->namelen = *data - p->nameptr;
                 break;
             case CCN_DTAG_CONTENT: {
-                if (ccn_iribu_ccnb_consume(typ, num, data, datalen,
-                                      &pkt->content, &pkt->contlen)) {
+                if (ccn_iribu_ccnb_consume(typ, num, data, datalen, &pkt->content,
+                                           &pkt->contlen)) {
                     goto Bail;
                 }
                 oldpos = *data - start;
@@ -215,8 +206,7 @@ ccn_iribu_ccnb_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
                 switch (num) {
                 case CCN_DTAG_SCOPE:
                     if (len == 1) {
-                        pkt->s.ccnb.scope = isdigit(*cp) && (*cp < '3') ?
-                                            *cp - '0' : -1;
+                        pkt->s.ccnb.scope = isdigit(*cp) && (*cp < '3') ? *cp - '0' : -1;
                     }
                     break;
                 case CCN_DTAG_ANSWERORIGKIND: {
@@ -272,7 +262,8 @@ ccn_iribu_ccnb_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
                     DEBUGMSG(WARNING, "ccnb 'exclude' field ignored\n");
                     break;
                 default:
-                    DEBUGMSG(WARNING, "ccnb: unexpected DTAG: %llu\n", (unsigned long long)num);
+                    DEBUGMSG(WARNING, "ccnb: unexpected DTAG: %llu\n",
+                             (unsigned long long) num);
                     break;
                 }
                 break;
@@ -308,12 +299,11 @@ Bail:
     return NULL;
 }
 
-int8_t
-ccn_iribu_ccnb_unmkBinaryInt(uint8_t **data, size_t *datalen,
-                        unsigned int *result, uint8_t *width)
+int8_t ccn_iribu_ccnb_unmkBinaryInt(uint8_t **data, size_t *datalen, unsigned int *result,
+                                    uint8_t *width)
 {
     uint8_t *cp = *data;
-    size_t len = *datalen;
+    size_t len  = *datalen;
     uint8_t typ;
     uint64_t num;
     uint32_t val = 0;
@@ -339,26 +329,25 @@ ccn_iribu_ccnb_unmkBinaryInt(uint8_t **data, size_t *datalen,
     }
     *result = val;
 
-    if (len < 1 || *cp != '\0') {// no end-of-entry
+    if (len < 1 || *cp != '\0') {    // no end-of-entry
         return -1;
     }
-    *data = cp+1;
-    *datalen = len-1;
+    *data    = cp + 1;
+    *datalen = len - 1;
     return 0;
 }
 
 // ----------------------------------------------------------------------
 
-#ifdef NEEDS_PREFIX_MATCHING
+#    ifdef NEEDS_PREFIX_MATCHING
 
 // returns: 0=match, -1=otherwise
-int8_t
-ccn_iribu_ccnb_cMatch(struct ccn_iribu_pkt_s *p, struct ccn_iribu_content_s *c)
+int8_t ccn_iribu_ccnb_cMatch(struct ccn_iribu_pkt_s *p, struct ccn_iribu_content_s *c)
 {
-#ifndef CCN_IRIBU_LINUXKERNEL
+#        ifndef CCN_IRIBU_LINUXKERNEL
     assert(p);
     assert(p->suite == CCN_IRIBU_SUITE_CCNB);
-#endif
+#        endif
 
     if (ccn_iribu_i_prefixof_c(p->pfx, p->s.ccnb.minsuffix, p->s.ccnb.maxsuffix, c) < 0) {
         return -1;
@@ -369,39 +358,39 @@ ccn_iribu_ccnb_cMatch(struct ccn_iribu_pkt_s *p, struct ccn_iribu_content_s *c)
     // FIXME: should check stale bit in aok here
     return 0;
 }
-#endif
+#    endif
 
 // ----------------------------------------------------------------------
 // ccnb encoding support
 
-#ifdef NEEDS_PACKET_CRAFTING
+#    ifdef NEEDS_PACKET_CRAFTING
 
-int8_t
-ccn_iribu_ccnb_mkHeader(uint8_t *buf, const uint8_t *bufend, uint64_t num, uint8_t tt, size_t *retlen)
+int8_t ccn_iribu_ccnb_mkHeader(uint8_t *buf, const uint8_t *bufend, uint64_t num,
+                               uint8_t tt, size_t *retlen)
 {
     uint8_t tmp[100];
     size_t len = 0, i;
 
-    *tmp = (uint8_t) (0x80 | ((num & 0x0f) << 3) | tt);
-    len = 1;
-    num = num >> 4;
+    *tmp = (uint8_t)(0x80 | ((num & 0x0f) << 3) | tt);
+    len  = 1;
+    num  = num >> 4;
 
     while (num > 0) {
-        tmp[len++] = (uint8_t) (num & 0x7f);
-        num = num >> 7;
+        tmp[len++] = (uint8_t)(num & 0x7f);
+        num        = num >> 7;
     }
     if (buf + len >= bufend) {
         return -1;
     }
     for (i = len; i > 0; i--) {
-        *buf++ = tmp[i-1];
+        *buf++ = tmp[i - 1];
     }
     *retlen += len;
     return 0;
 }
 
-int8_t
-ccn_iribu_ccnb_addBlob(uint8_t *buf, const uint8_t *bufend, char *cp, size_t cnt, size_t *retlen)
+int8_t ccn_iribu_ccnb_addBlob(uint8_t *buf, const uint8_t *bufend, char *cp, size_t cnt,
+                              size_t *retlen)
 {
     size_t len = 0;
 
@@ -411,16 +400,15 @@ ccn_iribu_ccnb_addBlob(uint8_t *buf, const uint8_t *bufend, char *cp, size_t cnt
     if (buf + len + cnt >= bufend) {
         return -1;
     }
-    memcpy(buf+len, cp, cnt);
+    memcpy(buf + len, cp, cnt);
     len += cnt;
 
     *retlen += len;
     return 0;
 }
 
-int8_t
-ccn_iribu_ccnb_mkField(uint8_t *out, const uint8_t *bufend, uint64_t num, uint8_t typ,
-                  uint8_t *data, size_t datalen, size_t *retlen)
+int8_t ccn_iribu_ccnb_mkField(uint8_t *out, const uint8_t *bufend, uint64_t num,
+                              uint8_t typ, uint8_t *data, size_t datalen, size_t *retlen)
 {
     size_t len = 0;
 
@@ -430,38 +418,36 @@ ccn_iribu_ccnb_mkField(uint8_t *out, const uint8_t *bufend, uint64_t num, uint8_
     if (ccn_iribu_ccnb_mkHeader(out + len, bufend, datalen, typ, &len)) {
         return -1;
     }
-    if (out + len + 1 >=bufend) {
+    if (out + len + 1 >= bufend) {
         return -1;
     }
     memcpy(out + len, data, datalen);
     len += datalen;
-    out[len++] = 0; // end-of-field
+    out[len++] = 0;    // end-of-field
 
     *retlen += len;
     return 0;
 }
 
-int8_t
-ccn_iribu_ccnb_mkBlob(uint8_t *out, const uint8_t *bufend, uint64_t num, uint8_t tt,
-                 char *cp, size_t cnt, size_t *retlen)
+int8_t ccn_iribu_ccnb_mkBlob(uint8_t *out, const uint8_t *bufend, uint64_t num,
+                             uint8_t tt, char *cp, size_t cnt, size_t *retlen)
 {
     (void) tt;
-    return ccn_iribu_ccnb_mkField(out, bufend, num, CCN_TT_BLOB,
-                             (uint8_t*) cp, cnt, retlen);
+    return ccn_iribu_ccnb_mkField(out, bufend, num, CCN_TT_BLOB, (uint8_t *) cp, cnt,
+                                  retlen);
 }
 
-int8_t
-ccn_iribu_ccnb_mkStrBlob(uint8_t *out, const uint8_t *bufend, uint64_t num, uint8_t tt,
-                    char *str, size_t *retlen)
+int8_t ccn_iribu_ccnb_mkStrBlob(uint8_t *out, const uint8_t *bufend, uint64_t num,
+                                uint8_t tt, char *str, size_t *retlen)
 {
     (void) tt;
-    return ccn_iribu_ccnb_mkField(out, bufend, num, CCN_TT_BLOB,
-                             (unsigned char*) str, strlen(str), retlen);
+    return ccn_iribu_ccnb_mkField(out, bufend, num, CCN_TT_BLOB, (unsigned char *) str,
+                                  strlen(str), retlen);
 }
 
-int8_t
-ccn_iribu_ccnb_mkBinaryInt(uint8_t *out, const uint8_t *bufend, uint64_t num, uint8_t tt,
-                      uint64_t val, uint64_t bytes, size_t *retlen)
+int8_t ccn_iribu_ccnb_mkBinaryInt(uint8_t *out, const uint8_t *bufend, uint64_t num,
+                                  uint8_t tt, uint64_t val, uint64_t bytes,
+                                  size_t *retlen)
 {
     size_t len = 0;
     if (ccn_iribu_ccnb_mkHeader(out, bufend, num, tt, &len)) {
@@ -476,7 +462,7 @@ ccn_iribu_ccnb_mkBinaryInt(uint8_t *out, const uint8_t *bufend, uint64_t num, ui
         }
         bytes++;
     }
-    if (ccn_iribu_ccnb_mkHeader(out+len, bufend, bytes, CCN_TT_BLOB, &len)) {
+    if (ccn_iribu_ccnb_mkHeader(out + len, bufend, bytes, CCN_TT_BLOB, &len)) {
         return -1;
     }
 
@@ -484,25 +470,26 @@ ccn_iribu_ccnb_mkBinaryInt(uint8_t *out, const uint8_t *bufend, uint64_t num, ui
         return -1;
     }
 
-    while (bytes > 0) { // big endian
+    while (bytes > 0) {    // big endian
         bytes--;
-        out[len++] = (uint8_t) (0xff & (val >> (8 * bytes)));
+        out[len++] = (uint8_t)(0xff & (val >> (8 * bytes)));
     }
 
-    out[len++] = 0; // end-of-entry
+    out[len++] = 0;    // end-of-entry
     *retlen += len;
     return 0;
 }
 
-int8_t
-ccn_iribu_ccnb_mkComponent(uint8_t *val, size_t vallen, uint8_t *out, const uint8_t *bufend, size_t *retlen)
+int8_t ccn_iribu_ccnb_mkComponent(uint8_t *val, size_t vallen, uint8_t *out,
+                                  const uint8_t *bufend, size_t *retlen)
 {
     size_t len = 0;
 
-    if (ccn_iribu_ccnb_mkHeader(out, bufend, CCN_DTAG_COMPONENT, CCN_TT_DTAG, &len)) {  // comp
+    if (ccn_iribu_ccnb_mkHeader(out, bufend, CCN_DTAG_COMPONENT, CCN_TT_DTAG,
+                                &len)) {    // comp
         return -1;
     }
-    if (ccn_iribu_ccnb_mkHeader(out+len, bufend, vallen, CCN_TT_BLOB, &len)) {
+    if (ccn_iribu_ccnb_mkHeader(out + len, bufend, vallen, CCN_TT_BLOB, &len)) {
         return -1;
     }
 
@@ -510,24 +497,26 @@ ccn_iribu_ccnb_mkComponent(uint8_t *val, size_t vallen, uint8_t *out, const uint
         return -1;
     }
 
-    memcpy(out+len, val, vallen);
+    memcpy(out + len, val, vallen);
     len += vallen;
-    out[len++] = 0; // end-of-component
+    out[len++] = 0;    // end-of-component
 
     *retlen += len;
     return 0;
 }
 
-int8_t
-ccn_iribu_ccnb_mkName(struct ccn_iribu_prefix_s *name, uint8_t *out, const uint8_t *bufend, size_t *retlen)
+int8_t ccn_iribu_ccnb_mkName(struct ccn_iribu_prefix_s *name, uint8_t *out,
+                             const uint8_t *bufend, size_t *retlen)
 {
     size_t len = 0, i;
 
-    if (ccn_iribu_ccnb_mkHeader(out, bufend, CCN_DTAG_NAME, CCN_TT_DTAG, &len)) {  // name
+    if (ccn_iribu_ccnb_mkHeader(out, bufend, CCN_DTAG_NAME, CCN_TT_DTAG,
+                                &len)) {    // name
         return -1;
     }
     for (i = 0; i < name->compcnt; i++) {
-        if (ccn_iribu_ccnb_mkComponent(name->comp[i], name->complen[i], out+len, bufend, &len)) {
+        if (ccn_iribu_ccnb_mkComponent(name->comp[i], name->complen[i], out + len, bufend,
+                                       &len)) {
             return -1;
         }
     }
@@ -536,7 +525,7 @@ ccn_iribu_ccnb_mkName(struct ccn_iribu_prefix_s *name, uint8_t *out, const uint8
         return -1;
     }
 
-    out[len++] = 0; // end-of-name
+    out[len++] = 0;    // end-of-name
 
     *retlen += len;
     return 0;
@@ -544,59 +533,62 @@ ccn_iribu_ccnb_mkName(struct ccn_iribu_prefix_s *name, uint8_t *out, const uint8
 
 // ----------------------------------------------------------------------
 
-int8_t
-ccn_iribu_ccnb_fillInterest(struct ccn_iribu_prefix_s *name, uint32_t *nonce,
-                       uint8_t *out, const uint8_t *bufend, size_t outlen, size_t *retlen)
+int8_t ccn_iribu_ccnb_fillInterest(struct ccn_iribu_prefix_s *name, uint32_t *nonce,
+                                   uint8_t *out, const uint8_t *bufend, size_t outlen,
+                                   size_t *retlen)
 {
-     size_t len = 0;
+    size_t len = 0;
     (void) outlen;
 
-    if (ccn_iribu_ccnb_mkHeader(out, bufend, CCN_DTAG_INTEREST, CCN_TT_DTAG, &len)) {  // interest
+    if (ccn_iribu_ccnb_mkHeader(out, bufend, CCN_DTAG_INTEREST, CCN_TT_DTAG,
+                                &len)) {    // interest
         return -1;
     }
-    if (ccn_iribu_ccnb_mkName(name, out+len, bufend, &len)) {
+    if (ccn_iribu_ccnb_mkName(name, out + len, bufend, &len)) {
         return -1;
     }
     if (nonce) {
-        if (ccn_iribu_ccnb_mkHeader(out+len, bufend, CCN_DTAG_NONCE, CCN_TT_DTAG, &len)) {
+        if (ccn_iribu_ccnb_mkHeader(out + len, bufend, CCN_DTAG_NONCE, CCN_TT_DTAG,
+                                    &len)) {
             return -1;
         }
-        if (ccn_iribu_ccnb_mkHeader(out+len, bufend, sizeof(uint32_t), CCN_TT_BLOB, &len)) {
+        if (ccn_iribu_ccnb_mkHeader(out + len, bufend, sizeof(uint32_t), CCN_TT_BLOB,
+                                    &len)) {
             return -1;
         }
 
         if (out + len + sizeof(uint32_t) >= bufend) {
             return -1;
         }
-        memcpy(out+len, (void*)nonce, sizeof(uint32_t));
+        memcpy(out + len, (void *) nonce, sizeof(uint32_t));
         len += sizeof(uint32_t);
     }
 
     if (out + len + 1 >= bufend) {
         return -1;
     }
-    out[len++] = 0; // end-of-interest
+    out[len++] = 0;    // end-of-interest
 
     *retlen += len;
     return 0;
 }
 
-int8_t
-ccn_iribu_ccnb_fillContent(struct ccn_iribu_prefix_s *name, uint8_t *data, size_t datalen,
-                      size_t *contentpos, uint8_t *out, const uint8_t *bufend, size_t *retlen)
+int8_t ccn_iribu_ccnb_fillContent(struct ccn_iribu_prefix_s *name, uint8_t *data,
+                                  size_t datalen, size_t *contentpos, uint8_t *out,
+                                  const uint8_t *bufend, size_t *retlen)
 {
     size_t len = 0;
 
     if (ccn_iribu_ccnb_mkHeader(out, bufend, CCN_DTAG_CONTENTOBJ, CCN_TT_DTAG, &len)) {
         return -1;
     }
-    if (ccn_iribu_ccnb_mkName(name, out+len, bufend, &len)) {
+    if (ccn_iribu_ccnb_mkName(name, out + len, bufend, &len)) {
         return -1;
     }
-    if (ccn_iribu_ccnb_mkHeader(out+len, bufend, CCN_DTAG_CONTENT, CCN_TT_DTAG, &len)) {
+    if (ccn_iribu_ccnb_mkHeader(out + len, bufend, CCN_DTAG_CONTENT, CCN_TT_DTAG, &len)) {
         return -1;
     }
-    if (ccn_iribu_ccnb_mkHeader(out+len, bufend, datalen, CCN_TT_BLOB, &len)) {
+    if (ccn_iribu_ccnb_mkHeader(out + len, bufend, datalen, CCN_TT_BLOB, &len)) {
         return -1;
     }
     if (contentpos) {
@@ -605,22 +597,22 @@ ccn_iribu_ccnb_fillContent(struct ccn_iribu_prefix_s *name, uint8_t *data, size_
     if (out + len + 2 >= bufend) {
         return -1;
     }
-    memcpy(out+len, data, datalen);
+    memcpy(out + len, data, datalen);
     if (contentpos) {
         *contentpos = len;
     }
     len += datalen;
-    out[len++] = 0; // end-of-content
+    out[len++] = 0;    // end-of-content
 
-    out[len++] = 0; // end-of-content obj
+    out[len++] = 0;    // end-of-content obj
 
     *retlen += len;
     return 0;
 }
 
-#endif // NEEDS_PACKET_CRAFTING
+#    endif    // NEEDS_PACKET_CRAFTING
 
-#endif // USE_SUITE_CCNB
+#endif    // USE_SUITE_CCNB
 
 /* suppress empty translation unit error */
 typedef int unused_typedef;

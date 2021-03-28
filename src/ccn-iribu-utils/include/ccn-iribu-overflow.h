@@ -20,30 +20,29 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #ifndef CCN_IRIBU_OVERFLOW_H
-#define CCN_IRIBU_OVERFLOW_H
+#    define CCN_IRIBU_OVERFLOW_H
 
 /**
  * @brief Checks if a __builtin* feature is availbale or not
  */
-#ifdef __clang__
-    #define HAS(...) __has_builtin(__VA_ARGS__)
-#elif defined __GNUC__ 
-    /** builtin is only available in gcc versions > 4 */
-    #if __GNUC__ > 4
-    #define HAS(...) 1
-    #else
-    #define HAS(...) 0
-    #endif
-#else
-    #define HAS(...) 0
-#endif
+#    ifdef __clang__
+#        define HAS(...) __has_builtin(__VA_ARGS__)
+#    elif defined __GNUC__
+/** builtin is only available in gcc versions > 4 */
+#        if __GNUC__ > 4
+#            define HAS(...) 1
+#        else
+#            define HAS(...) 0
+#        endif
+#    else
+#        define HAS(...) 0
+#    endif
 
-
-#if HAS(__builtin_mul_overflow)
+#    if HAS(__builtin_mul_overflow)
 /**
- * @brief Checks if two integers can be multiplied without causing an 
+ * @brief Checks if two integers can be multiplied without causing an
  * integer overflow.
- * 
+ *
  * @note This macro definition makes use of GCCs/CLANGs builtin functions
  * for detecting integer overflows.
  *
@@ -53,20 +52,18 @@
  *
  * @return True if an overflow would be triggered, false otherwise
  */
-#define INT_MULT_OVERFLOW(a, b, c) \
-   __builtin_mul_overflow (a, b, c)
-#else
-#ifndef BUILTIN_INT_MULT_OVERFLOW_DETECTION_UNAVAILABLE
-#define BUILTIN_INT_MULT_OVERFLOW_DETECTION_UNAVAILABLE (0x1u)
-#endif
-#endif
+#        define INT_MULT_OVERFLOW(a, b, c) __builtin_mul_overflow(a, b, c)
+#    else
+#        ifndef BUILTIN_INT_MULT_OVERFLOW_DETECTION_UNAVAILABLE
+#            define BUILTIN_INT_MULT_OVERFLOW_DETECTION_UNAVAILABLE (0x1u)
+#        endif
+#    endif
 
-
-#if HAS(__builtin_add_overflow)
+#    if HAS(__builtin_add_overflow)
 /**
- * @brief Checks if two integers can be added without causing an 
+ * @brief Checks if two integers can be added without causing an
  * integer overflow.
- * 
+ *
  * @note This macro definition makes use of GCCs/CLANGs builtin functions
  * for detecting integer overflows.
  *
@@ -76,13 +73,12 @@
  *
  * @return True if an overflow would be triggered, false otherwise
  */
-#define INT_ADD_OVERFLOW(a, b, c) \
-   __builtin_add_overflow (a, b, c)
-#else
-#ifndef BUILTIN_INT_ADD_OVERFLOW_DETECTION_UNAVAILABLE
-#define BUILTIN_INT_ADD_OVERFLOW_DETECTION_UNAVAILABLE (0x1u)
-#endif
-#endif
+#        define INT_ADD_OVERFLOW(a, b, c) __builtin_add_overflow(a, b, c)
+#    else
+#        ifndef BUILTIN_INT_ADD_OVERFLOW_DETECTION_UNAVAILABLE
+#            define BUILTIN_INT_ADD_OVERFLOW_DETECTION_UNAVAILABLE (0x1u)
+#        endif
+#    endif
 
-#endif 
+#endif
 /** @} */

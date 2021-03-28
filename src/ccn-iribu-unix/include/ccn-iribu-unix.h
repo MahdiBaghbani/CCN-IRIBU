@@ -25,89 +25,76 @@
 
 #include <dirent.h>
 #include <fnmatch.h>
+#include <inttypes.h>
 #include <regex.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <inttypes.h>
 
-#include <netinet/in.h>
 #include "ccn-iribu-sockunion.h"
+#include <netinet/in.h>
 
-#include "ccn-iribu-relay.h"
-#include "ccn-iribu-if.h"
 #include "ccn-iribu-buf.h"
+#include "ccn-iribu-if.h"
+#include "ccn-iribu-relay.h"
 
 #ifdef USE_LINKLAYER
-#if !(defined(__FreeBSD__) || defined(__APPLE__))
-int
-ccn_iribu_open_ethdev(char *devname, struct sockaddr_ll *sll, uint16_t ethtype);
-#endif
+#    if !(defined(__FreeBSD__) || defined(__APPLE__))
+int ccn_iribu_open_ethdev(char *devname, struct sockaddr_ll *sll, uint16_t ethtype);
+#    endif
 #endif
 
 #ifdef USE_WPAN
-int
-ccn_iribu_open_wpandev(char *devname, struct sockaddr_ieee802154 *swpan);
+int ccn_iribu_open_wpandev(char *devname, struct sockaddr_ieee802154 *swpan);
 #endif
 
 #ifdef USE_UNIXSOCKET
-int
-ccn_iribu_open_unixpath(char *path, struct sockaddr_un *ux);
+int ccn_iribu_open_unixpath(char *path, struct sockaddr_un *ux);
 #endif
 
 #ifdef USE_IPV4
-int
-ccn_iribu_open_udpdev(uint16_t port, struct sockaddr_in *si);
+int ccn_iribu_open_udpdev(uint16_t port, struct sockaddr_in *si);
 #endif
 
 #ifdef USE_IPV6
-int
-ccn_iribu_open_udp6dev(uint16_t port, struct sockaddr_in6 *sin);
+int ccn_iribu_open_udp6dev(uint16_t port, struct sockaddr_in6 *sin);
 #endif
 
 #ifdef USE_LINKLAYER
-ssize_t
-ccn_iribu_eth_sendto(int sock, uint8_t *dst, uint8_t *src,
-				uint8_t *data, size_t datalen);
+ssize_t ccn_iribu_eth_sendto(int sock, uint8_t *dst, uint8_t *src, uint8_t *data,
+                             size_t datalen);
 #endif
 
 #ifdef USE_WPAN
-int
-ccn_iribu_wpan_sendto(int sock, unsigned char *data, int datalen,
-                 struct sockaddr_ieee802154 *dst);
+int ccn_iribu_wpan_sendto(int sock, unsigned char *data, int datalen,
+                          struct sockaddr_ieee802154 *dst);
 #endif
 
 #ifdef USE_SCHEDULER
-struct ccn_iribu_sched_s*
+struct ccn_iribu_sched_s *
 ccn_iribu_relay_defaultFaceScheduler(struct ccn_iribu_relay_s *ccn_iribu,
-                                void(*cb)(void*,void*));
-struct ccn_iribu_sched_s*
+                                     void (*cb)(void *, void *));
+struct ccn_iribu_sched_s *
 ccn_iribu_relay_defaultInterfaceScheduler(struct ccn_iribu_relay_s *ccn_iribu,
-                                     void(*cb)(void*,void*));
-#endif // USE_SCHEDULER
+                                          void (*cb)(void *, void *));
+#endif    // USE_SCHEDULER
 
-void 
-ccn_iribu_ageing(void *relay, void *aux);
+void ccn_iribu_ageing(void *relay, void *aux);
 
 #if defined(USE_IPV4) || defined(USE_IPV6)
-void
-ccn_iribu_relay_udp(struct ccn_iribu_relay_s *relay, int32_t port, int af, int suite);
+void ccn_iribu_relay_udp(struct ccn_iribu_relay_s *relay, int32_t port, int af,
+                         int suite);
 #endif
 
-void
-ccn_iribu_ll_TX(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_if_s *ifc,
-           sockunion *dest, struct ccn_iribu_buf_s *buf);
+void ccn_iribu_ll_TX(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_if_s *ifc,
+                     sockunion *dest, struct ccn_iribu_buf_s *buf);
 
-void
-ccn_iribu_relay_config(struct ccn_iribu_relay_s *relay, char *ethdev, char *wpandev,
-                  int32_t udpport1, int32_t udpport2,
-                  int32_t udp6port1, int32_t udp6port2, int32_t httpport,
-                  char *uxpath, int suite, int max_cache_entries,
-                  char *crypto_face_path);
+void ccn_iribu_relay_config(struct ccn_iribu_relay_s *relay, char *ethdev, char *wpandev,
+                            int32_t udpport1, int32_t udpport2, int32_t udp6port1,
+                            int32_t udp6port2, int32_t httpport, char *uxpath, int suite,
+                            int max_cache_entries, char *crypto_face_path);
 
-int
-ccn_iribu_io_loop(struct ccn_iribu_relay_s *ccn_iribu);
+int ccn_iribu_io_loop(struct ccn_iribu_relay_s *ccn_iribu);
 
-void
-ccn_iribu_populate_cache(struct ccn_iribu_relay_s *ccn_iribu, char *path);
+void ccn_iribu_populate_cache(struct ccn_iribu_relay_s *ccn_iribu, char *path);
 
-#endif // CCN_IRIBU_UNIX_H
+#endif    // CCN_IRIBU_UNIX_H

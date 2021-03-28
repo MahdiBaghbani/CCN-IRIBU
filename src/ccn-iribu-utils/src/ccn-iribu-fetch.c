@@ -20,7 +20,6 @@
  * 2014-10-13  created
  */
 
-
 //#define NEEDS_PACKET_CRAFTING
 
 #include "ccn-iribu-common.h"
@@ -31,13 +30,11 @@
 
 // ----------------------------------------------------------------------
 
-int
-ccn_iribu_fetchContentForChunkName(struct ccn_iribu_prefix_s *prefix,
-                              uint32_t *chunknum,
-                              int suite,
-                              uint8_t *out, size_t out_len,
-                              size_t *len,
-                              float wait, int sock, struct sockaddr sa) {
+int ccn_iribu_fetchContentForChunkName(struct ccn_iribu_prefix_s *prefix,
+                                       uint32_t *chunknum, int suite, uint8_t *out,
+                                       size_t out_len, size_t *len, float wait, int sock,
+                                       struct sockaddr sa)
+{
     (void) chunknum;
 #ifdef USE_SUITE_CCNB
     if (suite == CCN_IRIBU_SUITE_CCNB) {
@@ -51,9 +48,9 @@ ccn_iribu_fetchContentForChunkName(struct ccn_iribu_prefix_s *prefix,
 #ifdef USE_SUITE_NDNTLV
     int_opts.ndntlv.nonce = nonce;
 #endif
-    struct ccn_iribu_buf_s * buf = ccn_iribu_mkSimpleInterest(prefix, &int_opts);
+    struct ccn_iribu_buf_s *buf = ccn_iribu_mkSimpleInterest(prefix, &int_opts);
 
-    if(buf->datalen <= 0){
+    if (buf->datalen <= 0) {
         fprintf(stderr, "Could not create interest message\n");
     }
 
@@ -66,21 +63,20 @@ ccn_iribu_fetchContentForChunkName(struct ccn_iribu_prefix_s *prefix,
         return -1;
     }
     *len = recv(sock, out, out_len, 0);
-/*
-        {
-            int fd = open("incoming.bin", O_WRONLY|O_CREAT|O_TRUNC);
-            write(fd, out, *len);
-            close(fd);
-        }
-*/
+    /*
+            {
+                int fd = open("incoming.bin", O_WRONLY|O_CREAT|O_TRUNC);
+                write(fd, out, *len);
+                close(fd);
+            }
+    */
     return 0;
 }
 
-int
-ccn_iribu_extractDataAndChunkInfo(uint8_t **data, size_t *datalen,
-                             int suite, struct ccn_iribu_prefix_s **prefix,
-                             int64_t *lastchunknum,
-                             uint8_t **content, size_t *contentlen)
+int ccn_iribu_extractDataAndChunkInfo(uint8_t **data, size_t *datalen, int suite,
+                                      struct ccn_iribu_prefix_s **prefix,
+                                      int64_t *lastchunknum, uint8_t **content,
+                                      size_t *contentlen)
 {
     struct ccn_iribu_pkt_s *pkt = NULL;
 
@@ -128,32 +124,32 @@ ccn_iribu_extractDataAndChunkInfo(uint8_t **data, size_t *datalen,
     default:
         DEBUGMSG(WARNING, "extractDataAndChunkInfo: suite %d not implemented\n", suite);
         return -1;
-   }
+    }
     if (!pkt) {
         DEBUGMSG(WARNING, "extract(%s): parsing error or no prefix\n",
                  ccn_iribu_suite2str(suite));
         return -1;
     }
-    *prefix = ccn_iribu_prefix_dup(pkt->pfx);
+    *prefix       = ccn_iribu_prefix_dup(pkt->pfx);
     *lastchunknum = pkt->val.final_block_id;
-    *content = pkt->content;
-    *contentlen = pkt->contlen;
+    *content      = pkt->content;
+    *contentlen   = pkt->contlen;
     ccn_iribu_pkt_free(pkt);
 
     return 0;
 }
 
-int
-ccn_iribu_prefix_removeChunkNumComponent(int suite,
-                           struct ccn_iribu_prefix_s *prefix) {
+int ccn_iribu_prefix_removeChunkNumComponent(int suite, struct ccn_iribu_prefix_s *prefix)
+{
     switch (suite) {
 #ifdef USE_SUITE_CCNTLV
     case CCN_IRIBU_SUITE_CCNTLV:
         // TODO: asumes that chunk is at the end!
-        if(prefix->comp[prefix->compcnt-1][1] == CCNX_TLV_N_Chunk) {
+        if (prefix->comp[prefix->compcnt - 1][1] == CCNX_TLV_N_Chunk) {
             prefix->compcnt--;
         } else {
-            DEBUGMSG(WARNING, "Tried to remove chunknum from CCNTLV prefix, but either prefix does not have a chunknum "
+            DEBUGMSG(WARNING, "Tried to remove chunknum from CCNTLV prefix, but either "
+                              "prefix does not have a chunknum "
                               "or the last component is not the chunknum.");
             return -1;
         }
@@ -161,7 +157,7 @@ ccn_iribu_prefix_removeChunkNumComponent(int suite,
 #endif
 #ifdef USE_SUITE_NDNTLV
     case CCN_IRIBU_SUITE_NDNTLV:
-        if(prefix->comp[prefix->compcnt-1][0] == NDN_Marker_SegmentNumber) {
+        if (prefix->comp[prefix->compcnt - 1][0] == NDN_Marker_SegmentNumber) {
             prefix->compcnt--;
         }
         break;
@@ -174,13 +170,11 @@ ccn_iribu_prefix_removeChunkNumComponent(int suite,
     return 0;
 }
 
-
 // ----------------------------------------------------------------------
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
-    unsigned char out[64*1024];
+    unsigned char out[64 * 1024];
     size_t len;
     int opt, port, sock = 0, suite = CCN_IRIBU_SUITE_DEFAULT;
     char *addr = NULL, *udp = NULL, *ux = NULL;
@@ -200,38 +194,39 @@ main(int argc, char *argv[])
             udp = optarg;
             break;
         case 'w':
-            wait = (float)strtof(optarg, (char**) NULL);
+            wait = (float) strtof(optarg, (char **) NULL);
             break;
-            case 'v':
+        case 'v':
 #ifdef USE_LOGGING
             if (isdigit(optarg[0]))
-                debug_level = (int)strtol(optarg, (char**)NULL, 10);
+                debug_level = (int) strtol(optarg, (char **) NULL, 10);
             else
                 debug_level = ccn_iribu_debug_str2level(optarg);
 #endif
             break;
-
 
         case 'x':
             ux = optarg;
             break;
         case 'h':
         default:
-usage:
-            fprintf(stderr, "usage: %s [options] URI [NFNexpr]\n"
-            "  -s SUITE         (ccnb, ccnx2015, ndn2013)\n"
-            "  -u a.b.c.d/port  UDP destination (default is 127.0.0.1/6363)\n"
+        usage:
+            fprintf(
+                stderr,
+                "usage: %s [options] URI [NFNexpr]\n"
+                "  -s SUITE         (ccnb, ccnx2015, ndn2013)\n"
+                "  -u a.b.c.d/port  UDP destination (default is 127.0.0.1/6363)\n"
 #ifdef USE_LOGGING
-            "  -v DEBUG_LEVEL (fatal, error, warning, info, debug, verbose, trace)\n"
+                "  -v DEBUG_LEVEL (fatal, error, warning, info, debug, verbose, trace)\n"
 #endif
-            "  -w timeout       in sec (float)\n"
-            "  -x ux_path_name  UNIX IPC: use this instead of UDP\n"
-            "Examples:\n"
-            "%% peek /ndn/edu/wustl/ping             (classic lookup)\n"
-            "%% peek /th/ere  \"lambda expr\"          (lambda expr, in-net)\n"
-            "%% peek \"\" \"add 1 1\"                    (lambda expr, local)\n"
-            "%% peek /rpc/site \"call 1 /test/data\"   (lambda RPC, directed)\n",
-            argv[0]);
+                "  -w timeout       in sec (float)\n"
+                "  -x ux_path_name  UNIX IPC: use this instead of UDP\n"
+                "Examples:\n"
+                "%% peek /ndn/edu/wustl/ping             (classic lookup)\n"
+                "%% peek /th/ere  \"lambda expr\"          (lambda expr, in-net)\n"
+                "%% peek \"\" \"add 1 1\"                    (lambda expr, local)\n"
+                "%% peek /rpc/site \"call 1 /test/data\"   (lambda RPC, directed)\n",
+                argv[0]);
             exit(1);
         }
     }
@@ -249,17 +244,17 @@ usage:
     DEBUGMSG(TRACE, "using suite %d:%s\n", suite, ccn_iribu_suite2str(suite));
     DEBUGMSG(TRACE, "using udp address %s/%d\n", addr, port);
 
-    if (ux) { // use UNIX socket
-        struct sockaddr_un *su = (struct sockaddr_un*) &sa;
-        su->sun_family = AF_UNIX;
+    if (ux) {    // use UNIX socket
+        struct sockaddr_un *su = (struct sockaddr_un *) &sa;
+        su->sun_family         = AF_UNIX;
         strncpy(su->sun_path, ux, sizeof(su->sun_path));
         sock = ux_open();
-    } else { // UDP
-        struct sockaddr_in *si = (struct sockaddr_in*) &sa;
-        si->sin_family = PF_INET;
-        si->sin_addr.s_addr = inet_addr(addr);
-        si->sin_port = htons(port);
-        sock = udp_open();
+    } else {    // UDP
+        struct sockaddr_in *si = (struct sockaddr_in *) &sa;
+        si->sin_family         = PF_INET;
+        si->sin_addr.s_addr    = inet_addr(addr);
+        si->sin_port           = htons(port);
+        sock                   = udp_open();
     }
 
     char *url = argv[optind];
@@ -271,7 +266,7 @@ usage:
 
     // For CCNTLV always start with the first chunk because of exact content match
     // This means it can only fetch chunked data and not single content-object data
-    if (suite == CCN_IRIBU_SUITE_CCNTLV) { 
+    if (suite == CCN_IRIBU_SUITE_CCNTLV) {
         curchunknum = ccn_iribu_malloc(sizeof(uint32_t));
         if (!curchunknum) {
             DEBUGMSG(ERROR, "Failed to allocate memory: %d", errno);
@@ -282,9 +277,8 @@ usage:
 
     struct ccn_iribu_prefix_s *prefix = ccn_iribu_URItoPrefix(url, suite, curchunknum);
 
-
     const int maxretry = 3;
-    int retry = 0;
+    int retry          = 0;
 
     while (retry < maxretry) {
 
@@ -297,34 +291,31 @@ usage:
                 }
             }
             *(prefix->chunknum) = *curchunknum;
-            DEBUGMSG(INFO, "fetching chunk %d for prefix '%s'\n", *curchunknum, ccn_iribu_prefix_to_path(prefix));
+            DEBUGMSG(INFO, "fetching chunk %d for prefix '%s'\n", *curchunknum,
+                     ccn_iribu_prefix_to_path(prefix));
         } else {
             DEBUGMSG(DEBUG, "fetching first chunk...\n");
-            DEBUGMSG(INFO, "fetching first chunk for prefix '%s'\n", ccn_iribu_prefix_to_path(prefix));
+            DEBUGMSG(INFO, "fetching first chunk for prefix '%s'\n",
+                     ccn_iribu_prefix_to_path(prefix));
         }
 
         // Fetch chunk
-        if (ccn_iribu_fetchContentForChunkName(prefix,
-                                          curchunknum,
-                                          suite,
-                                          out, sizeof(out),
-                                          &len,
-                                          wait, sock, sa)) {
+        if (ccn_iribu_fetchContentForChunkName(prefix, curchunknum, suite, out,
+                                               sizeof(out), &len, wait, sock, sa)) {
             retry++;
-            DEBUGMSG(WARNING, "timeout\n");//, retry number %d of %d\n", retry, maxretry);
+            DEBUGMSG(WARNING,
+                     "timeout\n");    //, retry number %d of %d\n", retry, maxretry);
         } else {
 
             int64_t lastchunknum;
-            uint8_t *t = &out[0];
+            uint8_t *t                            = &out[0];
             struct ccn_iribu_prefix_s *nextprefix = 0;
 
             // Parse response
-            if (ccn_iribu_extractDataAndChunkInfo(&t, &len, suite,
-                                             &nextprefix,
-                                             &lastchunknum,
-                                             &content, &contlen)) {
+            if (ccn_iribu_extractDataAndChunkInfo(&t, &len, suite, &nextprefix,
+                                                  &lastchunknum, &content, &contlen)) {
                 retry++;
-               DEBUGMSG(WARNING, "Could not extract response or it was an interest\n");
+                DEBUGMSG(WARNING, "Could not extract response or it was an interest\n");
             } else {
 
                 prefix = nextprefix;
@@ -353,9 +344,12 @@ usage:
                     }
 
                     // Check if the chunk is the first chunk or the next valid chunk
-                    // otherwise discard content and try again (except if it is the first fetched chunk)
+                    // otherwise discard content and try again (except if it is the first
+                    // fetched chunk)
                     if (chunknum == 0 || (curchunknum && *curchunknum == chunknum)) {
-                        DEBUGMSG(DEBUG, "Found chunk %d with contlen=%zu, lastchunk=%ld\n", *curchunknum, contlen, lastchunknum);
+                        DEBUGMSG(DEBUG,
+                                 "Found chunk %d with contlen=%zu, lastchunk=%ld\n",
+                                 *curchunknum, contlen, lastchunknum);
 
                         write(1, content, contlen);
 
@@ -368,13 +362,16 @@ usage:
                     } else {
                         // retry if the fetched chunk
                         retry++;
-                        DEBUGMSG(WARNING, "Could not find chunk %d, extracted chunknum is %d (lastchunk=%ld)\n", *curchunknum, chunknum, lastchunknum);
+                        DEBUGMSG(WARNING,
+                                 "Could not find chunk %d, extracted chunknum is %d "
+                                 "(lastchunk=%ld)\n",
+                                 *curchunknum, chunknum, lastchunknum);
                     }
                 }
             }
         }
 
-        if(retry > 0) {
+        if (retry > 0) {
             DEBUGMSG(INFO, "Retry %d of %d\n", retry, maxretry);
         }
     }

@@ -28,8 +28,8 @@
  * @brief Function pointer callback type for on-data events
  */
 typedef int (*ccn_iribu_cb_on_data)(struct ccn_iribu_relay_s *relay,
-                               struct ccn_iribu_face_s *face,
-                               struct ccn_iribu_pkt_s *pkt);
+                                    struct ccn_iribu_face_s *face,
+                                    struct ccn_iribu_pkt_s *pkt);
 
 /**
  * @brief Set an inbound on-data event callback function
@@ -56,7 +56,7 @@ void ccn_iribu_set_cb_tx_on_data(ccn_iribu_cb_on_data func);
  *
  * @param[in] relay The active ccn-iribu relay
  * @param[in] from  The face the packet was received over
- * @param[in] pkt   The actual received packet 
+ * @param[in] pkt   The actual received packet
  *
  * @note if the callback function returns any other value than 0,
  *       then the data packet is discarded.
@@ -65,8 +65,8 @@ void ccn_iribu_set_cb_tx_on_data(ccn_iribu_cb_on_data func);
  * @return 0, if no function has been set
  */
 int ccn_iribu_callback_rx_on_data(struct ccn_iribu_relay_s *relay,
-                             struct ccn_iribu_face_s *from,
-                             struct ccn_iribu_pkt_s *pkt);
+                                  struct ccn_iribu_face_s *from,
+                                  struct ccn_iribu_pkt_s *pkt);
 
 /**
  * @brief Callback for outbound on-data events
@@ -82,7 +82,7 @@ int ccn_iribu_callback_rx_on_data(struct ccn_iribu_relay_s *relay,
  * @return 0, if no function has been set
  */
 int ccn_iribu_callback_tx_on_data(struct ccn_iribu_relay_s *relay,
-                             struct ccn_iribu_face_s *to,
-                             struct ccn_iribu_pkt_s *pkt);
+                                  struct ccn_iribu_face_s *to,
+                                  struct ccn_iribu_pkt_s *pkt);
 
-#endif  /* CCN_IRIBU_CALLBACKS_H */
+#endif /* CCN_IRIBU_CALLBACKS_H */

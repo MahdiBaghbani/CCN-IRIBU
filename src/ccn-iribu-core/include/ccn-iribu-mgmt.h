@@ -23,21 +23,20 @@
 
 #ifdef USE_MGMT
 
-#ifndef CCN_IRIBU_LINUXKERNEL
-#include <stdint.h>
-#else
-#include <linux/types.h>
-#endif
+#    ifndef CCN_IRIBU_LINUXKERNEL
+#        include <stdint.h>
+#    else
+#        include <linux/types.h>
+#    endif
 
 struct ccn_iribu_buf_s;
 struct ccn_iribu_relay_s;
 struct ccn_iribu_prefix_s;
 struct ccn_iribu_face_s;
 
-int8_t
-ccn_iribu_mgmt(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
-          struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from);
+int8_t ccn_iribu_mgmt(struct ccn_iribu_relay_s *ccn_iribu, struct ccn_iribu_buf_s *orig,
+                      struct ccn_iribu_prefix_s *prefix, struct ccn_iribu_face_s *from);
 
-#endif // USE_MGMT
+#endif    // USE_MGMT
 
-#endif // EOF
+#endif    // EOF

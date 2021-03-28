@@ -24,22 +24,20 @@
 #define CCN_IRIBU_IF_H
 
 #if defined(CCN_IRIBU_RIOT)
-#include "sched.h"
+#    include "sched.h"
 #endif
 
-#include "ccn-iribu-sched.h"
 #include "ccn-iribu-face.h"
-
-
+#include "ccn-iribu-sched.h"
 
 struct ccn_iribu_txrequest_s {
     struct ccn_iribu_buf_s *buf;
     sockunion dst;
-    void (*txdone)(void*, int, int);
-    struct ccn_iribu_face_s* txdone_face;
+    void (*txdone)(void *, int, int);
+    struct ccn_iribu_face_s *txdone_face;
 };
 
-struct ccn_iribu_if_s { // interface for packet IO
+struct ccn_iribu_if_s {    // interface for packet IO
     sockunion addr;
 #ifdef CCN_IRIBU_LINUXKERNEL
     struct socket *sock;
@@ -57,12 +55,12 @@ struct ccn_iribu_if_s { // interface for packet IO
 #else
     int sock;
 #endif
-    int reflect; // whether to reflect I packets on this interface
-    int fwdalli; // whether to forward all I packets rcvd on this interface
+    int reflect;    // whether to reflect I packets on this interface
+    int fwdalli;    // whether to forward all I packets rcvd on this interface
     uint32_t mtu;
 
-    size_t qlen;  // number of pending sends
-    size_t qfront; // index of next packet to send
+    size_t qlen;      // number of pending sends
+    size_t qfront;    // index of next packet to send
     struct ccn_iribu_txrequest_s queue[CCN_IRIBU_MAX_IF_QLEN];
     struct ccn_iribu_sched_s *sched;
 
@@ -71,12 +69,10 @@ struct ccn_iribu_if_s { // interface for packet IO
 #endif
 };
 
-void
-ccn_iribu_interface_cleanup(struct ccn_iribu_if_s *i);
+void ccn_iribu_interface_cleanup(struct ccn_iribu_if_s *i);
 
 #if !defined(CCN_IRIBU_LINUXKERNEL) && !defined(CCN_IRIBU_ANDROID)
-int
-ccn_iribu_close_socket(int s);
+int ccn_iribu_close_socket(int s);
 #endif
 
-#endif // EOF
+#endif    // EOF

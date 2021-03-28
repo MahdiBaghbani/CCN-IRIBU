@@ -29,14 +29,12 @@
  */
 static ccn_iribu_producer_func _prod_func = NULL;
 
-void
-ccn_iribu_set_local_producer(ccn_iribu_producer_func func)
+void ccn_iribu_set_local_producer(ccn_iribu_producer_func func)
 {
     _prod_func = func;
 }
 
-int
-local_producer(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
+int local_producer(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
                    struct ccn_iribu_pkt_s *pkt)
 {
     if (_prod_func) {

@@ -17,23 +17,23 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <cmocka.h>
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-#include <cmocka.h>
- 
+
 #include "ccnl-producer.h"
 
 int _test_local_producer(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
-                   struct ccnl_pkt_s *pkt);
+                         struct ccnl_pkt_s *pkt);
 
 int _test_local_producer(struct ccnl_relay_s *relay, struct ccnl_face_s *from,
-                   struct ccnl_pkt_s *pkt)
+                         struct ccnl_pkt_s *pkt)
 {
     /* we don't care about the parameters */
-    (void)relay;
-    (void)from;
-    (void)pkt;
+    (void) relay;
+    (void) from;
+    (void) pkt;
 
     /* we don't really care about creating content on demand for test purposes */
     return 1;
@@ -71,6 +71,6 @@ int main(void)
         unit_test(test_local_producer_is_set),
         unit_test(test_local_producer_is_not_set),
     };
-    
+
     return run_tests(tests);
 }

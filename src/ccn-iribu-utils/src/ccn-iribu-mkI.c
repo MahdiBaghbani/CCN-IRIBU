@@ -22,8 +22,7 @@
 
 // ----------------------------------------------------------------------
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 
     char *digest = 0, *publisher = 0;
@@ -34,7 +33,7 @@ main(int argc, char *argv[])
     struct ccn_iribu_prefix_s *prefix;
     time_t curtime;
     uint32_t nonce;
-    int isLambda = 0;
+    int isLambda          = 0;
     unsigned int chunknum = UINT_MAX;
     ccn_iribu_interest_opts_u int_opts;
 
@@ -46,39 +45,38 @@ main(int argc, char *argv[])
         switch (opt) {
         case 'd':
             digest = optarg;
-            dlen = unescape_component(digest);
+            dlen   = unescape_component(digest);
             if (dlen != 32) {
-                DEBUGMSG(ERROR, "digest has wrong length (%d instead of 32)\n",
-                        dlen);
+                DEBUGMSG(ERROR, "digest has wrong length (%d instead of 32)\n", dlen);
                 exit(-1);
             }
             break;
         case 'e':
-            nonce = (int)strtol(optarg, (char**)NULL, 10);
+            nonce = (int) strtol(optarg, (char **) NULL, 10);
             break;
         case 'l':
             isLambda = 1 - isLambda;
             break;
         case 'n':
-            chunknum = (int)strtol(optarg, (char**)NULL, 10);
+            chunknum = (int) strtol(optarg, (char **) NULL, 10);
             break;
         case 'o':
             fname = optarg;
             break;
         case 'p':
             publisher = optarg;
-            plen = unescape_component(publisher);
+            plen      = unescape_component(publisher);
             if (plen != 32) {
                 DEBUGMSG(ERROR,
-                 "publisher key digest has wrong length (%d instead of 32)\n",
-                 plen);
+                         "publisher key digest has wrong length (%d instead of 32)\n",
+                         plen);
                 exit(-1);
             }
             break;
         case 'v':
 #ifdef USE_LOGGING
             if (isdigit(optarg[0]))
-                debug_level = (int)strtol(optarg, (char**)NULL, 10);
+                debug_level = (int) strtol(optarg, (char **) NULL, 10);
             else
                 debug_level = ccn_iribu_debug_str2level(optarg);
 #endif
@@ -91,19 +89,21 @@ main(int argc, char *argv[])
         case 'h':
         /* falls through */
         default:
-Usage:
-            fprintf(stderr, "usage: %s [options] URI\n"
-            "  -d DIGEST  content digest (sets -x to 0)\n"
-            "  -e NONCE   random 4 bytes\n"
-            "  -l         URI is a Lambda expression\n"
-            "  -n CHUNKNUM positive integer for chunk interest\n"
-            "  -o FNAME   output file (instead of stdout)\n"
-            "  -p DIGEST  publisher fingerprint\n"
+        Usage:
+            fprintf(
+                stderr,
+                "usage: %s [options] URI\n"
+                "  -d DIGEST  content digest (sets -x to 0)\n"
+                "  -e NONCE   random 4 bytes\n"
+                "  -l         URI is a Lambda expression\n"
+                "  -n CHUNKNUM positive integer for chunk interest\n"
+                "  -o FNAME   output file (instead of stdout)\n"
+                "  -p DIGEST  publisher fingerprint\n"
 #ifdef USE_LOGGING
-            "  -v DEBUG_LEVEL (fatal, error, warning, info, debug, verbose, trace)\n"
+                "  -v DEBUG_LEVEL (fatal, error, warning, info, debug, verbose, trace)\n"
 #endif
-            "  -s SUITE   (ccnb, ccnx2015, ndn2013)\n",
-            argv[0]);
+                "  -s SUITE   (ccnb, ccnx2015, ndn2013)\n",
+                argv[0]);
             exit(1);
         }
         /* falls through */
@@ -117,9 +117,8 @@ Usage:
         i = ccn_iribu_lambdaStrToComponents(prefix, argv[optind]);
     else
     */
-    prefix = ccn_iribu_URItoPrefix(argv[optind],
-                              packettype,
-                              chunknum == UINT_MAX ? NULL : &chunknum);
+    prefix = ccn_iribu_URItoPrefix(argv[optind], packettype,
+                                   chunknum == UINT_MAX ? NULL : &chunknum);
     if (!prefix) {
         DEBUGMSG(ERROR, "no URI found, aborting\n");
         return -1;

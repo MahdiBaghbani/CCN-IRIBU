@@ -19,17 +19,15 @@
  * File history:
  * 2017-06-16 created
  */
- 
+
 #include "ccn-iribu-frag.h"
+#include "ccn-iribu-logging.h"
 #include "ccn-iribu-malloc.h"
 #include "ccn-iribu-pkt.h"
-#include "ccn-iribu-logging.h"
 
 #ifdef USE_FRAG
 
-
-
-/* 
+/*
  * CCN_IRIBU_FRAG_NONE
  *  passthrough, i.e. no header is added at all
  *
@@ -56,34 +54,35 @@
 
 // ----------------------------------------------------------------------
 
-struct ccn_iribu_frag_s*
-ccn_iribu_frag_new(int protocol, int mtu)
+struct ccn_iribu_frag_s *ccn_iribu_frag_new(int protocol, int mtu)
 {
     struct ccn_iribu_frag_s *e = NULL;
 
     DEBUGMSG_EFRA(TRACE, "ccn_iribu_frag_new proto=%d mtu=%d\n", protocol, mtu);
 
-    switch(protocol) {
-#ifdef OBSOLETE_BY_2015_06
+    switch (protocol) {
+#    ifdef OBSOLETE_BY_2015_06
     case CCN_IRIBU_FRAG_SEQUENCED2012:
     case CCN_IRIBU_FRAG_CCNx2013:
     case CCN_IRIBU_FRAG_SEQUENCED2015:
-        e = (struct ccn_iribu_frag_s*) ccn_iribu_calloc(1, sizeof(struct ccn_iribu_frag_s));
+        e = (struct ccn_iribu_frag_s *) ccn_iribu_calloc(1,
+                                                         sizeof(struct ccn_iribu_frag_s));
         if (e) {
-            e->protocol = protocol;
-            e->mtu = mtu;
-            e->flagwidth = 1;
-            e->sendseqwidth =   4;
+            e->protocol       = protocol;
+            e->mtu            = mtu;
+            e->flagwidth      = 1;
+            e->sendseqwidth   = 4;
             e->losscountwidth = 2;
-            e->recvseqwidth =   4;
+            e->recvseqwidth   = 4;
         }
         break;
-#endif
+#    endif
     case CCN_IRIBU_FRAG_BEGINEND2015:
-        e = (struct ccn_iribu_frag_s*) ccn_iribu_calloc(1, sizeof(struct ccn_iribu_frag_s));
+        e = (struct ccn_iribu_frag_s *) ccn_iribu_calloc(1,
+                                                         sizeof(struct ccn_iribu_frag_s));
         if (e) {
             e->protocol = protocol;
-            e->mtu = mtu;
+            e->mtu      = mtu;
         }
         break;
     case CCN_IRIBU_FRAG_NONE:
@@ -93,12 +92,11 @@ ccn_iribu_frag_new(int protocol, int mtu)
     return e;
 }
 
-void
-ccn_iribu_frag_reset(struct ccn_iribu_frag_s *e, struct ccn_iribu_buf_s *buf,
-                  int ifndx, sockunion *dst)
+void ccn_iribu_frag_reset(struct ccn_iribu_frag_s *e, struct ccn_iribu_buf_s *buf,
+                          int ifndx, sockunion *dst)
 {
     DEBUGMSG_EFRA(VERBOSE, "ccn_iribu_frag_reset if=%d (%zd bytes) dst=%s\n", ifndx,
-             buf ? buf->datalen : -1, ccn_iribu_addr2ascii(dst));
+                  buf ? buf->datalen : -1, ccn_iribu_addr2ascii(dst));
     if (!e)
         return;
     e->ifndx = ifndx;
@@ -110,75 +108,77 @@ ccn_iribu_frag_reset(struct ccn_iribu_frag_s *e, struct ccn_iribu_buf_s *buf,
     e->sendoffs = 0;
 }
 
-int
-ccn_iribu_frag_getfragcount(struct ccn_iribu_frag_s *e, int origlen, int *totallen)
+int ccn_iribu_frag_getfragcount(struct ccn_iribu_frag_s *e, int origlen, int *totallen)
 {
     (void) origlen;
     int cnt = 0, len = 0;
 
     if (!e)
-      cnt = 1;
-#ifdef OBSOLETE_BY_2015_06
-#ifdef USE_SUITE_CCNB
+        cnt = 1;
+#    ifdef OBSOLETE_BY_2015_06
+#        ifdef USE_SUITE_CCNB
     else if (e->protocol == CCN_IRIBU_FRAG_SEQUENCED2012) {
-      unsigned char dummy[256];
-      int hdrlen, blobtaglen, datalen;
-      int offs = 0;
-      while (offs < origlen) { // we could do better than to simulate this:
-        hdrlen = ccn_iribu_ccnb_mkHeader(dummy, CCN_IRIBU_DTAG_FRAGMENT2012, CCN_TT_DTAG);
-        hdrlen += ccn_iribu_ccnb_mkBinaryInt(dummy, CCN_IRIBU_DTAG_FRAG2012_FLAGS, CCN_TT_DTAG,
-                              0, e->flagwidth);
-        hdrlen += ccn_iribu_ccnb_mkBinaryInt(dummy, CCN_IRIBU_DTAG_FRAG2012_SEQNR, CCN_TT_DTAG,
-                              0, e->sendseqwidth);
-        hdrlen += ccn_iribu_ccnb_mkBinaryInt(dummy, CCN_IRIBU_DTAG_FRAG2012_OLOSS, CCN_TT_DTAG,
-                              0, e->losscountwidth);
-        hdrlen += ccn_iribu_ccnb_mkBinaryInt(dummy, CCN_IRIBU_DTAG_FRAG2012_YSEQN, CCN_TT_DTAG,
-                              0, e->recvseqwidth);
+        unsigned char dummy[256];
+        int hdrlen, blobtaglen, datalen;
+        int offs = 0;
+        while (offs < origlen) {    // we could do better than to simulate this:
+            hdrlen =
+                ccn_iribu_ccnb_mkHeader(dummy, CCN_IRIBU_DTAG_FRAGMENT2012, CCN_TT_DTAG);
+            hdrlen += ccn_iribu_ccnb_mkBinaryInt(dummy, CCN_IRIBU_DTAG_FRAG2012_FLAGS,
+                                                 CCN_TT_DTAG, 0, e->flagwidth);
+            hdrlen += ccn_iribu_ccnb_mkBinaryInt(dummy, CCN_IRIBU_DTAG_FRAG2012_SEQNR,
+                                                 CCN_TT_DTAG, 0, e->sendseqwidth);
+            hdrlen += ccn_iribu_ccnb_mkBinaryInt(dummy, CCN_IRIBU_DTAG_FRAG2012_OLOSS,
+                                                 CCN_TT_DTAG, 0, e->losscountwidth);
+            hdrlen += ccn_iribu_ccnb_mkBinaryInt(dummy, CCN_IRIBU_DTAG_FRAG2012_YSEQN,
+                                                 CCN_TT_DTAG, 0, e->recvseqwidth);
 
-        hdrlen += ccn_iribu_ccnb_mkHeader(dummy, CCN_DTAG_CONTENT, CCN_TT_DTAG);
-        blobtaglen = ccn_iribu_ccnb_mkHeader(dummy, e->mtu - hdrlen - 1, CCN_TT_BLOB);
-        datalen = e->mtu - hdrlen - blobtaglen - 1;
-        if (datalen > (origlen - offs))
-            datalen = origlen - offs;
-        hdrlen += ccn_iribu_ccnb_mkHeader(dummy, datalen, CCN_TT_BLOB);
-        len += hdrlen + datalen + 1;
-        offs += datalen;
-        cnt++;
-      }
+            hdrlen += ccn_iribu_ccnb_mkHeader(dummy, CCN_DTAG_CONTENT, CCN_TT_DTAG);
+            blobtaglen = ccn_iribu_ccnb_mkHeader(dummy, e->mtu - hdrlen - 1, CCN_TT_BLOB);
+            datalen    = e->mtu - hdrlen - blobtaglen - 1;
+            if (datalen > (origlen - offs))
+                datalen = origlen - offs;
+            hdrlen += ccn_iribu_ccnb_mkHeader(dummy, datalen, CCN_TT_BLOB);
+            len += hdrlen + datalen + 1;
+            offs += datalen;
+            cnt++;
+        }
     } else if (e->protocol == CCN_IRIBU_FRAG_CCNx2013) {
-      unsigned char dummy[256];
-      int hdrlen, blobtaglen, datalen;
-      int offs = 0;
-      while (offs < origlen) { // we could do better than to simulate this:
-        hdrlen = ccn_iribu_ccnb_mkHeader(dummy, CCN_IRIBU_DTAG_FRAGMENT2013, CCN_TT_DTAG);
-        hdrlen += ccn_iribu_ccnb_mkHeader(dummy, CCN_IRIBU_DTAG_FRAG2013_TYPE, CCN_TT_DTAG);
-        hdrlen += 4; // three BLOB bytes plus end-of-entry
-        hdrlen += ccn_iribu_ccnb_mkBinaryInt(dummy, CCN_IRIBU_DTAG_FRAG2013_SEQNR, CCN_TT_DTAG,
-                              0, e->sendseqwidth);
-        hdrlen += ccn_iribu_ccnb_mkBinaryInt(dummy, CCN_IRIBU_DTAG_FRAG2013_FLAGS, CCN_TT_DTAG,
-                              0, e->flagwidth);
-        hdrlen += ccn_iribu_ccnb_mkBinaryInt(dummy, CCN_IRIBU_DTAG_FRAG2013_OLOSS, CCN_TT_DTAG,
-                              0, e->losscountwidth);
-        hdrlen += ccn_iribu_ccnb_mkBinaryInt(dummy, CCN_IRIBU_DTAG_FRAG2013_YSEQN, CCN_TT_DTAG,
-                              0, e->recvseqwidth);
+        unsigned char dummy[256];
+        int hdrlen, blobtaglen, datalen;
+        int offs = 0;
+        while (offs < origlen) {    // we could do better than to simulate this:
+            hdrlen =
+                ccn_iribu_ccnb_mkHeader(dummy, CCN_IRIBU_DTAG_FRAGMENT2013, CCN_TT_DTAG);
+            hdrlen +=
+                ccn_iribu_ccnb_mkHeader(dummy, CCN_IRIBU_DTAG_FRAG2013_TYPE, CCN_TT_DTAG);
+            hdrlen += 4;    // three BLOB bytes plus end-of-entry
+            hdrlen += ccn_iribu_ccnb_mkBinaryInt(dummy, CCN_IRIBU_DTAG_FRAG2013_SEQNR,
+                                                 CCN_TT_DTAG, 0, e->sendseqwidth);
+            hdrlen += ccn_iribu_ccnb_mkBinaryInt(dummy, CCN_IRIBU_DTAG_FRAG2013_FLAGS,
+                                                 CCN_TT_DTAG, 0, e->flagwidth);
+            hdrlen += ccn_iribu_ccnb_mkBinaryInt(dummy, CCN_IRIBU_DTAG_FRAG2013_OLOSS,
+                                                 CCN_TT_DTAG, 0, e->losscountwidth);
+            hdrlen += ccn_iribu_ccnb_mkBinaryInt(dummy, CCN_IRIBU_DTAG_FRAG2013_YSEQN,
+                                                 CCN_TT_DTAG, 0, e->recvseqwidth);
 
-        hdrlen += ccn_iribu_ccnb_mkHeader(dummy, CCN_DTAG_CONTENT, CCN_TT_DTAG);
-        blobtaglen = ccn_iribu_ccnb_mkHeader(dummy, e->mtu - hdrlen - 1, CCN_TT_BLOB);
-        datalen = e->mtu - hdrlen - blobtaglen - 1;
-        if (datalen > (origlen - offs))
-            datalen = origlen - offs;
-        hdrlen += ccn_iribu_ccnb_mkHeader(dummy, datalen, CCN_TT_BLOB);
-        len += hdrlen + datalen + 1;
-        offs += datalen;
-        cnt++;
-      }
+            hdrlen += ccn_iribu_ccnb_mkHeader(dummy, CCN_DTAG_CONTENT, CCN_TT_DTAG);
+            blobtaglen = ccn_iribu_ccnb_mkHeader(dummy, e->mtu - hdrlen - 1, CCN_TT_BLOB);
+            datalen    = e->mtu - hdrlen - blobtaglen - 1;
+            if (datalen > (origlen - offs))
+                datalen = origlen - offs;
+            hdrlen += ccn_iribu_ccnb_mkHeader(dummy, datalen, CCN_TT_BLOB);
+            len += hdrlen + datalen + 1;
+            offs += datalen;
+            cnt++;
+        }
     }
-#endif
+#        endif
     else if (e->protocol == CCN_IRIBU_FRAG_SEQUENCED2015) {
         // ...
         DEBUGMSG_EFRA(FATAL, "frag counting not implemented yet for SEQD2015!\n");
     }
-#endif // OBSOLETE
+#    endif    // OBSOLETE
     else {
         DEBUGMSG_EFRA(FATAL, "frag protocol %d not supported?\n", e->protocol);
     }
@@ -188,33 +188,35 @@ ccn_iribu_frag_getfragcount(struct ccn_iribu_frag_s *e, int origlen, int *totall
     return cnt;
 }
 
-#ifdef OBSOLTE_BY_2015_06
-#ifdef USE_SUITE_CCNB
-struct ccn_iribu_buf_s*
-ccn_iribu_frag_getnextSEQD2012(struct ccn_iribu_frag_s *e, int *ifndx, sockunion *su)
+#    ifdef OBSOLTE_BY_2015_06
+#        ifdef USE_SUITE_CCNB
+struct ccn_iribu_buf_s *ccn_iribu_frag_getnextSEQD2012(struct ccn_iribu_frag_s *e,
+                                                       int *ifndx, sockunion *su)
 {
     struct ccn_iribu_buf_s *buf = 0;
     unsigned char header[256];
     int hdrlen = 0, blobtaglen, flagoffs;
     unsigned int datalen;
 
-    DEBUGMSG_EFRA(TRACE, "ccn_iribu_frag_getnextSEQD2012 e=%p, mtu=%d\n", (void*)e, e->mtu);
-    DEBUGMSG_EFRA(TRACE, "  %d bytes to fragment, offset=%d\n",
-             e->bigpkt->datalen, e->sendoffs);
+    DEBUGMSG_EFRA(TRACE, "ccn_iribu_frag_getnextSEQD2012 e=%p, mtu=%d\n", (void *) e,
+                  e->mtu);
+    DEBUGMSG_EFRA(TRACE, "  %d bytes to fragment, offset=%d\n", e->bigpkt->datalen,
+                  e->sendoffs);
 
     hdrlen = ccn_iribu_ccnb_mkHeader(header, CCN_IRIBU_DTAG_FRAGMENT2012, CCN_TT_DTAG);
     hdrlen += ccn_iribu_ccnb_mkBinaryInt(header + hdrlen, CCN_IRIBU_DTAG_FRAG2012_FLAGS,
-                          CCN_TT_DTAG, 0, e->flagwidth);
+                                         CCN_TT_DTAG, 0, e->flagwidth);
     flagoffs = hdrlen - 2;
     hdrlen += ccn_iribu_ccnb_mkBinaryInt(header + hdrlen, CCN_IRIBU_DTAG_FRAG2012_YSEQN,
-                          CCN_TT_DTAG, e->recvseq, e->recvseqwidth);
-    hdrlen += ccn_iribu_ccnb_mkBinaryInt(header+hdrlen, CCN_IRIBU_DTAG_FRAG2012_OLOSS, CCN_TT_DTAG,
-                          e->losscount, e->losscountwidth);
+                                         CCN_TT_DTAG, e->recvseq, e->recvseqwidth);
+    hdrlen += ccn_iribu_ccnb_mkBinaryInt(header + hdrlen, CCN_IRIBU_DTAG_FRAG2012_OLOSS,
+                                         CCN_TT_DTAG, e->losscount, e->losscountwidth);
 
     hdrlen += ccn_iribu_ccnb_mkBinaryInt(header + hdrlen, CCN_IRIBU_DTAG_FRAG2012_SEQNR,
-                          CCN_TT_DTAG, e->sendseq, e->sendseqwidth);
-    hdrlen += ccn_iribu_ccnb_mkHeader(header+hdrlen, CCN_DTAG_CONTENT, CCN_TT_DTAG);
-    blobtaglen = ccn_iribu_ccnb_mkHeader(header+hdrlen, e->mtu - hdrlen - 2, CCN_TT_BLOB);
+                                         CCN_TT_DTAG, e->sendseq, e->sendseqwidth);
+    hdrlen += ccn_iribu_ccnb_mkHeader(header + hdrlen, CCN_DTAG_CONTENT, CCN_TT_DTAG);
+    blobtaglen =
+        ccn_iribu_ccnb_mkHeader(header + hdrlen, e->mtu - hdrlen - 2, CCN_TT_BLOB);
 
     datalen = e->mtu - hdrlen - blobtaglen - 2;
     if (datalen > (e->bigpkt->datalen - e->sendoffs))
@@ -226,21 +228,21 @@ ccn_iribu_frag_getnextSEQD2012(struct ccn_iribu_frag_s *e, int *ifndx, sockunion
         return NULL;
     memcpy(buf->data, header, hdrlen);
     memcpy(buf->data + hdrlen, e->bigpkt->data + e->sendoffs, datalen);
-    buf->data[hdrlen + datalen] = '\0'; // end of content/any field
-    buf->data[hdrlen + datalen + 1] = '\0'; // end of fragment/pdu
+    buf->data[hdrlen + datalen]     = '\0';    // end of content/any field
+    buf->data[hdrlen + datalen + 1] = '\0';    // end of fragment/pdu
 
-    if (datalen >= e->bigpkt->datalen) { // fits in a single fragment
+    if (datalen >= e->bigpkt->datalen) {    // fits in a single fragment
         buf->data[flagoffs + e->flagwidth - 1] =
             CCN_IRIBU_DTAG_FRAG_FLAG_FIRST | CCN_IRIBU_DTAG_FRAG_FLAG_LAST;
         ccn_iribu_free(e->bigpkt);
         e->bigpkt = NULL;
-    } else if (e->sendoffs == 0) // this is the start fragment
+    } else if (e->sendoffs == 0)    // this is the start fragment
         buf->data[flagoffs + e->flagwidth - 1] = CCN_IRIBU_DTAG_FRAG_FLAG_FIRST;
-    else if(datalen >= (e->bigpkt->datalen - e->sendoffs)) { // the end
+    else if (datalen >= (e->bigpkt->datalen - e->sendoffs)) {    // the end
         buf->data[flagoffs + e->flagwidth - 1] = CCN_IRIBU_DTAG_FRAG_FLAG_LAST;
         ccn_iribu_free(e->bigpkt);
         e->bigpkt = NULL;
-    } else // in the middle
+    } else    // in the middle
         buf->data[flagoffs + e->flagwidth - 1] = 0x00;
 
     e->sendoffs += datalen;
@@ -255,8 +257,8 @@ ccn_iribu_frag_getnextSEQD2012(struct ccn_iribu_frag_s *e, int *ifndx, sockunion
     return buf;
 }
 
-struct ccn_iribu_buf_s*
-ccn_iribu_frag_getnextCCNx2013(struct ccn_iribu_frag_s *fr, int *ifndx, sockunion *su)
+struct ccn_iribu_buf_s *ccn_iribu_frag_getnextCCNx2013(struct ccn_iribu_frag_s *fr,
+                                                       int *ifndx, sockunion *su)
 {
     struct ccn_iribu_buf_s *buf = 0;
     unsigned char header[256];
@@ -265,26 +267,29 @@ ccn_iribu_frag_getnextCCNx2013(struct ccn_iribu_frag_s *fr, int *ifndx, sockunio
 
     // switch among encodings of fragments here (ccnb, TLV, etc)
 
-    hdrlen = ccn_iribu_ccnb_mkHeader(header, CCN_IRIBU_DTAG_FRAGMENT2013, CCN_TT_DTAG); // fragment
+    hdrlen = ccn_iribu_ccnb_mkHeader(header, CCN_IRIBU_DTAG_FRAGMENT2013,
+                                     CCN_TT_DTAG);    // fragment
 
-    hdrlen += ccn_iribu_ccnb_mkHeader(header + hdrlen, CCN_IRIBU_DTAG_FRAG2013_TYPE, CCN_TT_DTAG);
+    hdrlen += ccn_iribu_ccnb_mkHeader(header + hdrlen, CCN_IRIBU_DTAG_FRAG2013_TYPE,
+                                      CCN_TT_DTAG);
     hdrlen += ccn_iribu_ccnb_mkHeader(header + hdrlen, 3, CCN_TT_BLOB);
-    memcpy(header + hdrlen, CCN_IRIBU_FRAG_TYPE_CCNx2013_VAL, 3); // "FHBH"
+    memcpy(header + hdrlen, CCN_IRIBU_FRAG_TYPE_CCNx2013_VAL, 3);    // "FHBH"
     header[hdrlen + 3] = '\0';
     hdrlen += 4;
 
-    hdrlen += ccn_iribu_ccnb_mkBinaryInt(header+hdrlen, CCN_IRIBU_DTAG_FRAG2013_SEQNR, CCN_TT_DTAG,
-                          fr->sendseq, fr->sendseqwidth);
+    hdrlen += ccn_iribu_ccnb_mkBinaryInt(header + hdrlen, CCN_IRIBU_DTAG_FRAG2013_SEQNR,
+                                         CCN_TT_DTAG, fr->sendseq, fr->sendseqwidth);
 
-    hdrlen += ccn_iribu_ccnb_mkBinaryInt(header+hdrlen, CCN_IRIBU_DTAG_FRAG2013_FLAGS, CCN_TT_DTAG,
-                          0, fr->flagwidth);
-    flagoffs = hdrlen - 2; // most significant byte of flag element
+    hdrlen += ccn_iribu_ccnb_mkBinaryInt(header + hdrlen, CCN_IRIBU_DTAG_FRAG2013_FLAGS,
+                                         CCN_TT_DTAG, 0, fr->flagwidth);
+    flagoffs = hdrlen - 2;    // most significant byte of flag element
 
     // other optional fields would go here
 
-    hdrlen += ccn_iribu_ccnb_mkHeader(header+hdrlen, CCN_DTAG_CONTENT, CCN_TT_DTAG);
+    hdrlen += ccn_iribu_ccnb_mkHeader(header + hdrlen, CCN_DTAG_CONTENT, CCN_TT_DTAG);
 
-    blobtaglen = ccn_iribu_ccnb_mkHeader(header + hdrlen, fr->mtu - hdrlen - 2, CCN_TT_BLOB);
+    blobtaglen =
+        ccn_iribu_ccnb_mkHeader(header + hdrlen, fr->mtu - hdrlen - 2, CCN_TT_BLOB);
     datalen = fr->mtu - hdrlen - blobtaglen - 2;
     if (datalen > (fr->bigpkt->datalen - fr->sendoffs))
         datalen = fr->bigpkt->datalen - fr->sendoffs;
@@ -295,17 +300,17 @@ ccn_iribu_frag_getnextCCNx2013(struct ccn_iribu_frag_s *fr, int *ifndx, sockunio
         return NULL;
     memcpy(buf->data, header, hdrlen);
     memcpy(buf->data + hdrlen, fr->bigpkt->data + fr->sendoffs, datalen);
-    buf->data[hdrlen + datalen] = '\0'; // end of content field
-    buf->data[hdrlen + datalen + 1] = '\0'; // end of fragment
+    buf->data[hdrlen + datalen]     = '\0';    // end of content field
+    buf->data[hdrlen + datalen + 1] = '\0';    // end of fragment
 
     // patch flag field:
-    if (datalen >= fr->bigpkt->datalen) { // single
+    if (datalen >= fr->bigpkt->datalen) {    // single
         buf->data[flagoffs] = CCN_IRIBU_DTAG_FRAG_FLAG_SINGLE;
         ccn_iribu_free(fr->bigpkt);
         fr->bigpkt = NULL;
-    } else if (fr->sendoffs == 0) // start
+    } else if (fr->sendoffs == 0)    // start
         buf->data[flagoffs] = CCN_IRIBU_DTAG_FRAG_FLAG_FIRST;
-    else if(datalen >= (fr->bigpkt->datalen - fr->sendoffs)) { // end
+    else if (datalen >= (fr->bigpkt->datalen - fr->sendoffs)) {    // end
         buf->data[flagoffs] = CCN_IRIBU_DTAG_FRAG_FLAG_LAST;
         ccn_iribu_free(fr->bigpkt);
         fr->bigpkt = NULL;
@@ -322,27 +327,27 @@ ccn_iribu_frag_getnextCCNx2013(struct ccn_iribu_frag_s *fr, int *ifndx, sockunio
 
     return buf;
 }
-#endif // USE_SUITE_CCNB
+#        endif    // USE_SUITE_CCNB
 
-struct ccn_iribu_buf_s*
-ccn_iribu_frag_getnextSEQD2015(struct ccn_iribu_frag_s *fr, int *ifndx, sockunion *su)
+struct ccn_iribu_buf_s *ccn_iribu_frag_getnextSEQD2015(struct ccn_iribu_frag_s *fr,
+                                                       int *ifndx, sockunion *su)
 {
     struct ccn_iribu_buf_s *buf = 0;
-    unsigned int datalen = 0;
+    unsigned int datalen        = 0;
 
     DEBUGMSG_EFRA(DEBUG, "ccn_iribu_frag_getnextSEQD2015: datalen=%d\n", datalen);
 
-    switch(fr->outsuite) {
-#ifdef USE_SUITE_CCNTLV
+    switch (fr->outsuite) {
+#        ifdef USE_SUITE_CCNTLV
     case CCN_IRIBU_SUITE_CCNTLV:
         buf = ccn_iribu_ccntlv_mkFrag(fr, &datalen);
         break;
-#endif
-#ifdef USE_SUITE_NDNTLV
+#        endif
+#        ifdef USE_SUITE_NDNTLV
     case CCN_IRIBU_SUITE_NDNTLV:
         buf = ccn_iribu_ndntlv_mkFrag(fr, &datalen);
         break;
-#endif
+#        endif
     default:
         break;
     }
@@ -361,36 +366,36 @@ ccn_iribu_frag_getnextSEQD2015(struct ccn_iribu_frag_s *fr, int *ifndx, sockunio
         if (su)
             memcpy(su, &fr->dest, sizeof(*su));
 
-        DEBUGMSG_EFRA(VERBOSE, "  produced %d bytes fragment, seqnr=%d-1\n",
-                 buf->datalen, fr->sendseq);
+        DEBUGMSG_EFRA(VERBOSE, "  produced %d bytes fragment, seqnr=%d-1\n", buf->datalen,
+                      fr->sendseq);
     } else
         DEBUGMSG_EFRA(VERBOSE, "  produced NO fragment, seqnr remains at =%d-1\n",
-                 fr->sendseq);
+                      fr->sendseq);
 
     return buf;
 }
-#endif // OBSOLETE
+#    endif    // OBSOLETE
 
-struct ccn_iribu_buf_s*
-ccn_iribu_frag_getnextBE2015(struct ccn_iribu_frag_s *fr, int *ifndx, sockunion *su)
+struct ccn_iribu_buf_s *ccn_iribu_frag_getnextBE2015(struct ccn_iribu_frag_s *fr,
+                                                     int *ifndx, sockunion *su)
 {
     struct ccn_iribu_buf_s *buf = 0;
-    unsigned int datalen = 0;
+    unsigned int datalen        = 0;
 
     DEBUGMSG_EFRA(VERBOSE, "ccn_iribu_frag_getnextBE2015: remaining=%zd\n",
                   fr->bigpkt->datalen - fr->sendoffs);
 
-    switch(fr->outsuite) {
-#ifdef USE_SUITE_CCNTLV
+    switch (fr->outsuite) {
+#    ifdef USE_SUITE_CCNTLV
     case CCN_IRIBU_SUITE_CCNTLV:
         buf = ccn_iribu_ccntlv_mkFrag(fr, &datalen);
         break;
-#endif
-#ifdef USE_SUITE_NDNTLV
+#    endif
+#    ifdef USE_SUITE_NDNTLV
     case CCN_IRIBU_SUITE_NDNTLV:
         buf = ccn_iribu_ndntlv_mkFrag(fr, &datalen);
         break;
-#endif
+#    endif
     default:
         break;
     }
@@ -410,33 +415,34 @@ ccn_iribu_frag_getnextBE2015(struct ccn_iribu_frag_s *fr, int *ifndx, sockunion 
             memcpy(su, &fr->dest, sizeof(*su));
 
         DEBUGMSG_EFRA(VERBOSE, "  produced %zd bytes fragment, seqnr=%d-1\n",
-                 buf->datalen, fr->sendseq);
+                      buf->datalen, fr->sendseq);
     } else
         DEBUGMSG_EFRA(VERBOSE, "  produced NO fragment, seqnr remains at =%d-1\n",
-                 fr->sendseq);
+                      fr->sendseq);
 
     return buf;
 }
 
-struct ccn_iribu_buf_s*
-ccn_iribu_frag_getnext(struct ccn_iribu_frag_s *fr, int *ifndx, sockunion *su)
+struct ccn_iribu_buf_s *ccn_iribu_frag_getnext(struct ccn_iribu_frag_s *fr, int *ifndx,
+                                               sockunion *su)
 {
-    if (!fr->bigpkt) return NULL;
+    if (!fr->bigpkt)
+        return NULL;
 
-    DEBUGMSG_EFRA(VERBOSE, "fragmenting %zd bytes (@ %d)\n",
-                                fr->bigpkt->datalen, fr->sendoffs);
+    DEBUGMSG_EFRA(VERBOSE, "fragmenting %zd bytes (@ %d)\n", fr->bigpkt->datalen,
+                  fr->sendoffs);
 
     switch (fr->protocol) {
-#ifdef OBSOLETE_BY_2015_06
-#ifdef USE_SUITE_CCNB
+#    ifdef OBSOLETE_BY_2015_06
+#        ifdef USE_SUITE_CCNB
     case CCN_IRIBU_FRAG_SEQUENCED2012:
         return ccn_iribu_frag_getnextSEQD2012(fr, ifndx, su);
     case CCN_IRIBU_FRAG_CCNx2013:
         return ccn_iribu_frag_getnextCCNx2013(fr, ifndx, su);
-#endif
+#        endif
     case CCN_IRIBU_FRAG_SEQUENCED2015:
         return ccn_iribu_frag_getnextSEQD2015(fr, ifndx, su);
-#endif
+#    endif
     case CCN_IRIBU_FRAG_BEGINEND2015:
         return ccn_iribu_frag_getnextBE2015(fr, ifndx, su);
     default:
@@ -445,16 +451,14 @@ ccn_iribu_frag_getnext(struct ccn_iribu_frag_s *fr, int *ifndx, sockunion *su)
     }
 }
 
-int
-ccn_iribu_frag_nomorefragments(struct ccn_iribu_frag_s *e)
+int ccn_iribu_frag_nomorefragments(struct ccn_iribu_frag_s *e)
 {
     if (!e || !e->bigpkt)
         return 1;
     return (unsigned) e->bigpkt->datalen <= e->sendoffs;
 }
 
-void
-ccn_iribu_frag_destroy(struct ccn_iribu_frag_s *e)
+void ccn_iribu_frag_destroy(struct ccn_iribu_frag_s *e)
 {
     if (e) {
         ccn_iribu_free(e->bigpkt);
@@ -463,41 +467,39 @@ ccn_iribu_frag_destroy(struct ccn_iribu_frag_s *e)
     }
 }
 
-void
-serialFragPDU_init(struct serialFragPDU_s *s)
+void serialFragPDU_init(struct serialFragPDU_s *s)
 {
     memset(s, 0, sizeof(*s));
-    s->contlen = -1;
-    s->flagwidth = 1;
+    s->contlen     = -1;
+    s->flagwidth   = 1;
     s->ourseqwidth = s->ourlosswidth = s->yourseqwidth = sizeof(int);
 }
 
-#ifdef OBSOLETE_BY_2015_06
+#    ifdef OBSOLETE_BY_2015_06
 // processes a SEQENCED fragment. Once fully assembled we call the callback
-void
-ccn_iribu_frag_RX_serialfragment(RX_datagram callback,
-                            struct ccn_iribu_relay_s *relay,
-                            struct ccn_iribu_face_s *from,
-                            struct serialFragPDU_s *s)
+void ccn_iribu_frag_RX_serialfragment(RX_datagram callback,
+                                      struct ccn_iribu_relay_s *relay,
+                                      struct ccn_iribu_face_s *from,
+                                      struct serialFragPDU_s *s)
 {
     struct ccn_iribu_buf_s *buf = NULL;
-    struct ccn_iribu_frag_s *e = from->frag;
-    DEBUGMSG_EFRA(VERBOSE, "  frag %p protocol=%d, flags=%04x, seq=%d (%d)\n",
-             (void*)e, e->protocol, s->flags, s->ourseq, e->recvseq);
+    struct ccn_iribu_frag_s *e  = from->frag;
+    DEBUGMSG_EFRA(VERBOSE, "  frag %p protocol=%d, flags=%04x, seq=%d (%d)\n", (void *) e,
+                  e->protocol, s->flags, s->ourseq, e->recvseq);
 
     if (e->recvseq != s->ourseq) {
         // should increase error counter here
         if (e->defrag) {
             DEBUGMSG_EFRA(WARNING, "  >> seqnum mismatch (%d/%d), dropped defrag buf\n",
-                     s->ourseq, e->recvseq);
+                          s->ourseq, e->recvseq);
             ccn_iribu_free(e->defrag);
             e->defrag = NULL;
         }
-        if (e->recvseq > s->ourseq) // old and dup fragment: ignore
+        if (e->recvseq > s->ourseq)    // old and dup fragment: ignore
             return;
     }
-    switch(s->flags & (CCN_IRIBU_DTAG_FRAG_FLAG_FIRST|CCN_IRIBU_DTAG_FRAG_FLAG_LAST)) {
-    case CCN_IRIBU_DTAG_FRAG_FLAG_SINGLE: // single packet
+    switch (s->flags & (CCN_IRIBU_DTAG_FRAG_FLAG_FIRST | CCN_IRIBU_DTAG_FRAG_FLAG_LAST)) {
+    case CCN_IRIBU_DTAG_FRAG_FLAG_SINGLE:    // single packet
         DEBUGMSG_EFRA(VERBOSE, "  >> single fragment (%d bytes)\n", s->contlen);
         if (e->defrag) {
             DEBUGMSG_EFRA(WARNING, "    had to drop defrag buf\n");
@@ -507,7 +509,7 @@ ccn_iribu_frag_RX_serialfragment(RX_datagram callback,
         // no need to copy the buffer:
         callback(relay, from, &s->content, &s->contlen);
         return;
-    case CCN_IRIBU_DTAG_FRAG_FLAG_FIRST: // start of fragment sequence
+    case CCN_IRIBU_DTAG_FRAG_FLAG_FIRST:    // start of fragment sequence
         DEBUGMSG_EFRA(VERBOSE, "  >> start of fragment series\n");
         if (e->defrag) {
             DEBUGMSG_EFRA(WARNING, "    had to drop defrag buf\n");
@@ -517,7 +519,7 @@ ccn_iribu_frag_RX_serialfragment(RX_datagram callback,
         s->content += s->contlen;
         s->contlen = 0;
         break;
-    case CCN_IRIBU_DTAG_FRAG_FLAG_LAST: // end of fragment sequence
+    case CCN_IRIBU_DTAG_FRAG_FLAG_LAST:    // end of fragment sequence
         DEBUGMSG_EFRA(VERBOSE, "  >> last fragment of a series\n");
         if (!e->defrag) {
             DEBUGMSG_EFRA(VERBOSE, "  >> no e->defrag?\n");
@@ -533,17 +535,18 @@ ccn_iribu_frag_RX_serialfragment(RX_datagram callback,
         s->content += s->contlen;
         s->contlen = 0;
         break;
-    case CCN_IRIBU_DTAG_FRAG_FLAG_MID:  // fragment in the middle of a squence
+    case CCN_IRIBU_DTAG_FRAG_FLAG_MID:    // fragment in the middle of a squence
     default:
         DEBUGMSG_EFRA(VERBOSE, "  >> fragment in the middle of a series\n");
-        if (!e->defrag) break;
+        if (!e->defrag)
+            break;
         buf = ccn_iribu_buf_new(NULL, e->defrag->datalen + s->contlen);
         if (buf) {
             memcpy(buf->data, e->defrag->data, e->defrag->datalen);
             memcpy(buf->data + e->defrag->datalen, s->content, s->contlen);
             ccn_iribu_free(e->defrag);
             e->defrag = buf;
-            buf = NULL;
+            buf       = NULL;
         } else {
             ccn_iribu_free(e->defrag);
             e->defrag = NULL;
@@ -555,11 +558,11 @@ ccn_iribu_frag_RX_serialfragment(RX_datagram callback,
     // FIXME: we should only bump recvseq if s->ourseq is ahead, or 0
     e->recvseq = s->ourseq + 1;
     DEBUGMSG_EFRA(VERBOSE, ">>> seq from %d to %d (w=%d)\n", s->ourseq, e->recvseq,
-        s->ourseqwidth);
+                  s->ourseqwidth);
 
     if (buf) {
         unsigned char *frag = buf->data;
-        int fraglen = buf->datalen;
+        int fraglen         = buf->datalen;
         DEBUGMSG_EFRA(VERBOSE, "  >> reassembled fragment is %d bytes\n", buf->datalen);
         // FIXME: loop over multiple packets in this reassembled frame?
         callback(relay, from, &frag, &fraglen);
@@ -567,12 +570,11 @@ ccn_iribu_frag_RX_serialfragment(RX_datagram callback,
     }
 }
 
-#ifdef USE_SUITE_CCNB
+#        ifdef USE_SUITE_CCNB
 
-int
-ccn_iribu_frag_RX_frag2012(RX_datagram callback,
-                        struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-                        unsigned char **data, int *datalen)
+int ccn_iribu_frag_RX_frag2012(RX_datagram callback, struct ccn_iribu_relay_s *relay,
+                               struct ccn_iribu_face_s *from, unsigned char **data,
+                               int *datalen)
 {
     int num, typ;
     struct serialFragPDU_s s;
@@ -580,14 +582,15 @@ ccn_iribu_frag_RX_frag2012(RX_datagram callback,
 
     serialFragPDU_init(&s);
     while (ccn_iribu_ccnb_dehead(data, datalen, &num, &typ) == 0) {
-        if (num==0 && typ==0)
-            break; // end
+        if (num == 0 && typ == 0)
+            break;    // end
         if (typ == CCN_TT_DTAG) {
-            switch(num) {
+            switch (num) {
             case CCN_DTAG_CONTENT:
                 DEBUGMSG_EFRA(TRACE, "  frag content\n");
-//              if (s.content) // error: more than one content entry
-                if (ccn_iribu_ccnb_consume(typ, num, data, datalen, &s.content,&s.contlen) < 0)
+                //              if (s.content) // error: more than one content entry
+                if (ccn_iribu_ccnb_consume(typ, num, data, datalen, &s.content,
+                                           &s.contlen) < 0)
                     goto Bail;
                 continue;
             case CCN_IRIBU_DTAG_FRAG2012_FLAGS:
@@ -615,13 +618,13 @@ ccn_iribu_frag_RX_frag2012(RX_datagram callback,
     }
 
     if (from) {
-      if (!from->frag)
-          from->frag = ccn_iribu_frag_new(CCN_IRIBU_FRAG_SEQUENCED2012,
-                                       relay->ifs[from->ifndx].mtu);
-      if (from->frag && from->frag->protocol == CCN_IRIBU_FRAG_SEQUENCED2012)
-          ccn_iribu_frag_RX_serialfragment(callback, relay, from, &s);
-      else
-          DEBUGMSG_EFRA(WARNING, "WRONG FRAG PROTOCOL\n");
+        if (!from->frag)
+            from->frag = ccn_iribu_frag_new(CCN_IRIBU_FRAG_SEQUENCED2012,
+                                            relay->ifs[from->ifndx].mtu);
+        if (from->frag && from->frag->protocol == CCN_IRIBU_FRAG_SEQUENCED2012)
+            ccn_iribu_frag_RX_serialfragment(callback, relay, from, &s);
+        else
+            DEBUGMSG_EFRA(WARNING, "WRONG FRAG PROTOCOL\n");
     } else
         ccn_iribu_frag_RX_serialfragment(callback, relay, from, &s);
 
@@ -631,10 +634,9 @@ Bail:
     return -1;
 }
 
-int
-ccn_iribu_frag_RX_CCNx2013(RX_datagram callback,
-                       struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-                       unsigned char **data, int *datalen)
+int ccn_iribu_frag_RX_CCNx2013(RX_datagram callback, struct ccn_iribu_relay_s *relay,
+                               struct ccn_iribu_face_s *from, unsigned char **data,
+                               int *datalen)
 {
     int rc, num, typ, pdutypelen;
     unsigned char *pdutype = 0;
@@ -643,12 +645,14 @@ ccn_iribu_frag_RX_CCNx2013(RX_datagram callback,
     DEBUGMSG_EFRA(TRACE, "ccn_iribu_frag_RX_CCNx2013 (%d bytes)\n", *datalen);
     serialFragPDU_init(&s);
     while (ccn_iribu_ccnb_dehead(data, datalen, &num, &typ) == 0) {
-        if (num==0 && typ==0) break; // end
+        if (num == 0 && typ == 0)
+            break;    // end
         if (typ == CCN_TT_DTAG) {
             switch (num) {
             case CCN_IRIBU_DTAG_FRAG2013_TYPE:
                 if (ccn_iribu_ccnb_hunt_for_end(data, datalen, &pdutype, &pdutypelen) ||
-                    pdutypelen != 3) goto Bail;
+                    pdutypelen != 3)
+                    goto Bail;
                 continue;
             case CCN_IRIBU_DTAG_FRAG2013_SEQNR:
                 getNumField(s.ourseq, s.ourseqwidth, HAS_OSEQ, "ourseq");
@@ -657,15 +661,17 @@ ccn_iribu_frag_RX_CCNx2013(RX_datagram callback,
                 getNumField(s.flags, s.flagwidth, HAS_FLAGS, "flags");
                 continue;
             case CCN_DTAG_CONTENT:
-//              if (frag) // error: more than one content entry
-                if (ccn_iribu_ccnb_consume(typ, num, data, datalen, &s.content,&s.contlen) < 0)
+                //              if (frag) // error: more than one content entry
+                if (ccn_iribu_ccnb_consume(typ, num, data, datalen, &s.content,
+                                           &s.contlen) < 0)
                     goto Bail;
                 continue;
 
             // CCNL extensions:
             case CCN_DTAG_INTEREST:
             case CCN_DTAG_CONTENTOBJ:
-//                rc = ccn_iribu_ccnb_forwarder(relay, from, data, datalen);
+                //                rc = ccn_iribu_ccnb_forwarder(relay, from, data,
+                //                datalen);
                 rc = callback(relay, from, data, datalen);
                 if (rc < 0)
                     return rc;
@@ -683,19 +689,19 @@ ccn_iribu_frag_RX_CCNx2013(RX_datagram callback,
         if (ccn_iribu_ccnb_consume(typ, num, data, datalen, 0, 0) < 0)
             goto Bail;
     }
-    if (!pdutype || !s.content ) {
-/* ||
-                    (s.HAS&(HAS_FLAGS|HAS_OSEQ)) != (HAS_FLAGS|HAS_OSEQ) ) {
-*/
+    if (!pdutype || !s.content) {
+        /* ||
+                            (s.HAS&(HAS_FLAGS|HAS_OSEQ)) != (HAS_FLAGS|HAS_OSEQ) ) {
+        */
         DEBUGMSG_EFRA(WARNING, "* incomplete frag\n");
         return 0;
     }
 
-    if (memcmp(pdutype, CCN_IRIBU_FRAG_TYPE_CCNx2013_VAL, 3) == 0) { // hop-by-hop
+    if (memcmp(pdutype, CCN_IRIBU_FRAG_TYPE_CCNx2013_VAL, 3) == 0) {    // hop-by-hop
         if (from) {
             if (!from->frag)
                 from->frag = ccn_iribu_frag_new(CCN_IRIBU_FRAG_CCNx2013,
-                                           relay->ifs[from->ifndx].mtu);
+                                                relay->ifs[from->ifndx].mtu);
             if (from->frag && from->frag->protocol == CCN_IRIBU_FRAG_CCNx2013)
                 ccn_iribu_frag_RX_serialfragment(callback, relay, from, &s);
             else
@@ -707,7 +713,7 @@ ccn_iribu_frag_RX_CCNx2013(RX_datagram callback,
     /*
      * echo "FMTE" | base64 -d | hexdump -v -e '/1 "@x%02x"'| tr @ '\\'; echo
      */
-    if (memcmp(pdutype, "\x14\xc4\xc4", 3) == 0) { // mid-to-end fragment
+    if (memcmp(pdutype, "\x14\xc4\xc4", 3) == 0) {    // mid-to-end fragment
         // not implemented yet
     }
 
@@ -716,21 +722,20 @@ Bail:
     DEBUGMSG_EFRA(WARNING, "* frag bailing\n");
     return -1;
 }
-#endif // USE_SUITE_CCNB
+#        endif    // USE_SUITE_CCNB
 
-int
-ccn_iribu_frag_RX_Sequenced2015(RX_datagram callback, struct ccn_iribu_relay_s *relay,
-                           struct ccn_iribu_face_s *from, int mtu,
-                           unsigned int bits, unsigned int seqno,
-                           unsigned char **data, int *datalen)
+int ccn_iribu_frag_RX_Sequenced2015(RX_datagram callback, struct ccn_iribu_relay_s *relay,
+                                    struct ccn_iribu_face_s *from, int mtu,
+                                    unsigned int bits, unsigned int seqno,
+                                    unsigned char **data, int *datalen)
 {
     struct serialFragPDU_s s;
 
     DEBUGMSG_EFRA(DEBUG, "ccn_iribu_frag_RX_Sequenced2015 (%d bytes)\n", *datalen);
     serialFragPDU_init(&s);
 
-    s.ourseq = seqno;
-    s.flags = bits;
+    s.ourseq  = seqno;
+    s.flags   = bits;
     s.content = *data;
     s.contlen = *datalen;
 
@@ -745,19 +750,18 @@ ccn_iribu_frag_RX_Sequenced2015(RX_datagram callback, struct ccn_iribu_relay_s *
     ccn_iribu_frag_RX_serialfragment(callback, relay, from, &s);
 
     /*
-    *data = s.content;
-    *datalen = s.contlen;
-    */
+     *data = s.content;
+     *datalen = s.contlen;
+     */
 
     return 1;
 }
-#endif // OBSOLETE
+#    endif    // OBSOLETE
 
-int
-ccn_iribu_frag_RX_BeginEnd2015(RX_datagram callback, struct ccn_iribu_relay_s *relay,
-                          struct ccn_iribu_face_s *from, int mtu,
-                          unsigned int bits, unsigned int seqno,
-                          unsigned char **data, int *datalen)
+int ccn_iribu_frag_RX_BeginEnd2015(RX_datagram callback, struct ccn_iribu_relay_s *relay,
+                                   struct ccn_iribu_face_s *from, int mtu,
+                                   unsigned int bits, unsigned int seqno,
+                                   unsigned char **data, int *datalen)
 {
     struct ccn_iribu_buf_s *buf = NULL;
     struct ccn_iribu_frag_s *e;
@@ -783,8 +787,8 @@ ccn_iribu_frag_RX_BeginEnd2015(RX_datagram callback, struct ccn_iribu_relay_s *r
     e = from->frag;
     if (e->recvseq != seqno) {
         // should increase error counter here
-        DEBUGMSG_EFRA(WARNING, "  >> seqnum mismatch: rcvd %d, expected %d\n",
-                      seqno, e->recvseq);
+        DEBUGMSG_EFRA(WARNING, "  >> seqnum mismatch: rcvd %d, expected %d\n", seqno,
+                      e->recvseq);
         if (e->defrag) {
             DEBUGMSG_EFRA(WARNING, "  >> had to drop defrag buf\n");
             ccn_iribu_free(e->defrag);
@@ -793,10 +797,10 @@ ccn_iribu_frag_RX_BeginEnd2015(RX_datagram callback, struct ccn_iribu_relay_s *r
         e->recvseq = seqno;
     }
 
-    switch(bits & (CCN_IRIBU_BEFRAG_FLAG_MASK)) {
-    case CCN_IRIBU_BEFRAG_FLAG_SINGLE: // single packet
-        DEBUGMSG_EFRA(VERBOSE, "  >> single fragment seqno=%d (%d bytes)\n",
-                      seqno, *datalen);
+    switch (bits & (CCN_IRIBU_BEFRAG_FLAG_MASK)) {
+    case CCN_IRIBU_BEFRAG_FLAG_SINGLE:    // single packet
+        DEBUGMSG_EFRA(VERBOSE, "  >> single fragment seqno=%d (%d bytes)\n", seqno,
+                      *datalen);
         if (e->defrag) {
             DEBUGMSG_EFRA(WARNING, "    had to drop defrag buf\n");
             ccn_iribu_free(e->defrag);
@@ -806,7 +810,7 @@ ccn_iribu_frag_RX_BeginEnd2015(RX_datagram callback, struct ccn_iribu_relay_s *r
         // no need to copy the buffer:
         callback(relay, from, data, datalen);
         return 1;
-    case CCN_IRIBU_BEFRAG_FLAG_FIRST: // start of fragment sequence
+    case CCN_IRIBU_BEFRAG_FLAG_FIRST:    // start of fragment sequence
         DEBUGMSG_EFRA(VERBOSE, "  >> start of fragment series\n");
         if (e->defrag) {
             DEBUGMSG_EFRA(WARNING, "    had to drop defrag buf\n");
@@ -814,7 +818,7 @@ ccn_iribu_frag_RX_BeginEnd2015(RX_datagram callback, struct ccn_iribu_relay_s *r
         }
         e->defrag = ccn_iribu_buf_new(*data, *datalen);
         break;
-    case CCN_IRIBU_BEFRAG_FLAG_LAST: // end of fragment sequence
+    case CCN_IRIBU_BEFRAG_FLAG_LAST:    // end of fragment sequence
         DEBUGMSG_EFRA(VERBOSE, "  >> last fragment of a series\n");
         if (!e->defrag) {
             DEBUGMSG_EFRA(WARNING, "  >> no e->defrag?\n");
@@ -828,7 +832,7 @@ ccn_iribu_frag_RX_BeginEnd2015(RX_datagram callback, struct ccn_iribu_relay_s *r
         ccn_iribu_free(e->defrag);
         e->defrag = NULL;
         break;
-    case CCN_IRIBU_BEFRAG_FLAG_MID:  // fragment in the middle of a squence
+    case CCN_IRIBU_BEFRAG_FLAG_MID:    // fragment in the middle of a squence
     default:
         DEBUGMSG_EFRA(VERBOSE, "  >> fragment in the middle of a series\n");
         if (!e->defrag)
@@ -839,7 +843,7 @@ ccn_iribu_frag_RX_BeginEnd2015(RX_datagram callback, struct ccn_iribu_relay_s *r
             memcpy(buf->data + e->defrag->datalen, *data, *datalen);
             ccn_iribu_free(e->defrag);
             e->defrag = buf;
-            buf = NULL;
+            buf       = NULL;
         } else {
             ccn_iribu_free(e->defrag);
             e->defrag = NULL;
@@ -852,9 +856,8 @@ ccn_iribu_frag_RX_BeginEnd2015(RX_datagram callback, struct ccn_iribu_relay_s *r
 
     if (buf) {
         unsigned char *frag = buf->data;
-        int fraglen = buf->datalen;
-        DEBUGMSG_EFRA(DEBUG, "  >> reassembled fragment is %zd bytes\n",
-                      buf->datalen);
+        int fraglen         = buf->datalen;
+        DEBUGMSG_EFRA(DEBUG, "  >> reassembled fragment is %zd bytes\n", buf->datalen);
         // FIXME: loop over multiple packets in this reassembled frame?
         callback(relay, from, &frag, &fraglen);
         ccn_iribu_free(buf);
@@ -863,4 +866,4 @@ ccn_iribu_frag_RX_BeginEnd2015(RX_datagram callback, struct ccn_iribu_relay_s *r
     return 1;
 }
 
-#endif // USE_FRAG
+#endif    // USE_FRAG

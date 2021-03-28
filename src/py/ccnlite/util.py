@@ -27,6 +27,7 @@ from __future__ import print_function
 import curses.ascii
 import sys
 
+
 # ----------------------------------------------------------------------
 
 def hexDump(f, lev, doPrint, len):
@@ -66,6 +67,7 @@ def hexDump(f, lev, doPrint, len):
         else:
             print(s)
 
+
 def whichSuite(a, b):
     if a == 0x04:
         return 'ccnb'
@@ -76,6 +78,7 @@ def whichSuite(a, b):
     if a == 0x05 or a == 0x06 or a == 0x64:
         return 'ndn2013'
     return None
+
 
 def str2lci(s):
     return s.split('/')[1:]

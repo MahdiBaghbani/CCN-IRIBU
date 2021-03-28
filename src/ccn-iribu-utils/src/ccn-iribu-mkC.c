@@ -20,20 +20,19 @@
  * 2013-07-06  created
  */
 
-
 //#define NEEDS_PACKET_CRAFTING
 
 #include "ccn-iribu-common.h"
 #include "ccn-iribu-crypto.h"
-#include "ccn-iribu-pkt-ndntlv.h"
 #include "ccn-iribu-ext-hmac.h"
+#include "ccn-iribu-pkt-ndntlv.h"
 
 #ifndef CCN_LITE_MKC_OUT_SIZE
-#define CCN_LITE_MKC_OUT_SIZE (65 * 1024)
+#    define CCN_LITE_MKC_OUT_SIZE (65 * 1024)
 #endif
 
 #ifndef CCN_LITE_MKC_BODY_SIZE
-#define CCN_LITE_MKC_BODY_SIZE (64 * 1024)
+#    define CCN_LITE_MKC_BODY_SIZE (64 * 1024)
 #endif
 
 // ----------------------------------------------------------------------
@@ -43,8 +42,7 @@ char *witness;
 
 // ----------------------------------------------------------------------
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     unsigned char body[CCN_LITE_MKC_BODY_SIZE];
     unsigned char out[CCN_LITE_MKC_OUT_SIZE];
@@ -52,18 +50,18 @@ main(int argc, char *argv[])
     char *infname = 0, *outfname = 0;
     unsigned int chunknum = UINT_MAX, lastchunknum = UINT_MAX;
     int f, opt;
-    size_t  plen, len, offs = 0;
+    size_t plen, len, offs = 0;
     int contentpos;
     struct ccn_iribu_prefix_s *name;
-    int suite = CCN_IRIBU_SUITE_DEFAULT;
+    int suite          = CCN_IRIBU_SUITE_DEFAULT;
     struct key_s *keys = NULL;
     ccn_iribu_data_opts_u data_opts;
 
-    (void)contentpos;
-    (void)keys;
-    (void)lastchunknum;
-    (void)chunknum;
-    (void)data_opts;
+    (void) contentpos;
+    (void) keys;
+    (void) lastchunknum;
+    (void) chunknum;
+    (void) data_opts;
 
     while ((opt = getopt(argc, argv, "hg:i:k:l:n:o:p:s:v:w:")) != -1) {
         switch (opt) {
@@ -74,19 +72,21 @@ main(int argc, char *argv[])
             keys = load_keys_from_file(optarg);
             break;
         case 'l':
-            lastchunknum = (int)strtol(optarg, (char**)NULL, 10);
+            lastchunknum = (int) strtol(optarg, (char **) NULL, 10);
             break;
         case 'n':
-            chunknum = (int)strtol(optarg, (char**)NULL, 10);
+            chunknum = (int) strtol(optarg, (char **) NULL, 10);
             break;
         case 'o':
             outfname = optarg;
             break;
         case 'p':
-            publisher = (unsigned char*) optarg;
-            plen = unescape_component((char*) publisher);
+            publisher = (unsigned char *) optarg;
+            plen      = unescape_component((char *) publisher);
             if (plen != 32) {
-                DEBUGMSG(ERROR, "publisher key digest has wrong length (%zu instead of 32)\n", plen);
+                DEBUGMSG(ERROR,
+                         "publisher key digest has wrong length (%zu instead of 32)\n",
+                         plen);
                 exit(-1);
             }
             break;
@@ -100,7 +100,7 @@ main(int argc, char *argv[])
         case 'v':
 #ifdef USE_LOGGING
             if (isdigit(optarg[0]))
-                debug_level = (int)strtol(optarg, (char**)NULL, 10);
+                debug_level = (int) strtol(optarg, (char **) NULL, 10);
             else
                 debug_level = ccn_iribu_debug_str2level(optarg);
 #endif
@@ -111,24 +111,26 @@ main(int argc, char *argv[])
             break;
         case 'h':
         default:
-Usage:
-        fprintf(stderr, "usage: %s [options] URI\n"
-        "  -i FNAME    input file (instead of stdin)\n"
-        "  -k FNAME    HMAC256 key (base64 encoded)\n"
-        "  -l LASTCHUNKNUM number of last chunk\n"
-        "  -n CHUNKNUM chunknum\n"
-        "  -o FNAME    output file (instead of stdout)\n"
-        "  -p DIGEST   publisher fingerprint\n"
-        "  -s SUITE    (ccnb, ccnx2015, ndn2013)\n"
+        Usage:
+            fprintf(
+                stderr,
+                "usage: %s [options] URI\n"
+                "  -i FNAME    input file (instead of stdin)\n"
+                "  -k FNAME    HMAC256 key (base64 encoded)\n"
+                "  -l LASTCHUNKNUM number of last chunk\n"
+                "  -n CHUNKNUM chunknum\n"
+                "  -o FNAME    output file (instead of stdout)\n"
+                "  -p DIGEST   publisher fingerprint\n"
+                "  -s SUITE    (ccnb, ccnx2015, ndn2013)\n"
 #ifdef USE_LOGGING
-        "  -v DEBUG_LEVEL (fatal, error, warning, info, debug, verbose, trace)\n"
+                "  -v DEBUG_LEVEL (fatal, error, warning, info, debug, verbose, trace)\n"
 #endif
-        "  -w STRING   witness\n"
-        "Examples:\n"
-        "%% mkC /ndn/edu/wustl/ping             (classic lookup)\n"
-        "%% mkC /rpc/site \"call 1 /test/data\"   (lambda RPC, directed)\n",
-        argv[0]);
-        exit(1);
+                "  -w STRING   witness\n"
+                "Examples:\n"
+                "%% mkC /ndn/edu/wustl/ping             (classic lookup)\n"
+                "%% mkC /rpc/site \"call 1 /test/data\"   (lambda RPC, directed)\n",
+                argv[0]);
+            exit(1);
         }
     }
 
@@ -153,13 +155,14 @@ Usage:
     close(f);
     memset(out, 0, sizeof(out));
 
-    name = ccn_iribu_URItoPrefix(argv[optind], suite, 
-                            chunknum == UINT32_MAX ? NULL : &chunknum);
+    name = ccn_iribu_URItoPrefix(argv[optind], suite,
+                                 chunknum == UINT32_MAX ? NULL : &chunknum);
 
     switch (suite) {
 #ifdef USE_SUITE_CCNB
     case CCN_IRIBU_SUITE_CCNB:
-        if (ccn_iribu_ccnb_fillContent(name, body, len, NULL, out, out + sizeof(out), &len)) {
+        if (ccn_iribu_ccnb_fillContent(name, body, len, NULL, out, out + sizeof(out),
+                                       &len)) {
             DEBUGMSG(ERROR, "Error: Failed creating content object.");
             exit(1);
         }
@@ -179,16 +182,16 @@ Usage:
             }
             ccn_iribu_hmac256_keyval(keys->key, (size_t) keys->keylen, keyval);
             ccn_iribu_hmac256_keyid(keys->key, (size_t) keys->keylen, keyid);
-            if (ccn_iribu_ccntlv_prependSignedContentWithHdr(name, body, len,
-                                                        lastchunknum == UINT32_MAX ? NULL : &lastchunknum,
-                                                        NULL, keyval, keyid, &offs, out, &len)) {
+            if (ccn_iribu_ccntlv_prependSignedContentWithHdr(
+                    name, body, len, lastchunknum == UINT32_MAX ? NULL : &lastchunknum,
+                    NULL, keyval, keyid, &offs, out, &len)) {
                 DEBUGMSG(ERROR, "Error: Failed prepending signed content.");
                 exit(1);
             }
         } else {
-            if (ccn_iribu_ccntlv_prependContentWithHdr(name, body, len,
-                                                  lastchunknum == UINT32_MAX ? NULL : &lastchunknum,
-                                                  NULL /* Int *contentpos */, &offs, out, &len)) {
+            if (ccn_iribu_ccntlv_prependContentWithHdr(
+                    name, body, len, lastchunknum == UINT32_MAX ? NULL : &lastchunknum,
+                    NULL /* Int *contentpos */, &offs, out, &len)) {
                 DEBUGMSG(ERROR, "Error: Failed prepending content.");
                 exit(1);
             }
@@ -208,21 +211,22 @@ Usage:
             }
             ccn_iribu_hmac256_keyval(keys->key, (size_t) keys->keylen, keyval);
             ccn_iribu_hmac256_keyid(keys->key, (size_t) keys->keylen, keyid);
-            if (ccn_iribu_ndntlv_prependSignedContent(name, body, len,
-                  lastchunknum == UINT32_MAX ? NULL : &lastchunknum,
-                  NULL, keyval, keyid, &offs, out, &len)) {
+            if (ccn_iribu_ndntlv_prependSignedContent(
+                    name, body, len, lastchunknum == UINT32_MAX ? NULL : &lastchunknum,
+                    NULL, keyval, keyid, &offs, out, &len)) {
                 DEBUGMSG(ERROR, "Error: Failed prepending signed content.");
                 exit(1);
             }
         } else {
             data_opts.ndntlv.finalblockid = lastchunknum;
-            if (ccn_iribu_ndntlv_prependContent(name, body, len,
-                  NULL, lastchunknum == UINT32_MAX ? NULL : &(data_opts.ndntlv),
-                                             &offs, out, &len)) {
+            if (ccn_iribu_ndntlv_prependContent(
+                    name, body, len, NULL,
+                    lastchunknum == UINT32_MAX ? NULL : &(data_opts.ndntlv), &offs, out,
+                    &len)) {
                 DEBUGMSG(ERROR, "Error: Failed prepending content.");
                 exit(1);
             }
-            //TODO: new implementation of prependContent returns -1 or 0, not length
+            // TODO: new implementation of prependContent returns -1 or 0, not length
             printf("pkt len: %zu\n", len);
         }
         break;

@@ -18,12 +18,12 @@ include_directories(
         ../ccn-iribu-utils/include
 )
 
-if(DEFINED CCN_IRIBU_RIOT)
+if (DEFINED CCN_IRIBU_RIOT)
     include_directories(
             include
             ../ccn-iribu-riot/include
     )
-endif()
+endif ()
 
 file(
         GLOB

@@ -23,21 +23,18 @@
 // see ccn-iribu-defs.h for the ENC constants
 
 #ifndef CCN_IRIBU_LINUXKERNEL
-#include "ccn-iribu-core.h"
-#include "ccn-iribu-pkt-ccnb.h"
-#include "ccn-iribu-pkt-ccntlv.h"
-#include "ccn-iribu-pkt-ndntlv.h"
+#    include "ccn-iribu-core.h"
+#    include "ccn-iribu-pkt-ccnb.h"
+#    include "ccn-iribu-pkt-ccntlv.h"
+#    include "ccn-iribu-pkt-ndntlv.h"
 #else
-#include "../../ccn-iribu-core/include/ccn-iribu-core.h"
-#include "../include/ccn-iribu-pkt-ccnb.h"
-#include "../include/ccn-iribu-pkt-ccntlv.h"
-#include "../include/ccn-iribu-pkt-ndntlv.h"
+#    include "../../ccn-iribu-core/include/ccn-iribu-core.h"
+#    include "../include/ccn-iribu-pkt-ccnb.h"
+#    include "../include/ccn-iribu-pkt-ccntlv.h"
+#    include "../include/ccn-iribu-pkt-ndntlv.h"
 #endif
 
-
-
-int8_t
-ccn_iribu_switch_dehead(uint8_t **buf, size_t *len, int32_t *code)
+int8_t ccn_iribu_switch_dehead(uint8_t **buf, size_t *len, int32_t *code)
 {
     if (*len < 2 || **buf != 0x80) {
         return -1;
@@ -52,21 +49,24 @@ ccn_iribu_switch_dehead(uint8_t **buf, size_t *len, int32_t *code)
     return -1;
 }
 
-int
-ccn_iribu_enc2suite(int enc)
+int ccn_iribu_enc2suite(int enc)
 {
-    switch(enc) {
+    switch (enc) {
 #ifdef USE_SUITE_CCNB
-    case CCN_IRIBU_ENC_CCNB:      return CCN_IRIBU_SUITE_CCNB;
+    case CCN_IRIBU_ENC_CCNB:
+        return CCN_IRIBU_SUITE_CCNB;
 #endif
 #ifdef USE_SUITE_NDNTLV
-    case CCN_IRIBU_ENC_NDN2013:   return CCN_IRIBU_SUITE_NDNTLV;
+    case CCN_IRIBU_ENC_NDN2013:
+        return CCN_IRIBU_SUITE_NDNTLV;
 #endif
 #ifdef USE_SUITE_CCNTLV
-    case CCN_IRIBU_ENC_CCNX2014:  return CCN_IRIBU_SUITE_CCNTLV;
+    case CCN_IRIBU_ENC_CCNX2014:
+        return CCN_IRIBU_SUITE_CCNTLV;
 #endif
 #ifdef USE_SUITE_LOCALRPC
-    case CCN_IRIBU_ENC_LOCALRPC:  return CCN_IRIBU_SUITE_LOCALRPC;
+    case CCN_IRIBU_ENC_LOCALRPC:
+        return CCN_IRIBU_SUITE_LOCALRPC;
 #endif
     default:
         break;
@@ -79,8 +79,8 @@ ccn_iribu_enc2suite(int enc)
 
 #ifdef NEEDS_PACKET_CRAFTING
 
-int8_t
-ccn_iribu_switch_prependCodeVal(uint64_t val, size_t *offset, uint8_t *buf, size_t *res)
+int8_t ccn_iribu_switch_prependCodeVal(uint64_t val, size_t *offset, uint8_t *buf,
+                                       size_t *res)
 {
     size_t len, i;
     uint8_t t;
@@ -95,21 +95,21 @@ ccn_iribu_switch_prependCodeVal(uint64_t val, size_t *offset, uint8_t *buf, size
         len = 8, t = 255;
     }
 
-    if (*offset < (len+1)) {
+    if (*offset < (len + 1)) {
         return -1;
     }
 
     for (i = 0; i < len; i++) {
-        buf[--(*offset)] = (uint8_t) (val & 0xff);
-        val = val >> 8;
+        buf[--(*offset)] = (uint8_t)(val & 0xff);
+        val              = val >> 8;
     }
     buf[--(*offset)] = t;
-    *res = len + 1;
+    *res             = len + 1;
     return 0;
 }
 
-int8_t
-ccn_iribu_switch_prependCoding(uint64_t code, size_t *offset, uint8_t *buf, size_t *res)
+int8_t ccn_iribu_switch_prependCoding(uint64_t code, size_t *offset, uint8_t *buf,
+                                      size_t *res)
 {
     size_t len;
 
@@ -126,6 +126,6 @@ ccn_iribu_switch_prependCoding(uint64_t code, size_t *offset, uint8_t *buf, size
     return 0;
 }
 
-#endif // NEEDS_PACKET_CRAFTING
+#endif    // NEEDS_PACKET_CRAFTING
 
 // eof

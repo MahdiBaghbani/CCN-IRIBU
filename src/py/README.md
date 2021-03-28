@@ -1,20 +1,18 @@
 # CCN-lite Python client library
 
-This directory collects a few ICN applications written in Python. The
-underlying library (i.e. Python package) is in the `ccniribu` directory
-and currently only supports the `ndn2013` wire format.
+This directory collects a few ICN applications written in Python. The underlying library (i.e. Python package) is in
+the `ccniribu` directory and currently only supports the `ndn2013` wire format.
 
-This set of utilities will not be expanded and serves mostly as
-example.  
+This set of utilities will not be expanded and serves mostly as example.
 
 Apps in this directory:
+
 - ccn-iribu-peek.py
 - ccn-iribu-pktdump.py
 
 ## Smoke test
 
-As a simple test, fire up an echo server (written in C) and fetch a
-smoke signal with Python code:
+As a simple test, fire up an echo server (written in C) and fetch a smoke signal with Python code:
 
 ```bash
 ../ccn-iribu-relay -o /the/name/of/the/echo -s ndn2013 -u 9876 &
@@ -23,8 +21,8 @@ smoke signal with Python code:
 
 ## The API
 
-Requesting content via Python is simple and done in five lines of
-code. Attach to a ICN network and call `getLabeledContent`.
+Requesting content via Python is simple and done in five lines of code. Attach to a ICN network and
+call `getLabeledContent`.
 
 ```python
 import ccniribu.client

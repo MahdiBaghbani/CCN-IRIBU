@@ -5,7 +5,7 @@
  * @brief Detect packet forward and call packet specific forwarder
  *
  * @author Christopher Scherb <christopher.scherb@unibas.ch>
- * @author Christian Tschudin <christian.tschudin@unibas.ch> 
+ * @author Christian Tschudin <christian.tschudin@unibas.ch>
  *
  * @copyright (C) 2011-18, University of Basel
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -21,22 +21,20 @@
  */
 
 #ifndef CCN_IRIBU_DISPATCH_H
-#define CCN_IRIBU_DISPATCH_H
+#    define CCN_IRIBU_DISPATCH_H
 
-#include "ccn-iribu-fwd.h"
+#    include "ccn-iribu-fwd.h"
 
-//struct ccn_iribu_suite_s ccn_iribu_core_suites[CCN_IRIBU_SUITE_LAST];
+// struct ccn_iribu_suite_s ccn_iribu_core_suites[CCN_IRIBU_SUITE_LAST];
 
 /**
  * @brief       Initialize the dispatcher for handling different packet forwarders
  */
-void
-ccn_iribu_core_init(void);
-
+void ccn_iribu_core_init(void);
 
 /**
  * @brief       Processing of Local RPC messages
- * 
+ *
  * @param[in] relay     pointer to current ccn iribu relay
  * @param[in] ifndx     index of the interface from which the data were received
  * @param[in] data      data which were received
@@ -44,9 +42,8 @@ ccn_iribu_core_init(void);
  * @param[in] sa        socketaddress from which the packet was received
  * @param[in] addrlen   length of the socketaddress
  */
-void
-ccn_iribu_core_RX(struct ccn_iribu_relay_s *relay, int ifndx, uint8_t *data,
-             size_t datalen, struct sockaddr *sa, size_t addrlen);
+void ccn_iribu_core_RX(struct ccn_iribu_relay_s *relay, int ifndx, uint8_t *data,
+                       size_t datalen, struct sockaddr *sa, size_t addrlen);
 
 #endif
 /** @} */

@@ -23,24 +23,22 @@
 
 #ifdef USE_SUITE_CCNTLV
 
-#ifndef CCN_IRIBU_LINUXKERNEL
-#include "ccn-iribu-pkt-ccntlv.h"
-#include "ccn-iribu-core.h"
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <arpa/inet.h>
-#include <assert.h>
-#else
-#include "../include/ccn-iribu-pkt-ccntlv.h"
-#include "../../ccn-iribu-core/include/ccn-iribu-core.h"
-#endif
+#    ifndef CCN_IRIBU_LINUXKERNEL
+#        include "ccn-iribu-pkt-ccntlv.h"
+#        include "ccn-iribu-core.h"
+#        include <arpa/inet.h>
+#        include <assert.h>
+#        include <stdio.h>
+#        include <stdlib.h>
+#        include <string.h>
+#    else
+#        include "../../ccn-iribu-core/include/ccn-iribu-core.h"
+#        include "../include/ccn-iribu-pkt-ccntlv.h"
+#    endif
 
-
-
-#ifndef DEBUGMSG_PCNX
-# define DEBUGMSG_PCNX(...) DEBUGMSG(__VA_ARGS__)
-#endif
+#    ifndef DEBUGMSG_PCNX
+#        define DEBUGMSG_PCNX(...) DEBUGMSG(__VA_ARGS__)
+#    endif
 
 /* ----------------------------------------------------------------------
 Note:
@@ -55,9 +53,7 @@ Note:
 // packet decomposition
 
 // convert network order byte array into local unsigned integer value
-int8_t
-ccn_iribu_ccnltv_extractNetworkVarInt(uint8_t *buf, size_t len,
-                                 uint32_t *intval)
+int8_t ccn_iribu_ccnltv_extractNetworkVarInt(uint8_t *buf, size_t len, uint32_t *intval)
 {
     uint32_t val = 0;
 
@@ -77,12 +73,11 @@ ccn_iribu_ccnltv_extractNetworkVarInt(uint8_t *buf, size_t len,
 // returns hdr length to skip before the payload starts.
 // this value depends on the type (interest/data/nack) and opt headers
 // but should be available in the fixed header
-int8_t
-ccn_iribu_ccntlv_getHdrLen(uint8_t *data, size_t datalen, size_t *hdrlen)
+int8_t ccn_iribu_ccntlv_getHdrLen(uint8_t *data, size_t datalen, size_t *hdrlen)
 {
     struct ccnx_tlvhdr_ccnx2015_s *hp;
 
-    hp = (struct ccnx_tlvhdr_ccnx2015_s*) data;
+    hp = (struct ccnx_tlvhdr_ccnx2015_s *) data;
     if (datalen >= hp->hdrlen) {
         *hdrlen = hp->hdrlen;
         return 0;
@@ -90,29 +85,28 @@ ccn_iribu_ccntlv_getHdrLen(uint8_t *data, size_t datalen, size_t *hdrlen)
     return -1;
 }
 
-int8_t
-ccn_iribu_ccntlv_dehead(uint8_t **buf, size_t *len,
-                   uint16_t *typ, size_t *vallen)
+int8_t ccn_iribu_ccntlv_dehead(uint8_t **buf, size_t *len, uint16_t *typ, size_t *vallen)
 {
     size_t maxlen = *len;
 
-    if (*len < 4) { //ensure that len is not negative!
+    if (*len < 4) {    // ensure that len is not negative!
         return -1;
     }
-    *typ = ((*buf)[0] << 8U) | (*buf)[1];
+    *typ    = ((*buf)[0] << 8U) | (*buf)[1];
     *vallen = ((*buf)[2] << 8U) | (*buf)[3];
     *len -= 4;
     *buf += 4;
     if (*vallen > maxlen) {
-        return -1; //Return failure (-1) if length value in the tlv is longer than the buffer
+        return -1;    // Return failure (-1) if length value in the tlv is longer than the
+                      // buffer
     }
     return 0;
 }
 
 // We use one extraction procedure for both interest and data pkts.
 // This proc assumes that the packet header was already processed and consumed
-struct ccn_iribu_pkt_s*
-ccn_iribu_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
+struct ccn_iribu_pkt_s *ccn_iribu_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data,
+                                                   size_t *datalen)
 {
     struct ccn_iribu_pkt_s *pkt;
     struct ccn_iribu_prefix_s *p;
@@ -120,13 +114,13 @@ ccn_iribu_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
     size_t len;
     size_t oldpos;
     uint16_t typ;
-#ifdef USE_HMAC256
+#    ifdef USE_HMAC256
     uint8_t validAlgoIsHmac256 = 0;
-#endif
+#    endif
 
     DEBUGMSG_PCNX(TRACE, "ccn_iribu_ccntlv_bytes2pkt len=%zu\n", *datalen);
 
-    pkt = (struct ccn_iribu_pkt_s*) ccn_iribu_calloc(1, sizeof(*pkt));
+    pkt = (struct ccn_iribu_pkt_s *) ccn_iribu_calloc(1, sizeof(*pkt));
     if (!pkt) {
         return NULL;
     }
@@ -138,9 +132,9 @@ ccn_iribu_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
     }
     p->compcnt = 0;
 
-#ifdef USE_HMAC256
+#    ifdef USE_HMAC256
     pkt->hmacStart = *data;
-#endif
+#    endif
     // We ignore the TL types of the message for now:
     // content and interests are filled in both cases (and only one exists).
     // Validation info is now collected
@@ -148,8 +142,8 @@ ccn_iribu_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
         goto Bail;
     }
 
-    pkt->type = typ;
-    pkt->suite = CCN_IRIBU_SUITE_CCNTLV;
+    pkt->type               = typ;
+    pkt->suite              = CCN_IRIBU_SUITE_CCNTLV;
     pkt->val.final_block_id = -1;
 
     // XXX this parsing is not safe for all input data - needs more bound
@@ -168,7 +162,7 @@ ccn_iribu_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
             p->nameptr = start + oldpos;
             while (len2 > 0) {
                 cp2 = cp;
-                if (ccn_iribu_ccntlv_dehead(&cp, &len2, &typ, &len3) || len>*datalen) {
+                if (ccn_iribu_ccntlv_dehead(&cp, &len2, &typ, &len3) || len > *datalen) {
                     goto Bail;
                 }
 
@@ -179,28 +173,31 @@ ccn_iribu_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
                     // possibly want to remove the chunk segment from the
                     // name components and rely on the chunknum field in
                     // the prefix.
-                  p->chunknum = (uint32_t *) ccn_iribu_malloc(sizeof(uint32_t));
+                    p->chunknum = (uint32_t *) ccn_iribu_malloc(sizeof(uint32_t));
 
-                    if (ccn_iribu_ccnltv_extractNetworkVarInt(cp, len3, p->chunknum) < 0) {
+                    if (ccn_iribu_ccnltv_extractNetworkVarInt(cp, len3, p->chunknum) <
+                        0) {
                         DEBUGMSG_PCNX(WARNING, "Error in NetworkVarInt for chunk\n");
                         goto Bail;
                     }
                     if (p->compcnt < CCN_IRIBU_MAX_NAME_COMP) {
-                        p->comp[p->compcnt] = cp2;
+                        p->comp[p->compcnt]    = cp2;
                         p->complen[p->compcnt] = cp - cp2 + len3;
                         p->compcnt++;
-                    } // else out of name component memory: skip
+                    }    // else out of name component memory: skip
                     break;
                 case CCNX_TLV_N_NameSegment:
                     if (p->compcnt < CCN_IRIBU_MAX_NAME_COMP) {
-                        p->comp[p->compcnt] = cp2;
+                        p->comp[p->compcnt]    = cp2;
                         p->complen[p->compcnt] = cp - cp2 + len3;
                         p->compcnt++;
-                    } // else out of name component memory: skip
+                    }    // else out of name component memory: skip
                     break;
                 case CCNX_TLV_N_Meta:
-                    if (ccn_iribu_ccntlv_dehead(&cp, &len2, &typ, &len3) || len > *datalen) {
-                        DEBUGMSG_PCNX(WARNING, "error when extracting CCNX_TLV_M_MetaData\n");
+                    if (ccn_iribu_ccntlv_dehead(&cp, &len2, &typ, &len3) ||
+                        len > *datalen) {
+                        DEBUGMSG_PCNX(WARNING,
+                                      "error when extracting CCNX_TLV_M_MetaData\n");
                         goto Bail;
                     }
                     break;
@@ -225,9 +222,9 @@ ccn_iribu_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
             pkt->content = *data;
             pkt->contlen = len;
             break;
-#ifdef USE_HMAC256
+#    ifdef USE_HMAC256
         case CCNX_TLV_TL_ValidationAlgo:
-            cp = *data;
+            cp   = *data;
             len2 = len;
             if (ccn_iribu_ccntlv_dehead(&cp, &len2, &typ, &len3) || len > *datalen) {
                 goto Bail;
@@ -239,11 +236,11 @@ ccn_iribu_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
             break;
         case CCNX_TLV_TL_ValidationPayload:
             if (pkt->hmacStart && validAlgoIsHmac256 && len == 32) {
-                pkt->hmacLen = *data - pkt->hmacStart - 4;
+                pkt->hmacLen       = *data - pkt->hmacStart - 4;
                 pkt->hmacSignature = *data;
             }
             break;
-#endif
+#    endif
         default:
             break;
         }
@@ -270,10 +267,10 @@ ccn_iribu_ccntlv_bytes2pkt(uint8_t *start, uint8_t **data, size_t *datalen)
     if (p->nameptr) {
         p->nameptr = pkt->buf->data + (p->nameptr - start);
     }
-#ifdef USE_HMAC256
-    pkt->hmacStart = pkt->buf->data + (pkt->hmacStart - start);
+#    ifdef USE_HMAC256
+    pkt->hmacStart     = pkt->buf->data + (pkt->hmacStart - start);
     pkt->hmacSignature = pkt->buf->data + (pkt->hmacSignature - start);
-#endif
+#    endif
 
     return pkt;
 Bail:
@@ -283,16 +280,15 @@ Bail:
 
 // ----------------------------------------------------------------------
 
-#ifdef NEEDS_PREFIX_MATCHING
+#    ifdef NEEDS_PREFIX_MATCHING
 
 // returns: 0=match, -1=otherwise
-int8_t
-ccn_iribu_ccntlv_cMatch(struct ccn_iribu_pkt_s *p, struct ccn_iribu_content_s *c)
+int8_t ccn_iribu_ccntlv_cMatch(struct ccn_iribu_pkt_s *p, struct ccn_iribu_content_s *c)
 {
-#ifndef CCN_IRIBU_LINUXKERNEL
+#        ifndef CCN_IRIBU_LINUXKERNEL
     assert(p);
     assert(p->suite == CCN_IRIBU_SUITE_CCNTLV);
-#endif
+#        endif
     if (ccn_iribu_prefix_cmp(c->pkt->pfx, NULL, p->pfx, CMP_EXACT)) {
         return -1;
     }
@@ -301,17 +297,15 @@ ccn_iribu_ccntlv_cMatch(struct ccn_iribu_pkt_s *p, struct ccn_iribu_content_s *c
     return 0;
 }
 
-#endif
+#    endif
 
 // ----------------------------------------------------------------------
 // packet composition
 
-#ifdef NEEDS_PACKET_CRAFTING
+#    ifdef NEEDS_PACKET_CRAFTING
 
 // write given TL *before* position buf+offset, adjust offset and return len
-int8_t
-ccn_iribu_ccntlv_prependTL(uint16_t type, size_t len,
-                      size_t *offset, uint8_t *buf)
+int8_t ccn_iribu_ccntlv_prependTL(uint16_t type, size_t len, size_t *offset, uint8_t *buf)
 {
     if (*offset < 4 || len > UINT16_MAX) {
         return -1;
@@ -320,19 +314,17 @@ ccn_iribu_ccntlv_prependTL(uint16_t type, size_t len,
     buf += *offset;
     *offset -= 4;
 
-    *(buf-1) = (uint8_t) (len & 0xffU);
-    *(buf-2) = (uint8_t) (len & 0xff00U) >> 8U;
-    *(buf-3) = (uint8_t) (type & 0xffU);
-    *(buf-4) = (uint8_t) (type & 0xff00U) >> 8U;
+    *(buf - 1) = (uint8_t)(len & 0xffU);
+    *(buf - 2) = (uint8_t)(len & 0xff00U) >> 8U;
+    *(buf - 3) = (uint8_t)(type & 0xffU);
+    *(buf - 4) = (uint8_t)(type & 0xff00U) >> 8U;
 
     return 0;
-
 }
 
 // write len bytes *before* position buf[offset], adjust offset
-int8_t
-ccn_iribu_ccntlv_prependBlob(uint16_t type, uint8_t *blob,
-                        size_t len, size_t *offset, uint8_t *buf)
+int8_t ccn_iribu_ccntlv_prependBlob(uint16_t type, uint8_t *blob, size_t len,
+                                    size_t *offset, uint8_t *buf)
 {
     if (*offset < (len + 4)) {
         return -1;
@@ -349,15 +341,14 @@ ccn_iribu_ccntlv_prependBlob(uint16_t type, uint8_t *blob,
 // write (in network order and with the minimal number of bytes)
 // the given unsigned integer val *before* position buf[offset], adjust offset
 // and return number of bytes prepended. 0 is represented as %x00
-int8_t
-ccn_iribu_ccntlv_prependNetworkVarUInt(uint16_t type, uint32_t intval,
-                                  size_t *offset, uint8_t *buf)
+int8_t ccn_iribu_ccntlv_prependNetworkVarUInt(uint16_t type, uint32_t intval,
+                                              size_t *offset, uint8_t *buf)
 {
     size_t offs = *offset;
-    size_t len = 0;
+    size_t len  = 0;
 
     while (offs > 0) {
-        buf[--offs] = (uint8_t) (intval & 0xffU);
+        buf[--offs] = (uint8_t)(intval & 0xffU);
         len++;
         intval = intval >> 8U;
         if (!intval) {
@@ -372,30 +363,26 @@ ccn_iribu_ccntlv_prependNetworkVarUInt(uint16_t type, uint32_t intval,
     return 0;
 }
 
-#ifdef XXX
+#        ifdef XXX
 // write (in network order and with the minimal number of bytes)
 // the given signed integer val *before* position buf[offset], adjust offset
 // and return number of bytes prepended. 0 is represented as %x00
-int
-ccn_iribu_ccntlv_prependNetworkVarSInt(unsigned short type, int intval,
-                                  int *offset, unsigned char *buf)
+int ccn_iribu_ccntlv_prependNetworkVarSInt(unsigned short type, int intval, int *offset,
+                                           unsigned char *buf)
 {
- ...
+    ...
 }
-#endif
+#        endif
 
 // write *before* position buf[offset] the CCNx1.0 fixed header,
 // returns 0 on success, non-zero on failure.
-int8_t
-ccn_iribu_ccntlv_prependFixedHdr(uint8_t ver,
-                            uint8_t packettype,
-                            size_t payloadlen,
-                            uint8_t hoplimit,
-                            size_t *offset, uint8_t *buf)
+int8_t ccn_iribu_ccntlv_prependFixedHdr(uint8_t ver, uint8_t packettype,
+                                        size_t payloadlen, uint8_t hoplimit,
+                                        size_t *offset, uint8_t *buf)
 {
     // optional headers are not yet supported, only the fixed header
     uint8_t hdrlen = sizeof(struct ccnx_tlvhdr_ccnx2015_s);
-    size_t pktlen = hdrlen + payloadlen;
+    size_t pktlen  = hdrlen + payloadlen;
     if (pktlen > UINT16_MAX) {
         return -1;
     }
@@ -406,9 +393,9 @@ ccn_iribu_ccntlv_prependFixedHdr(uint8_t ver,
     }
 
     *offset -= sizeof(struct ccnx_tlvhdr_ccnx2015_s);
-    hp = (struct ccnx_tlvhdr_ccnx2015_s *)(buf + *offset);
-    hp->version = ver;
-    hp->pkttype = packettype;
+    hp           = (struct ccnx_tlvhdr_ccnx2015_s *) (buf + *offset);
+    hp->version  = ver;
+    hp->pkttype  = packettype;
     hp->hoplimit = hoplimit;
     memset(hp->fill, 0, 2);
 
@@ -420,26 +407,24 @@ ccn_iribu_ccntlv_prependFixedHdr(uint8_t ver,
 
 // write given prefix and chunknum *before* buf[offs], adjust offset.
 // Returns 0 on success, non-zero on failure.
-int8_t
-ccn_iribu_ccntlv_prependName(struct ccn_iribu_prefix_s *name,
-                        size_t *offset, uint8_t *buf,
-                        const uint32_t *lastchunknum) {
+int8_t ccn_iribu_ccntlv_prependName(struct ccn_iribu_prefix_s *name, size_t *offset,
+                                    uint8_t *buf, const uint32_t *lastchunknum)
+{
 
     size_t cnt;
     size_t nameend;
 
     if (lastchunknum) {
-        if (ccn_iribu_ccntlv_prependNetworkVarUInt(CCNX_TLV_M_ENDChunk,
-                                              *lastchunknum, offset, buf)) {
+        if (ccn_iribu_ccntlv_prependNetworkVarUInt(CCNX_TLV_M_ENDChunk, *lastchunknum,
+                                                   offset, buf)) {
             return -1;
         }
     }
 
     nameend = *offset;
 
-    if (name->chunknum &&
-        ccn_iribu_ccntlv_prependNetworkVarUInt(CCNX_TLV_N_Chunk,
-                                          *name->chunknum, offset, buf)) {
+    if (name->chunknum && ccn_iribu_ccntlv_prependNetworkVarUInt(
+                              CCNX_TLV_N_Chunk, *name->chunknum, offset, buf)) {
         return -1;
     }
 
@@ -447,14 +432,13 @@ ccn_iribu_ccntlv_prependName(struct ccn_iribu_prefix_s *name,
     // CCNX_TLV_N_Meta
 
     for (cnt = name->compcnt; cnt > 0; cnt--) {
-        if (*offset < name->complen[cnt-1]) {
+        if (*offset < name->complen[cnt - 1]) {
             return -1;
         }
-        *offset -= name->complen[cnt-1];
-        memcpy(buf + *offset, name->comp[cnt-1], name->complen[cnt-1]);
+        *offset -= name->complen[cnt - 1];
+        memcpy(buf + *offset, name->comp[cnt - 1], name->complen[cnt - 1]);
     }
-    if (ccn_iribu_ccntlv_prependTL(CCNX_TLV_M_Name, nameend - *offset,
-                              offset, buf)) {
+    if (ccn_iribu_ccntlv_prependTL(CCNX_TLV_M_Name, nameend - *offset, offset, buf)) {
         return -1;
     }
 
@@ -462,17 +446,16 @@ ccn_iribu_ccntlv_prependName(struct ccn_iribu_prefix_s *name,
 }
 
 // write Interest payload *before* buf[offs], adjust offs and return bytes used
-int8_t
-ccn_iribu_ccntlv_prependInterest(struct ccn_iribu_prefix_s *name,
-                            size_t *offset, uint8_t *buf, size_t *len)
+int8_t ccn_iribu_ccntlv_prependInterest(struct ccn_iribu_prefix_s *name, size_t *offset,
+                                        uint8_t *buf, size_t *len)
 {
     size_t oldoffset = *offset;
 
     if (ccn_iribu_ccntlv_prependName(name, offset, buf, NULL)) {
         return -1;
     }
-    if (ccn_iribu_ccntlv_prependTL(CCNX_TLV_TL_Interest,
-                                        oldoffset - *offset, offset, buf)) {
+    if (ccn_iribu_ccntlv_prependTL(CCNX_TLV_TL_Interest, oldoffset - *offset, offset,
+                                   buf)) {
         return -1;
     }
 
@@ -481,12 +464,12 @@ ccn_iribu_ccntlv_prependInterest(struct ccn_iribu_prefix_s *name,
 }
 
 // write Interest packet *before* buf[offs], adjust offs and return bytes used
-int8_t
-ccn_iribu_ccntlv_prependChunkInterestWithHdr(struct ccn_iribu_prefix_s *name,
-                                        size_t *offset, uint8_t *buf, size_t *reslen)
+int8_t ccn_iribu_ccntlv_prependChunkInterestWithHdr(struct ccn_iribu_prefix_s *name,
+                                                    size_t *offset, uint8_t *buf,
+                                                    size_t *reslen)
 {
     size_t len, oldoffset;
-    uint8_t hoplimit = 64; // setting hoplimit to max valid value?
+    uint8_t hoplimit = 64;    // setting hoplimit to max valid value?
 
     oldoffset = *offset;
     if (ccn_iribu_ccntlv_prependInterest(name, offset, buf, &len)) {
@@ -496,8 +479,8 @@ ccn_iribu_ccntlv_prependChunkInterestWithHdr(struct ccn_iribu_prefix_s *name,
         return -1;
     }
 
-    if (ccn_iribu_ccntlv_prependFixedHdr(CCNX_TLV_V1, CCNX_PT_Interest,
-                                    len, hoplimit, offset, buf)) {
+    if (ccn_iribu_ccntlv_prependFixedHdr(CCNX_TLV_V1, CCNX_PT_Interest, len, hoplimit,
+                                         offset, buf)) {
         return -1;
     }
 
@@ -506,19 +489,17 @@ ccn_iribu_ccntlv_prependChunkInterestWithHdr(struct ccn_iribu_prefix_s *name,
 }
 
 // write Interest packet *before* buf[offs], adjust offs and return bytes used
-int8_t
-ccn_iribu_ccntlv_prependInterestWithHdr(struct ccn_iribu_prefix_s *name,
-                                   size_t *offset, uint8_t *buf, size_t *len)
+int8_t ccn_iribu_ccntlv_prependInterestWithHdr(struct ccn_iribu_prefix_s *name,
+                                               size_t *offset, uint8_t *buf, size_t *len)
 {
     return ccn_iribu_ccntlv_prependChunkInterestWithHdr(name, offset, buf, len);
 }
 
 // write Content payload *before* buf[offs], adjust offs and return bytes used
-int8_t
-ccn_iribu_ccntlv_prependContent(struct ccn_iribu_prefix_s *name,
-                           uint8_t *payload, size_t paylen,
-                           uint32_t *lastchunknum, size_t *contentpos,
-                           size_t *offset, uint8_t *buf, size_t *reslen)
+int8_t ccn_iribu_ccntlv_prependContent(struct ccn_iribu_prefix_s *name, uint8_t *payload,
+                                       size_t paylen, uint32_t *lastchunknum,
+                                       size_t *contentpos, size_t *offset, uint8_t *buf,
+                                       size_t *reslen)
 {
     size_t tloffset = *offset;
 
@@ -544,19 +525,19 @@ ccn_iribu_ccntlv_prependContent(struct ccn_iribu_prefix_s *name,
 }
 
 // write Content packet *before* buf[offs], adjust offs and return bytes used
-int8_t
-ccn_iribu_ccntlv_prependContentWithHdr(struct ccn_iribu_prefix_s *name,
-                                  uint8_t *payload, size_t paylen,
-                                  uint32_t *lastchunknum, size_t *contentpos,
-                                  size_t *offset, uint8_t *buf, size_t *reslen)
+int8_t ccn_iribu_ccntlv_prependContentWithHdr(struct ccn_iribu_prefix_s *name,
+                                              uint8_t *payload, size_t paylen,
+                                              uint32_t *lastchunknum, size_t *contentpos,
+                                              size_t *offset, uint8_t *buf,
+                                              size_t *reslen)
 {
     size_t len, oldoffset;
-    uint8_t hoplimit = 255; // setting to max (content has no hoplimit)
+    uint8_t hoplimit = 255;    // setting to max (content has no hoplimit)
 
     oldoffset = *offset;
 
-    if (ccn_iribu_ccntlv_prependContent(name, payload, paylen, lastchunknum,
-                                   contentpos, offset, buf, &len)) {
+    if (ccn_iribu_ccntlv_prependContent(name, payload, paylen, lastchunknum, contentpos,
+                                        offset, buf, &len)) {
         return -1;
     }
 
@@ -564,8 +545,8 @@ ccn_iribu_ccntlv_prependContentWithHdr(struct ccn_iribu_prefix_s *name,
         return -1;
     }
 
-    if (ccn_iribu_ccntlv_prependFixedHdr(CCNX_TLV_V1, CCNX_PT_Data,
-                                    len, hoplimit, offset, buf)) {
+    if (ccn_iribu_ccntlv_prependFixedHdr(CCNX_TLV_V1, CCNX_PT_Data, len, hoplimit, offset,
+                                         buf)) {
         return -1;
     }
 
@@ -573,11 +554,11 @@ ccn_iribu_ccntlv_prependContentWithHdr(struct ccn_iribu_prefix_s *name,
     return 0;
 }
 
-#ifdef USE_FRAG
+#        ifdef USE_FRAG
 
 // produces a full FRAG packet. It does not write, just read the fields in *fr
-struct ccn_iribu_buf_s*
-ccn_iribu_ccntlv_mkFrag(struct ccn_iribu_frag_s *fr, unsigned int *consumed)
+struct ccn_iribu_buf_s *ccn_iribu_ccntlv_mkFrag(struct ccn_iribu_frag_s *fr,
+                                                unsigned int *consumed)
 {
     size_t datalen;
     struct ccn_iribu_buf_s *buf;
@@ -598,28 +579,28 @@ ccn_iribu_ccntlv_mkFrag(struct ccn_iribu_frag_s *fr, unsigned int *consumed)
     if (!buf) {
         return NULL;
     }
-    fp = (struct ccnx_tlvhdr_ccnx2015_s*) buf->data;
+    fp = (struct ccnx_tlvhdr_ccnx2015_s *) buf->data;
     memset(fp, 0, sizeof(*fp));
     fp->version = CCNX_TLV_V1;
     fp->pkttype = CCNX_PT_Fragment;
-    fp->hdrlen = sizeof(*fp);
-    fp->pktlen = htons(sizeof(*fp) + 4 + datalen);
+    fp->hdrlen  = sizeof(*fp);
+    fp->pktlen  = htons(sizeof(*fp) + 4 + datalen);
 
     tmp = htons(CCNX_TLV_TL_Fragment);
-    memcpy(fp+1, &tmp, 2);
+    memcpy(fp + 1, &tmp, 2);
     tmp = htons((uint16_t) datalen);
-    memcpy((char*)(fp+1) + 2, &tmp, 2);
-    memcpy((char*)(fp+1) + 4, fr->bigpkt->data + fr->sendoffs, datalen);
+    memcpy((char *) (fp + 1) + 2, &tmp, 2);
+    memcpy((char *) (fp + 1) + 4, fr->bigpkt->data + fr->sendoffs, datalen);
 
     tmp = fr->sendseq & 0x03fff;
-    if (datalen >= fr->bigpkt->datalen) {   // single
+    if (datalen >= fr->bigpkt->datalen) {    // single
         tmp |= CCN_IRIBU_BEFRAG_FLAG_SINGLE << 14;
-    } else if (fr->sendoffs == 0) {          // start
-        tmp |= CCN_IRIBU_BEFRAG_FLAG_FIRST  << 14;
-    } else if(datalen >= (fr->bigpkt->datalen - fr->sendoffs)) { // end
-        tmp |= CCN_IRIBU_BEFRAG_FLAG_LAST   << 14;
-    } else {                                  // middle
-        tmp |= CCN_IRIBU_BEFRAG_FLAG_MID    << 14;
+    } else if (fr->sendoffs == 0) {    // start
+        tmp |= CCN_IRIBU_BEFRAG_FLAG_FIRST << 14;
+    } else if (datalen >= (fr->bigpkt->datalen - fr->sendoffs)) {    // end
+        tmp |= CCN_IRIBU_BEFRAG_FLAG_LAST << 14;
+    } else {    // middle
+        tmp |= CCN_IRIBU_BEFRAG_FLAG_MID << 14;
     }
     tmp = htons(tmp);
     memcpy(fp->fill, &tmp, 2);
@@ -627,11 +608,11 @@ ccn_iribu_ccntlv_mkFrag(struct ccn_iribu_frag_s *fr, unsigned int *consumed)
     *consumed = datalen;
     return buf;
 }
-#endif
+#        endif
 
-#endif // NEEDS_PACKET_CRAFTING
+#    endif    // NEEDS_PACKET_CRAFTING
 
-#endif // USE_SUITE_CCNTLV
+#endif    // USE_SUITE_CCNTLV
 
 /* suppress empty translation unit error */
 typedef int unused_typedef;

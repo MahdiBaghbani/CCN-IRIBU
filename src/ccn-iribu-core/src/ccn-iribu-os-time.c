@@ -21,30 +21,27 @@
  */
 
 #ifndef CCN_IRIBU_LINUXKERNEL
-#include "ccn-iribu-os-time.h"
-#include "ccn-iribu-malloc.h"
-#include <stdio.h>
-#include <string.h>
-#include <time.h>
+#    include "ccn-iribu-os-time.h"
+#    include "ccn-iribu-malloc.h"
+#    include <stdio.h>
+#    include <string.h>
+#    include <time.h>
 #else
-#include "../include/ccn-iribu-os-time.h"
-#include "../include/ccn-iribu-malloc.h"
+#    include "../include/ccn-iribu-malloc.h"
+#    include "../include/ccn-iribu-os-time.h"
 #endif
-
-
-
 
 struct ccn_iribu_timer_s *eventqueue;
 
-
-#if defined(CCN_IRIBU_RIOT) && !(defined(__FreeBSD__) || defined(__APPLE__) || defined(__linux__))
-#include <xtimer.h>
+#if defined(CCN_IRIBU_RIOT) && \
+    !(defined(__FreeBSD__) || defined(__APPLE__) || defined(__linux__))
+#    include <xtimer.h>
 
 int gettimeofday(struct timeval *__restrict __p, void *__restrict __tz)
 {
     (void) __tz;
     uint64_t now = xtimer_now_usec64();
-    __p->tv_sec = div_u64_by_1000000(now);
+    __p->tv_sec  = div_u64_by_1000000(now);
     __p->tv_usec = now - (__p->tv_sec * US_PER_SEC);
 
     return 0;
@@ -53,32 +50,32 @@ int gettimeofday(struct timeval *__restrict __p, void *__restrict __tz)
 
 #ifdef CCN_IRIBU_ARDUINO
 
-double CCN_IRIBU_NOW(void) { return (double) millis() / Hz; }
-
-void
-gettimeofday(struct timeval *tv, void *dummy)
+double CCN_IRIBU_NOW(void)
 {
-    uint32_t t = millis();
-    tv->tv_sec = t / Hz;
+    return (double) millis() / Hz;
+}
+
+void gettimeofday(struct timeval *tv, void *dummy)
+{
+    uint32_t t  = millis();
+    tv->tv_sec  = t / Hz;
     tv->tv_usec = (t % Hz) * (1000000 / Hz);
 }
 
-char*
-timestamp(void)
+char *timestamp(void)
 {
     static char ts[12];
     uint32_t m = millis();
 
-    sprintf_P(ts, PSTR("%lu.%03d"), m / 1000, (int)(m % 1000));
+    sprintf_P(ts, PSTR("%lu.%03d"), m / 1000, (int) (m % 1000));
 
     return ts;
 }
 
-#else // !CCN_IRIBU_ARDUINO
+#else    // !CCN_IRIBU_ARDUINO
 
-#ifndef CCN_IRIBU_LINUXKERNEL
-double
-current_time(void)
+#    ifndef CCN_IRIBU_LINUXKERNEL
+double current_time(void)
 {
     struct timeval tv;
     static time_t start;
@@ -87,16 +84,14 @@ current_time(void)
     gettimeofday(&tv, NULL);
 
     if (!start) {
-        start = tv.tv_sec;
+        start      = tv.tv_sec;
         start_usec = tv.tv_usec;
     }
 
-    return (double)(tv.tv_sec) - start +
-                ((double)(tv.tv_usec) - start_usec) / 1000000;
+    return (double) (tv.tv_sec) - start + ((double) (tv.tv_usec) - start_usec) / 1000000;
 }
 
-char*
-timestamp(void)
+char *timestamp(void)
 {
     static char ts[16], *cp;
 
@@ -106,32 +101,31 @@ timestamp(void)
         strcat(ts, ".0000");
     else if (strlen(cp) > 5)
         cp[5] = '\0';
-    else while (strlen(cp) < 5)
-        strcat(cp, "0");
-        
+    else
+        while (strlen(cp) < 5)
+            strcat(cp, "0");
+
     return ts;
 }
 
-#endif
+#    endif
 
-#endif // !CCN_IRIBU_ARDUINO
+#endif    // !CCN_IRIBU_ARDUINO
 
-long
-timevaldelta(struct timeval *a, struct timeval *b) {
-    return 1000000*(a->tv_sec - b->tv_sec) + a->tv_usec - b->tv_usec;
+long timevaldelta(struct timeval *a, struct timeval *b)
+{
+    return 1000000 * (a->tv_sec - b->tv_sec) + a->tv_usec - b->tv_usec;
 }
 
-#if defined(CCN_IRIBU_UNIX) || defined (CCN_IRIBU_RIOT) || defined (CCN_IRIBU_ARDUINO)
+#if defined(CCN_IRIBU_UNIX) || defined(CCN_IRIBU_RIOT) || defined(CCN_IRIBU_ARDUINO)
 
-void
-ccn_iribu_get_timeval(struct timeval *tv)
+void ccn_iribu_get_timeval(struct timeval *tv)
 {
     gettimeofday(tv, NULL);
 }
 
-void*
-ccn_iribu_set_timer(uint64_t usec, void (*fct)(void *aux1, void *aux2),
-                 void *aux1, void *aux2)
+void *ccn_iribu_set_timer(uint64_t usec, void (*fct)(void *aux1, void *aux2), void *aux1,
+                          void *aux2)
 {
     struct ccn_iribu_timer_s *t, **pp;
     //    static int handlercnt;
@@ -144,31 +138,30 @@ ccn_iribu_set_timer(uint64_t usec, void (*fct)(void *aux1, void *aux2),
     usec += t->timeout.tv_usec;
     t->timeout.tv_sec += usec / 1000000;
     t->timeout.tv_usec = usec % 1000000;
-    t->aux1 = aux1;
-    t->aux2 = aux2;
+    t->aux1            = aux1;
+    t->aux2            = aux2;
 
-    for (pp = &eventqueue; ; pp = &((*pp)->next)) {
-    if (!*pp || (*pp)->timeout.tv_sec > t->timeout.tv_sec ||
-        ((*pp)->timeout.tv_sec == t->timeout.tv_sec &&
-         (*pp)->timeout.tv_usec > t->timeout.tv_usec)) {
-        t->next = *pp;
-        //        t->handler = handlercnt++;
-        *pp = t;
-        return t;
+    for (pp = &eventqueue;; pp = &((*pp)->next)) {
+        if (!*pp || (*pp)->timeout.tv_sec > t->timeout.tv_sec ||
+            ((*pp)->timeout.tv_sec == t->timeout.tv_sec &&
+             (*pp)->timeout.tv_usec > t->timeout.tv_usec)) {
+            t->next = *pp;
+            //        t->handler = handlercnt++;
+            *pp = t;
+            return t;
+        }
     }
-    }
-    return NULL; // ?
+    return NULL;    // ?
 }
 
-void
-ccn_iribu_rem_timer(void *h)
+void ccn_iribu_rem_timer(void *h)
 {
     struct ccn_iribu_timer_s **pp;
 
     for (pp = &eventqueue; *pp; pp = &((*pp)->next)) {
-        if ((void*)*pp == h) {
+        if ((void *) *pp == h) {
             struct ccn_iribu_timer_s *e = *pp;
-            *pp = e->next;
+            *pp                         = e->next;
             ccn_iribu_free(e);
             break;
         }
@@ -179,14 +172,12 @@ ccn_iribu_rem_timer(void *h)
 
 #ifdef CCN_IRIBU_LINUXKERNEL
 
-inline void
-ccn_iribu_get_timeval(struct timeval *tv)
+inline void ccn_iribu_get_timeval(struct timeval *tv)
 {
     jiffies_to_timeval(jiffies, tv);
 }
 
-int
-current_time2(void)
+int current_time2(void)
 {
     struct timeval tv;
 
@@ -194,11 +185,10 @@ current_time2(void)
     return tv.tv_sec;
 }
 
-static void
-ccn_iribu_timer_callback(unsigned long data)
+static void ccn_iribu_timer_callback(unsigned long data)
 {
-    struct ccn_iribu_timerlist_s *t = (struct ccn_iribu_timerlist_s*) data;
-    void (*fct)(void*,void*) = t->fct;
+    struct ccn_iribu_timerlist_s *t = (struct ccn_iribu_timerlist_s *) data;
+    void (*fct)(void *, void *)     = t->fct;
     void *ptr = t->ptr, *aux = t->aux;
 
     if (!spare_timer)
@@ -208,66 +198,64 @@ ccn_iribu_timer_callback(unsigned long data)
     (fct)(ptr, aux);
 }
 
-static void*
-ccn_iribu_set_timer(int usec, void(*fct)(void*,void*), void *ptr, void *aux)
+static void *ccn_iribu_set_timer(int usec, void (*fct)(void *, void *), void *ptr,
+                                 void *aux)
 {
     struct ccn_iribu_timerlist_s *t;
 
     if (spare_timer) {
-        t = spare_timer;
+        t           = spare_timer;
         spare_timer = NULL;
     } else {
         t = kmalloc(sizeof(struct ccn_iribu_timerlist_s), GFP_ATOMIC);
         if (!t)
             return NULL;
     }
-    #if(LINUX_VERSION_CODE >= KERNEL_VERSION(4,15,0))
-    timer_setup(&t->tl.t,legacy_timer_emu_func,0);
-#else
+#    if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0))
+    timer_setup(&t->tl.t, legacy_timer_emu_func, 0);
+#    else
     init_timer(&t->tl);
-#endif
+#    endif
     t->tl.function = ccn_iribu_timer_callback;
-    t->tl.data = (unsigned long) t;
-    t->fct = fct;
-    t->ptr = ptr;
-    t->aux = aux;
-#if(LINUX_VERSION_CODE >= KERNEL_VERSION(4,15,0))
+    t->tl.data     = (unsigned long) t;
+    t->fct         = fct;
+    t->ptr         = ptr;
+    t->aux         = aux;
+#    if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0))
     t->tl.t.expires = jiffies + usecs_to_jiffies(usec);
-#else
+#    else
     t->tl.expires = jiffies + usecs_to_jiffies(usec);
-#endif
-#if(LINUX_VERSION_CODE >= KERNEL_VERSION(4,15,0))
+#    endif
+#    if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0))
     add_timer(&t->tl.t);
-#else
+#    else
     add_timer(&t->tl);
-#endif
+#    endif
     return t;
 }
 
-static void
-ccn_iribu_rem_timer(void *p)
+static void ccn_iribu_rem_timer(void *p)
 {
-    struct ccn_iribu_timerlist_s *t = (struct ccn_iribu_timerlist_s*) p;
+    struct ccn_iribu_timerlist_s *t = (struct ccn_iribu_timerlist_s *) p;
 
     if (!p)
         return;
-    #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0))
+#    if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0))
     del_timer(&t->tl.t);
-    #else
+#    else
     del_timer(&t->tl);
-    #endif
+#    endif
     if (!spare_timer)
         spare_timer = t;
     else
         kfree(t);
 }
 
-#else// we have to work through the pending timer requests ourself
+#else    // we have to work through the pending timer requests ourself
 
 // "looper": serves all pending events and returns the number of microseconds
 // when the next event should be triggered.
-int
-ccn_iribu_run_events(void)
+int ccn_iribu_run_events(void)
 {
     static struct timeval now;
     long usec;
@@ -291,38 +279,38 @@ ccn_iribu_run_events(void)
     return -1;
 }
 
-#endif // CCN_IRIBU_LINUXKERNEL
+#endif    // CCN_IRIBU_LINUXKERNEL
 
 // ----------------------------------------------------------------------
 
 #ifdef USE_SCHEDULER
 
-void*
-ccn_iribu_set_absolute_timer(struct timeval abstime, void (*fct)(void *aux1, void *aux2),
-         void *aux1, void *aux2)
+void *ccn_iribu_set_absolute_timer(struct timeval abstime,
+                                   void (*fct)(void *aux1, void *aux2), void *aux1,
+                                   void *aux2)
 {
     struct ccn_iribu_timer_s *t, **pp;
     //    static int handlercnt;
 
     t = (struct ccn_iribu_timer_s *) ccn_iribu_calloc(1, sizeof(*t));
     if (!t)
-    return 0;
-    t->fct2 = fct;
+        return 0;
+    t->fct2    = fct;
     t->timeout = abstime;
-    t->aux1 = aux1;
-    t->aux2 = aux2;
+    t->aux1    = aux1;
+    t->aux2    = aux2;
 
-    for (pp = &eventqueue; ; pp = &((*pp)->next)) {
-    if (!*pp || (*pp)->timeout.tv_sec > t->timeout.tv_sec ||
-        ((*pp)->timeout.tv_sec == t->timeout.tv_sec &&
-         (*pp)->timeout.tv_usec > t->timeout.tv_usec)) {
-        t->next = *pp;
-        //        t->handler = handlercnt++;
-        *pp = t;
-        return t;
+    for (pp = &eventqueue;; pp = &((*pp)->next)) {
+        if (!*pp || (*pp)->timeout.tv_sec > t->timeout.tv_sec ||
+            ((*pp)->timeout.tv_sec == t->timeout.tv_sec &&
+             (*pp)->timeout.tv_usec > t->timeout.tv_usec)) {
+            t->next = *pp;
+            //        t->handler = handlercnt++;
+            *pp = t;
+            return t;
+        }
     }
-    }
-    return NULL; // ?
+    return NULL;    // ?
 }
 
 #endif

@@ -17,57 +17,56 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <cmocka.h>
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-#include <cmocka.h>
 
 #include "ccnl-defs.h"
 #include "ccnl-pkt-ccntlv.h"
 #include "ccnl-pkt-ndntlv.h"
 #include "ccnl-pkt-util.h"
 
-#define USE_SUITE_CCNB 0x01
-#define USE_SUITE_NDNTLV 0x06
-#define USE_SUITE_CCNTLV 0x02
+#define USE_SUITE_CCNB     0x01
+#define USE_SUITE_NDNTLV   0x06
+#define USE_SUITE_CCNTLV   0x02
 #define USE_SUITE_LOCALRPC 0x05
 
-#define CCNL_SUITE_CCNB 0x01
-#define CCNL_SUITE_CCNTLV 0x02
+#define CCNL_SUITE_CCNB     0x01
+#define CCNL_SUITE_CCNTLV   0x02
 #define CCNL_SUITE_LOCALRPC 0x05
-#define CCNL_SUITE_NDNTLV 0x06
-
+#define CCNL_SUITE_NDNTLV   0x06
 
 void test_ccnl_is_suite_invalid()
 {
     int invalid_suite = 0x42;
-    int result = ccnl_isSuite(invalid_suite);
+    int result        = ccnl_isSuite(invalid_suite);
     assert_false(result);
 }
 
 void test_ccnl_is_suite_valid()
 {
     int valid_suite = USE_SUITE_CCNB;
-    int result = ccnl_isSuite(valid_suite);
+    int result      = ccnl_isSuite(valid_suite);
     assert_true(result);
 
     valid_suite = USE_SUITE_CCNTLV;
-    result = ccnl_isSuite(valid_suite);
+    result      = ccnl_isSuite(valid_suite);
     assert_true(result);
 
     valid_suite = USE_SUITE_LOCALRPC;
-    result = ccnl_isSuite(valid_suite);
+    result      = ccnl_isSuite(valid_suite);
     assert_true(result);
 
     valid_suite = USE_SUITE_NDNTLV;
-    result = ccnl_isSuite(valid_suite);
+    result      = ccnl_isSuite(valid_suite);
     assert_true(result);
 }
 
 void test_ccnl_suite2default_port_invalid()
 {
     int invalid_suite = 0x42;
-    int result = ccnl_suite2defaultPort(invalid_suite);
+    int result        = ccnl_suite2defaultPort(invalid_suite);
     /** returns by default \ref NDN_UDP_PORT */
     assert_int_equal(result, NDN_UDP_PORT);
 }
@@ -75,41 +74,41 @@ void test_ccnl_suite2default_port_invalid()
 void test_ccnl_suite2default_port_valid()
 {
     int valid_suite = USE_SUITE_NDNTLV;
-    int result = ccnl_suite2defaultPort(valid_suite);
+    int result      = ccnl_suite2defaultPort(valid_suite);
     assert_int_equal(result, NDN_UDP_PORT);
 
     valid_suite = USE_SUITE_CCNB;
-    result = ccnl_suite2defaultPort(valid_suite);
+    result      = ccnl_suite2defaultPort(valid_suite);
     assert_int_equal(result, CCN_UDP_PORT);
 
     valid_suite = USE_SUITE_CCNTLV;
-    result = ccnl_suite2defaultPort(valid_suite);
+    result      = ccnl_suite2defaultPort(valid_suite);
     assert_int_equal(result, CCN_UDP_PORT);
 }
 
 void test_ccnl_suite2str_invalid()
 {
-    int invalid_suite = 0x42;
+    int invalid_suite  = 0x42;
     const char *result = ccnl_suite2str(invalid_suite);
     assert_string_equal(result, "?");
 }
 
 void test_ccnl_suite2str_valid()
 {
-    int valid_suite = USE_SUITE_NDNTLV;
-    const char* ndn_result = ccnl_suite2str(valid_suite);
+    int valid_suite        = USE_SUITE_NDNTLV;
+    const char *ndn_result = ccnl_suite2str(valid_suite);
     assert_string_equal(ndn_result, "ndn2013");
 
-    valid_suite = USE_SUITE_CCNB;
-    const char* ccnb_result = ccnl_suite2str(valid_suite);
+    valid_suite             = USE_SUITE_CCNB;
+    const char *ccnb_result = ccnl_suite2str(valid_suite);
     assert_string_equal(ccnb_result, "ccnb");
 
-    valid_suite = USE_SUITE_CCNTLV;
-    const char* ccn_result = ccnl_suite2str(valid_suite);
+    valid_suite            = USE_SUITE_CCNTLV;
+    const char *ccn_result = ccnl_suite2str(valid_suite);
     assert_string_equal(ccn_result, "ccnx2015");
 
-    valid_suite = USE_SUITE_LOCALRPC;
-    const char* local_rpc_result = ccnl_suite2str(valid_suite);
+    valid_suite                  = USE_SUITE_LOCALRPC;
+    const char *local_rpc_result = ccnl_suite2str(valid_suite);
     assert_string_equal(local_rpc_result, "localrpc");
 }
 
@@ -164,17 +163,17 @@ void test_ccnl_pkt2suite_invalid()
 void test_ccnl_pkt2suite_valid()
 {
     char buffer[2];
-    buffer[0] = CCNL_SUITE_NDNTLV;
-    buffer[1] = 0x01;
+    buffer[0]  = CCNL_SUITE_NDNTLV;
+    buffer[1]  = 0x01;
     int result = ccnl_pkt2suite(buffer, 2, NULL);
     assert_int_equal(result, CCNL_SUITE_NDNTLV);
 
     buffer[0] = 0x04;
-    result = ccnl_pkt2suite(buffer, 2, NULL);
+    result    = ccnl_pkt2suite(buffer, 2, NULL);
     assert_int_equal(result, CCNL_SUITE_CCNB);
 
     buffer[0] = CCNX_TLV_V1;
-    result = ccnl_pkt2suite(buffer, 2, NULL);
+    result    = ccnl_pkt2suite(buffer, 2, NULL);
     assert_int_equal(result, CCNL_SUITE_CCNTLV);
 }
 
@@ -194,6 +193,6 @@ int main(void)
         unit_test(test_ccnl_pkt2suite_invalid),
         unit_test(test_ccnl_pkt2suite_valid),
     };
-    
+
     return run_tests(tests);
 }

@@ -27,47 +27,44 @@
 
 #include "ccn-iribu-defs.h"
 #ifndef CCN_IRIBU_LINUXKERNEL
-#include <netinet/in.h>
-#include <net/ethernet.h>
+#    include <net/ethernet.h>
+#    include <netinet/in.h>
 
-#ifndef CCN_IRIBU_RIOT
-#include <sys/un.h>
-#else
-#include "net/packet.h"
-#include <net/packet.h>
-#endif
+#    ifndef CCN_IRIBU_RIOT
+#        include <sys/un.h>
+#    else
+#        include "net/packet.h"
+#        include <net/packet.h>
+#    endif
 
+#    include <arpa/inet.h>
+#    include <netinet/in.h>
+#    include <sys/socket.h>
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-
-
-#if defined(__FreeBSD__) || defined(__APPLE__)
-#  include <sys/types.h>
-#  include <sys/socket.h>
-#  ifdef USE_LINKLAYER
-#pragma message "ethernet support in FreeBSD and MacOS is work in progress \
+#    if defined(__FreeBSD__) || defined(__APPLE__)
+#        include <sys/socket.h>
+#        include <sys/types.h>
+#        ifdef USE_LINKLAYER
+#            pragma message "ethernet support in FreeBSD and MacOS is work in progress \
  and not fully implemented!"
-#  endif
-#elif defined(__linux__)
-#  include <endian.h>
-#ifndef CCN_IRIBU_RIOT
-#  include <linux/if_ether.h>  // ETH_ALEN
-#  include <linux/if_packet.h> // sockaddr_ll
-#endif //CCN_IRIBU_RIOT
-#endif
-#endif //!CCN_IRIBU_LINUXKERNEL
+#        endif
+#    elif defined(__linux__)
+#        include <endian.h>
+#        ifndef CCN_IRIBU_RIOT
+#            include <linux/if_ether.h>     // ETH_ALEN
+#            include <linux/if_packet.h>    // sockaddr_ll
+#        endif                              // CCN_IRIBU_RIOT
+#    endif
+#endif    //! CCN_IRIBU_LINUXKERNEL
 
 #ifdef USE_WPAN
 /* TODO: remove when af_ieee802154.h is in linux mainline */
-#define IEEE802154_ADDR_LEN 8
+#    define IEEE802154_ADDR_LEN 8
 
 typedef enum {
-    IEEE802154_ADDR_NONE = 0x0,
+    IEEE802154_ADDR_NONE  = 0x0,
     IEEE802154_ADDR_SHORT = 0x2,
-    IEEE802154_ADDR_LONG = 0x3,
+    IEEE802154_ADDR_LONG  = 0x3,
 } wpan_addr_type_t;
 
 struct ieee802154_addr_sa {
@@ -94,11 +91,11 @@ typedef union {
     struct sockaddr_in6 ip6;
 #endif
 #ifdef USE_LINKLAYER
-#if (!defined(__FreeBSD__) && !defined(__APPLE__)) || \
-    (defined(CCN_IRIBU_RIOT) && defined(__FreeBSD__)) ||  \
-    (defined(CCN_IRIBU_RIOT) && defined(__APPLE__)) 
+#    if (!defined(__FreeBSD__) && !defined(__APPLE__)) ||    \
+        (defined(CCN_IRIBU_RIOT) && defined(__FreeBSD__)) || \
+        (defined(CCN_IRIBU_RIOT) && defined(__APPLE__))
     struct sockaddr_ll linklayer;
-#endif
+#    endif
 #endif
 #ifdef USE_WPAN
     struct sockaddr_ieee802154 wpan;
@@ -108,8 +105,7 @@ typedef union {
 #endif
 } sockunion;
 
-int
-ccn_iribu_is_local_addr(sockunion *su);
+int ccn_iribu_is_local_addr(sockunion *su);
 
 /**
  * @brief Returns a string representation of a given socket
@@ -125,19 +121,15 @@ ccn_iribu_is_local_addr(sockunion *su);
  * @return NULL if the given socket type is not supported
  * @return A string representation of \ref su
  */
-char* ccn_iribu_addr2ascii(sockunion *su);
+char *ccn_iribu_addr2ascii(sockunion *su);
 
-int
-ccn_iribu_addr_cmp(sockunion *s1, sockunion *s2);
+int ccn_iribu_addr_cmp(sockunion *s1, sockunion *s2);
 
-char*
-ll2ascii(unsigned char *addr, size_t len);
+char *ll2ascii(unsigned char *addr, size_t len);
 
-char
-_half_byte_to_char(uint8_t half_byte);
+char _half_byte_to_char(uint8_t half_byte);
 
-//char 
+// char
 //*inet_ntoa(struct in_addr in);
-
 
 #endif

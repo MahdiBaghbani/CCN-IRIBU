@@ -25,14 +25,12 @@
 
 #include "ccn-iribu-core.h"
 
-void
-ccn_iribu_echo_request(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *inface,
-                  struct ccn_iribu_prefix_s *pfx, struct ccn_iribu_buf_s *buf);
+void ccn_iribu_echo_request(struct ccn_iribu_relay_s *relay,
+                            struct ccn_iribu_face_s *inface,
+                            struct ccn_iribu_prefix_s *pfx, struct ccn_iribu_buf_s *buf);
 
-int
-ccn_iribu_echo_add(struct ccn_iribu_relay_s *relay, struct ccn_iribu_prefix_s *pfx);
+int ccn_iribu_echo_add(struct ccn_iribu_relay_s *relay, struct ccn_iribu_prefix_s *pfx);
 
-void
-ccn_iribu_echo_cleanup(struct ccn_iribu_relay_s *relay);
+void ccn_iribu_echo_cleanup(struct ccn_iribu_relay_s *relay);
 
-#endif //CCN_LITE_CCN_IRIBU_ECHO_H
+#endif    // CCN_LITE_CCN_IRIBU_ECHO_H

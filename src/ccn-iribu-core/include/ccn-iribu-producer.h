@@ -29,8 +29,8 @@
  * @brief Function pointer type for local producer function
  */
 typedef int (*ccn_iribu_producer_func)(struct ccn_iribu_relay_s *relay,
-                                  struct ccn_iribu_face_s *from,
-                                  struct ccn_iribu_pkt_s *pkt);
+                                       struct ccn_iribu_face_s *from,
+                                       struct ccn_iribu_pkt_s *pkt);
 
 /**
  * @brief Set a local producer function
@@ -45,13 +45,13 @@ void ccn_iribu_set_local_producer(ccn_iribu_producer_func func);
 /**
  * @brief Allows to generates content on the fly/or react to any kind of interest
  *
- * A developer has to provide its own local_producer function which is set via 
- * \ref ccn_iribu_set_local_producer as a function pointer. If the function pointer 
- * is not, set the function simply returns '0'. 
+ * A developer has to provide its own local_producer function which is set via
+ * \ref ccn_iribu_set_local_producer as a function pointer. If the function pointer
+ * is not, set the function simply returns '0'.
  *
  * @param[in] relay The active ccn-iribu relay
  * @param[in] from  The face the packet was received over
- * @param[in] pkt   The actual received packet 
+ * @param[in] pkt   The actual received packet
  *
  * @return 0 if no function has been set
  */
@@ -59,9 +59,7 @@ void ccn_iribu_set_local_producer(ccn_iribu_producer_func func);
 int local_producer(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
                    struct ccn_iribu_pkt_s *pkt);
 #else
-#define local_producer(...) 0
+#    define local_producer(...) 0
 #endif
 
-
-#endif 
-
+#endif

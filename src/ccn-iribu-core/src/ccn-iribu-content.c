@@ -21,25 +21,24 @@
  */
 
 #ifndef CCN_IRIBU_LINUXKERNEL
-#include "ccn-iribu-content.h"
-#include "ccn-iribu-malloc.h"
-#include "ccn-iribu-prefix.h"
-#include "ccn-iribu-pkt.h"
-#include "ccn-iribu-os-time.h"
-#include "ccn-iribu-logging.h"
-#include "ccn-iribu-defs.h"
+#    include "ccn-iribu-content.h"
+#    include "ccn-iribu-defs.h"
+#    include "ccn-iribu-logging.h"
+#    include "ccn-iribu-malloc.h"
+#    include "ccn-iribu-os-time.h"
+#    include "ccn-iribu-pkt.h"
+#    include "ccn-iribu-prefix.h"
 #else
-#include "../include/ccn-iribu-content.h"
-#include "../include/ccn-iribu-malloc.h"
-#include "../include/ccn-iribu-prefix.h"
-#include "../include/ccn-iribu-pkt.h"
-#include "../include/ccn-iribu-os-time.h"
-#include "../include/ccn-iribu-logging.h"
+#    include "../include/ccn-iribu-content.h"
+#    include "../include/ccn-iribu-logging.h"
+#    include "../include/ccn-iribu-malloc.h"
+#    include "../include/ccn-iribu-os-time.h"
+#    include "../include/ccn-iribu-pkt.h"
+#    include "../include/ccn-iribu-prefix.h"
 #endif
 
 // TODO: remove unused ccn_iribu parameter
-struct ccn_iribu_content_s*
-ccn_iribu_content_new(struct ccn_iribu_pkt_s **pkt)
+struct ccn_iribu_content_s *ccn_iribu_content_new(struct ccn_iribu_pkt_s **pkt)
 {
     if (!pkt) {
         return NULL;
@@ -50,29 +49,30 @@ ccn_iribu_content_new(struct ccn_iribu_pkt_s **pkt)
     char s[CCN_IRIBU_MAX_PREFIX_SIZE];
     (void) s;
 
-    DEBUGMSG_CORE(TRACE, "ccn_iribu_content_new %p <%s [%lu]>\n",
-             (void*) *pkt, ccn_iribu_prefix_to_str((*pkt)->pfx, s, CCN_IRIBU_MAX_PREFIX_SIZE),
-             ((*pkt)->pfx->chunknum) ? (long unsigned) *((*pkt)->pfx->chunknum) : (long unsigned) 0);
+    DEBUGMSG_CORE(TRACE, "ccn_iribu_content_new %p <%s [%lu]>\n", (void *) *pkt,
+                  ccn_iribu_prefix_to_str((*pkt)->pfx, s, CCN_IRIBU_MAX_PREFIX_SIZE),
+                  ((*pkt)->pfx->chunknum) ? (long unsigned) *((*pkt)->pfx->chunknum)
+                                          : (long unsigned) 0);
 
-    c = (struct ccn_iribu_content_s *) ccn_iribu_calloc(1, sizeof(struct ccn_iribu_content_s));
+    c = (struct ccn_iribu_content_s *) ccn_iribu_calloc(
+        1, sizeof(struct ccn_iribu_content_s));
     if (!c)
         return NULL;
-    c->pkt = *pkt;
-    *pkt = NULL;
+    c->pkt       = *pkt;
+    *pkt         = NULL;
     c->last_used = CCN_IRIBU_NOW();
-    c->flags = CCN_IRIBU_CONTENT_FLAGS_NOT_STALE;
+    c->flags     = CCN_IRIBU_CONTENT_FLAGS_NOT_STALE;
 
     return c;
 }
 
-int 
-ccn_iribu_content_free(struct ccn_iribu_content_s *content) 
+int ccn_iribu_content_free(struct ccn_iribu_content_s *content)
 {
     if (content) {
         if (content->pkt) {
             ccn_iribu_pkt_free(content->pkt);
         }
-        
+
         ccn_iribu_free(content);
 
         return 0;

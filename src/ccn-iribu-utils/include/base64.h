@@ -2,16 +2,16 @@
 // from stackoverflow.com, user RYYST
 
 #ifndef BASE64_H
-#define BASE64_H
+#    define BASE64_H
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#ifndef CCN_IRIBU_LINUXKERNEL
-#include <stdint.h>
-#else
-#include <linux/types.h>
-#endif
+#    include <stdio.h>
+#    include <stdlib.h>
+#    include <string.h>
+#    ifndef CCN_IRIBU_LINUXKERNEL
+#        include <stdint.h>
+#    else
+#        include <linux/types.h>
+#    endif
 
 /**
  * @brief Initializes the base64 decoding table
@@ -25,14 +25,12 @@ void base64_build_decoding_table(void);
  * @param[in] input_length The size of the data to encode
  * @param[out] output_length The size of the encoded date
  *
- * @return Upon success, a base64 encoded representation of \p data 
+ * @return Upon success, a base64 encoded representation of \p data
  * @return NULL if \p data was NULL
  * @return NULL if allocating the result string failed
  * @return NULL if \p input_length is not in multiples of four
  */
-char *base64_encode(const char *data,
-               size_t input_length,
-               size_t *output_length);
+char *base64_encode(const char *data, size_t input_length, size_t *output_length);
 
 /**
  * @brief Decodes a string \p data into a base64 string
@@ -40,14 +38,13 @@ char *base64_encode(const char *data,
  * @param[in] data The data to decode
  * @param[in] input_length The size of the data to decode
  * @param[out] output_length The size of the decoded date
- * 
- * @return Upon success, the base64 decoded \p data 
+ *
+ * @return Upon success, the base64 decoded \p data
  * @return NULL if \p data was NULL
  * @return NULL if allocating the result string failed
  * @return NULL if \p input_length is not in multiples of four
  */
-unsigned char *base64_decode(const char *data,
-                             size_t input_length,
+unsigned char *base64_decode(const char *data, size_t input_length,
                              size_t *output_length);
 
 /**
@@ -55,5 +52,5 @@ unsigned char *base64_decode(const char *data,
  */
 void base64_cleanup(void);
 
-#endif // EOF
+#endif    // EOF
 /** @} */

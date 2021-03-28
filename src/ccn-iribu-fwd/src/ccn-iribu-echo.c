@@ -24,9 +24,9 @@ void null_func(void);
 
 #ifdef USE_ECHO
 
-void
-ccn_iribu_echo_request(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *inface,
-                  struct ccn_iribu_prefix_s *pfx, struct ccn_iribu_buf_s *buf)
+void ccn_iribu_echo_request(struct ccn_iribu_relay_s *relay,
+                            struct ccn_iribu_face_s *inface,
+                            struct ccn_iribu_prefix_s *pfx, struct ccn_iribu_buf_s *buf)
 {
     time_t t;
     char *s, *cp;
@@ -37,32 +37,33 @@ ccn_iribu_echo_request(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s 
     char s[CCN_IRIBU_MAX_PREFIX_SIZE];
     (void) s;
 
-    DEBUGMSG(DEBUG, "echo request for <%s>\n", ccn_iribu_prefix_to_str(pfx,s,CCN_IRIBU_MAX_PREFIX_SIZE));
+    DEBUGMSG(DEBUG, "echo request for <%s>\n",
+             ccn_iribu_prefix_to_str(pfx, s, CCN_IRIBU_MAX_PREFIX_SIZE));
 
-//    if (pfx->chunknum) {
-        // mkSimpleContent adds the chunk number, so remove it here
-      /*
-        ccn_iribu_free(pfx->chunknum);
-        pfx->chunknum = NULL;
-      */
-#ifdef USE_SUITE_CCNTLV
-    if (pfx->complen[pfx->compcnt-1] > 1 &&
-        pfx->comp[pfx->compcnt-1][1] == CCNX_TLV_N_Chunk) {
+    //    if (pfx->chunknum) {
+    // mkSimpleContent adds the chunk number, so remove it here
+    /*
+      ccn_iribu_free(pfx->chunknum);
+      pfx->chunknum = NULL;
+    */
+#    ifdef USE_SUITE_CCNTLV
+    if (pfx->complen[pfx->compcnt - 1] > 1 &&
+        pfx->comp[pfx->compcnt - 1][1] == CCNX_TLV_N_Chunk) {
         struct ccn_iribu_prefix_s *pfx2 = ccn_iribu_prefix_dup(pfx);
         pfx2->compcnt--;
-        pfx2->chunknum = (int*) ccn_iribu_malloc(sizeof(unsigned int));
+        pfx2->chunknum    = (int *) ccn_iribu_malloc(sizeof(unsigned int));
         *(pfx2->chunknum) = 0;
-        pfx = pfx2;
+        pfx               = pfx2;
     }
-#endif
+#    endif
 
     t = time(NULL);
-    ccn_iribu_prefix_to_str(pfx,s,CCN_IRIBU_MAX_PREFIX_SIZE);
+    ccn_iribu_prefix_to_str(pfx, s, CCN_IRIBU_MAX_PREFIX_SIZE);
 
     cp = ccn_iribu_malloc(strlen(s) + 60);
     snprintf(cp, strlen(s) + 60, "%s\n%suptime %s\n", s, ctime(&t), timestamp());
 
-    reply = ccn_iribu_mkSimpleContent(pfx, (unsigned char*) cp, strlen(cp), 0, NULL);
+    reply = ccn_iribu_mkSimpleContent(pfx, (unsigned char *) cp, strlen(cp), 0, NULL);
     ccn_iribu_free(cp);
     if (pfx2) {
         ccn_iribu_prefix_free(pfx2);
@@ -71,19 +72,17 @@ ccn_iribu_echo_request(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s 
     ucp = reply->data;
     len = reply->datalen;
 
-    ccn_iribu_core_suites[(int)pfx->suite].RX(relay, NULL, &ucp, &len);
+    ccn_iribu_core_suites[(int) pfx->suite].RX(relay, NULL, &ucp, &len);
     ccn_iribu_free(reply);
 }
 
 // insert forwarding entry with a tap - the prefix arg is consumed
-int
-ccn_iribu_echo_add(struct ccn_iribu_relay_s *relay, struct ccn_iribu_prefix_s *pfx)
+int ccn_iribu_echo_add(struct ccn_iribu_relay_s *relay, struct ccn_iribu_prefix_s *pfx)
 {
     return ccn_iribu_set_tap(relay, pfx, ccn_iribu_echo_request);
 }
 
-void
-ccn_iribu_echo_cleanup(struct ccn_iribu_relay_s *relay)
+void ccn_iribu_echo_cleanup(struct ccn_iribu_relay_s *relay)
 {
     struct ccn_iribu_forward_s *fwd;
 
@@ -92,16 +91,16 @@ ccn_iribu_echo_cleanup(struct ccn_iribu_relay_s *relay)
     for (fwd = relay->fib; fwd; fwd = fwd->next) {
         if (fwd->tap == ccn_iribu_echo_request) {
             fwd->tap = NULL;
-/*
-            if (fwd->face == NULL) { // remove this entry
-                ccn_iribu_prefix_free(fwd->prefix);
-                fwd->prefix = 0;
-            }
-*/
+            /*
+                        if (fwd->face == NULL) { // remove this entry
+                            ccn_iribu_prefix_free(fwd->prefix);
+                            fwd->prefix = 0;
+                        }
+            */
         }
     }
 }
 
-#endif // USE_ECHO
+#endif    // USE_ECHO
 
 // eof
