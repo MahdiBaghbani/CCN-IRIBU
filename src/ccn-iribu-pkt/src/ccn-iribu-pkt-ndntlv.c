@@ -145,7 +145,7 @@ struct ccn_iribu_pkt_s *ccn_iribu_ndntlv_bytes2pkt(uint64_t pkttype, uint8_t *st
     pkt->s.ndntlv.maxsuffix = CCN_IRIBU_MAX_NAME_COMP;
 
     /* set default lifetime, in case InterestLifetime guider is absent */
-    pkt->s.ndntlv.interestlifetime = CCN_IRIBU_INTEREST_TIMEOUT;
+    pkt->s.ndntlv.interestlifetime = CCN_IRIBU_INTEREST_TIMEOUT * 1000;    // ms
 
     oldpos = *data - start;
     while (ccn_iribu_ndntlv_dehead(data, datalen, &typ, &len) == 0) {
