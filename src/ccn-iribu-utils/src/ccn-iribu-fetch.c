@@ -25,6 +25,7 @@
 #include "ccn-iribu-common.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 //#include "ccn-iribu-socket.c"
 
@@ -266,7 +267,7 @@ int main(int argc, char *argv[])
 
     // For CCNTLV always start with the first chunk because of exact content match
     // This means it can only fetch chunked data and not single content-object data
-    if (suite == CCN_IRIBU_SUITE_CCNTLV) {
+    if (suite == CCN_IRIBU_SUITE_CCNTLV || suite == CCN_IRIBU_SUITE_NDNTLV) {
         curchunknum = ccn_iribu_malloc(sizeof(uint32_t));
         if (!curchunknum) {
             DEBUGMSG(ERROR, "Failed to allocate memory: %d", errno);
