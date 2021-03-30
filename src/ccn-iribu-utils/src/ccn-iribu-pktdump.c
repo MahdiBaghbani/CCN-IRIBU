@@ -1285,7 +1285,7 @@ int8_t emit_content_only(uint8_t *start, size_t len, int suite, int format)
         DEBUGMSG(WARNING, "extract (%s): content too long\n", ccn_iribu_suite2str(suite));
         return -1;
     }
-    printf("%.*s", (int) pkt->contlen, pkt->content);
+    write(1, pkt->content, pkt->contlen);
     if (format > 2) {
         printf("\n");
     }
@@ -1436,7 +1436,7 @@ int main(int argc, char *argv[])
         help:
             fprintf(
                 stderr,
-                "usage: %s [options] <encoded_data\n"
+                "usage: %s [options] <encoded_data>\n"
                 "  -f FORMAT    (0=readable, 1=rawxml, 2=content, 3=content+newline)\n"
                 "  -h           this help\n"
                 "  -s SUITE     (ccnb, ccnx2015, ndn2013)\n"
