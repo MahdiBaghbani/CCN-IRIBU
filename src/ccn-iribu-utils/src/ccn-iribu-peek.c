@@ -21,45 +21,17 @@
  * 2014-06-18  added NDNTLV support
  */
 
-#include "ccn-iribu-common.h"
-#include <unistd.h>
-#ifndef assert
-#    define assert(...) \
-        do {            \
-        } while (0)
-#endif
-
-// ----------------------------------------------------------------------
-
-unsigned char out[8 * CCN_IRIBU_MAX_PACKET_SIZE];
-int outlen;
-
-int frag_cb(struct ccn_iribu_relay_s *relay, struct ccn_iribu_face_s *from,
-            unsigned char **data, int *len)
-{
-    (void) relay;
-    (void) from;
-    DEBUGMSG(INFO, "frag_cb\n");
-
-    memcpy(out, *data, *len);
-    outlen = *len;
-    return 0;
-}
+#include "ccn-iribu-peek.h"
 
 int main(int argc, char *argv[])
 {
-    int cnt, len, opt, port, sock = 0, socksize, suite = CCN_IRIBU_SUITE_NDNTLV;
-    char *addr = NULL, *udp = NULL, *ux = NULL;
-    struct sockaddr sa;
-    struct ccn_iribu_prefix_s *prefix;
-    float wait                  = 3.0;
-    unsigned int chunknum       = UINT_MAX;
-    struct ccn_iribu_buf_s *buf = NULL;
-#ifdef USE_FRAG
-    ccn_iribu_isFragmentFunc isFragment;
-#endif
+    int opt, output_file;
+    char *udp = NULL, *ux = NULL;
+    char *output_file_name    = NULL;
+    float wait                = 3.0;
+    unsigned int chunk_number = UINT_MAX;
 
-    while ((opt = getopt(argc, argv, "hn:s:u:v:w:x:")) != -1) {
+    while ((opt = getopt(argc, argv, "hn:u:v:o:w:x:")) != -1) {
         switch (opt) {
         case 'n': {
             errno                     = 0;
@@ -67,14 +39,9 @@ int main(int argc, char *argv[])
             if (errno || chunknum_ul > UINT_MAX) {
                 goto usage;
             }
-            chunknum = (unsigned int) chunknum_ul;
+            chunk_number = (unsigned int) chunknum_ul;
             break;
         }
-        case 's':
-            suite = ccn_iribu_str2suite(optarg);
-            if (!ccn_iribu_isSuite(suite))
-                goto usage;
-            break;
         case 'u':
             udp = optarg;
             break;
@@ -85,6 +52,9 @@ int main(int argc, char *argv[])
             else
                 debug_level = ccn_iribu_debug_str2level(optarg);
 #endif
+            break;
+        case 'o':
+            output_file_name = optarg;
             break;
         case 'w':
             wait = strtof(optarg, (char **) NULL);
@@ -99,34 +69,88 @@ int main(int argc, char *argv[])
                 stderr,
                 "usage: %s [options] URI\n"
                 "  -n CHUNKNUM      positive integer for chunk interest\n"
-                "  -s SUITE         (ccnb, ccnx2015, ndn2013)\n"
-                "  -u a.b.c.d/port  UDP destination (default is suite-dependent)\n"
+                "  -u a.b.c.d/port  UDP destination\n"
 #ifdef USE_LOGGING
                 "  -v DEBUG_LEVEL (fatal, error, warning, info, debug, verbose, trace)\n"
 #endif
+                "  -o output file   specifies a filename to store received data\n"
                 "  -w timeout       in sec (float)\n"
                 "  -x ux_path_name  UNIX IPC: use this instead of UDP\n"
                 "Examples:\n"
                 "%% peek /ndn/edu/wustl/ping             (classic lookup)\n"
                 "%% peek /rpc/site \"call 1 /test/data\"   (lambda RPC, directed)\n",
                 argv[0]);
-            exit(1);
+            exit(0);
         }
     }
 
     if (!argv[optind])
         goto usage;
 
+    struct peek_output *output =
+        ccn_iribu_peek(argv[optind], udp, ux, chunk_number, wait);
+
+    // create output file or write to stdout.
+    if (output_file_name != NULL) {
+        output_file = open(output_file_name, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+
+        if (output_file == -1) {
+            DEBUGMSG(ERROR, "Cannot open file for writing!\n");
+            exit(-1);
+        }
+
+        write(output_file, output->data, output->data_length);
+        close(output_file);
+    } else {
+        write(1, output->data, output->data_length);
+    }
+
+    // free memory.
+    free(output->data);
+    free(output);
+
+    return 0;
+}
+
+struct peek_output *ccn_iribu_peek(char *uri, char *udp, char *ux,
+                                   unsigned int chunk_number, float wait)
+{
+    // TODO: suit is only here for compatibility, remove in future.
+    int suite = CCN_IRIBU_SUITE_NDNTLV;
+
+    int len, port, sock_size, rc;
+    const int max_retry = 3;
+    int retry           = 0;
+    int sock            = 0;
+    char *addr          = NULL;
+    struct sockaddr sa;
+    struct ccn_iribu_prefix_s *prefix;
+    struct ccn_iribu_buf_s *buf = NULL;
+    ccn_iribu_interest_opts_u int_opts;
+    size_t output_max_size = sizeof(unsigned char) * 8 * CCN_IRIBU_MAX_PACKET_SIZE;
+
+    struct peek_output *output =
+        (struct peek_output *) malloc(sizeof(struct peek_output));
+
+    if (output == NULL) {
+        DEBUGMSG(ERROR, "Error: Failed to allocate memory\n");
+        exit(1);
+    }
+
+    unsigned char *data = (unsigned char *) malloc(output_max_size);
+
+    if (data == NULL) {
+        DEBUGMSG(ERROR, "Error: Failed to allocate memory\n");
+        exit(1);
+    }
+
     srandom(time(NULL));
 
     if (ccn_iribu_parseUdp(udp, suite, &addr, &port) != 0) {
         exit(-1);
     }
-    DEBUGMSG(TRACE, "using udp address %s/%d\n", addr, port);
 
-#ifdef USE_FRAG
-    isFragment = ccn_iribu_suite2isFragmentFunc(suite);
-#endif
+    DEBUGMSG(TRACE, "using udp address %s/%d\n", addr, port);
 
     if (ux) {    // use UNIX socket
         struct sockaddr_un *su = (struct sockaddr_un *) &sa;
@@ -141,146 +165,98 @@ int main(int argc, char *argv[])
         sock                   = udp_open();
     }
 
-    prefix = ccn_iribu_URItoPrefix(argv[optind], suite,
-                                   chunknum == UINT_MAX ? NULL : &chunknum);
+    // create prefix from uri
+    prefix = ccn_iribu_URItoPrefix(uri, suite,
+                                   chunk_number == UINT_MAX ? NULL : &chunk_number);
 
-    DEBUGMSG(DEBUG, "prefix <%s><%s> became %s\n", argv[optind], argv[optind + 1],
-             ccn_iribu_prefix_to_path(prefix));
+    DEBUGMSG(DEBUG, "prefix <%s> became %s\n", uri, ccn_iribu_prefix_to_path(prefix));
 
-    for (cnt = 0; cnt < 3; cnt++) {
-        int32_t nonce = (int32_t) random();
-        int rc;
-        struct ccn_iribu_face_s dummyFace;
-        ccn_iribu_interest_opts_u int_opts;
-#ifdef USE_SUITE_NDNTLV
+    while (retry < max_retry) {
+
+        int32_t nonce         = (int32_t) random();
         int_opts.ndntlv.nonce = nonce;
-#endif
 
-        DEBUGMSG(TRACE, "sending request, iteration %d\n", cnt);
-
-        memset(&dummyFace, 0, sizeof(dummyFace));
+        DEBUGMSG(TRACE, "sending request, iteration %d\n", retry);
 
         buf = ccn_iribu_mkSimpleInterest(prefix, &int_opts);
+
         if (!buf) {
             fprintf(stderr, "Failed to create interest.\n");
             myexit(1);
         }
 
         DEBUGMSG(DEBUG, "interest has %zd bytes\n", buf->datalen);
-        /*
-                {
-                    int fd = open("outgoing.bin", O_WRONLY|O_CREAT|O_TRUNC);
-                    write(fd, out, len);
-                    close(fd);
-                }
-        */
+
         if (ux) {
-            socksize = sizeof(struct sockaddr_un);
+            sock_size = sizeof(struct sockaddr_un);
         } else {
-            socksize = sizeof(struct sockaddr_in);
+            sock_size = sizeof(struct sockaddr_in);
         }
-        rc = sendto(sock, buf->data, buf->datalen, 0, (struct sockaddr *) &sa, socksize);
+
+        // send interest
+        rc = sendto(sock, buf->data, buf->datalen, 0, (struct sockaddr *) &sa, sock_size);
+
         if (rc < 0) {
             perror("sendto");
             myexit(1);
         }
+
         DEBUGMSG(DEBUG, "sendto returned %d\n", rc);
 
-        for (;;) {    // wait for a content pkt (ignore interests)
-            unsigned char *cp = out;
+        // wait for a content pkt (ignore interests)
+        for (;;) {
+            unsigned char *cp = data;
             int32_t enc;
             int suite2;
             size_t len2;
             DEBUGMSG(TRACE, "  waiting for packet\n");
 
-            if (block_on_read(sock, wait) <= 0) {    // timeout
+            if (block_on_read(sock, wait) <= 0) {
+                // timeout
                 break;
             }
-            len = recv(sock, out, sizeof(out), 0);
 
+            len = recv(sock, data, output_max_size, 0);
             DEBUGMSG(DEBUG, "received %d bytes\n", len);
-            /*
-                        {
-                            int fd = open("incoming.bin", O_WRONLY|O_CREAT|O_TRUNC, 0700);
-                            write(fd, out, len);
-                            close(fd);
-                        }
-            */
             suite2 = -1;
             len2   = len;
+
             while (!ccn_iribu_switch_dehead(&cp, &len2, &enc)) {
                 suite2 = ccn_iribu_enc2suite(enc);
             }
+
             if (suite2 != -1 && suite2 != suite) {
                 DEBUGMSG(DEBUG, "  unknown suite %d\n", suite);
                 continue;
             }
 
-#ifdef USE_FRAG
-            if (isFragment && isFragment(cp, len2)) {
-                int t;
-                int len3;
-                DEBUGMSG(DEBUG, "  fragment, %d bytes\n", len2);
-                switch (suite) {
-                case CCN_IRIBU_SUITE_CCNTLV: {
-                    struct ccnx_tlvhdr_ccnx2015_s *hp;
-                    hp = (struct ccnx_tlvhdr_ccnx2015_s *) out;
-                    cp = out + sizeof(*hp);
-                    len2 -= sizeof(*hp);
-                    if (ccn_iribu_ccntlv_dehead(&cp, &len2, (unsigned *) &t,
-                                                (unsigned *) &len3) < 0 ||
-                        t != CCNX_TLV_TL_Fragment) {
-                        DEBUGMSG(ERROR, "  error parsing fragment\n");
-                        continue;
-                    }
-                    /*
-                    rc = ccn_iribu_frag_RX_Sequenced2015(frag_cb, NULL, &dummyFace,
-                                      4096, hp->fill[0] >> 6,
-                                      ntohs(*(uint16_t*) hp->fill) & 0x03fff,
-                                      &cp, (int*) &len2);
-                    */
-                    rc = ccn_iribu_frag_RX_BeginEnd2015(
-                        frag_cb, NULL, &dummyFace, 4096, hp->fill[0] >> 6,
-                        ntohs(*(uint16_t *) hp->fill) & 0x03fff, &cp, (int *) &len3);
-                    break;
-                }
-                default:
-                    continue;
-                }
-                if (!outlen)
-                    continue;
-                len = outlen;
-            }
-#endif
+            // check for received data.
+            rc = ccn_iribu_isContent(data, len, suite);
 
-            /*
-                    {
-                        int fd = open("incoming.bin", O_WRONLY|O_CREAT|O_TRUNC);
-                        write(fd, out, len);
-                        close(fd);
-                    }
-            */
-            rc = ccn_iribu_isContent(out, len, suite);
             if (rc < 0) {
                 DEBUGMSG(ERROR, "error when checking type of packet\n");
+                // write(1, data, len);
                 goto done;
             }
+
             if (rc == 0) {    // it's an interest, ignore it
                 DEBUGMSG(WARNING, "skipping non-data packet\n");
                 continue;
             }
-            write(1, out, len);
-            myexit(0);
+
+            // return output data.
+            output->data        = data;
+            output->data_length = len;
+            return output;
         }
-        if (cnt < 2)
-            DEBUGMSG(WARNING, "re-sending interest\n");
+        retry++;
+        DEBUGMSG(WARNING, "re-sending interest\n");
     }
+
     fprintf(stderr, "timeout\n");
 
 done:
     close(sock);
     myexit(-1);
-    return 0;    // avoid a compiler warning
+    return output;
 }
-
-// eof
