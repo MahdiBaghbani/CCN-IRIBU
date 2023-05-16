@@ -1,4 +1,4 @@
-# ccn-lite/src/py/ccnlite/client.py
+# ccn-iribu/src/py/ccniribu/client.py
 
 '''
 CCN-lite module for Python:
@@ -33,6 +33,7 @@ import util
 
 logging.basicConfig()
 
+
 class Access:
 
     def __init__(self, suite='ndn2013'):
@@ -56,8 +57,8 @@ class Access:
                 pass
         s.close()
         if pkt and not raw:
-              f = cStringIO.StringIO(pkt)
-              pkt = ndn.parseData(f)[1]
+            f = cStringIO.StringIO(pkt)
+            pkt = ndn.parseData(f)[1]
         if cb != None:
             cb([pkt])
         else:
@@ -100,5 +101,3 @@ class Access:
         return self._getLabeledX(name, callback, maxchunktime, raw=raw)
 
 # eof
-   
-    

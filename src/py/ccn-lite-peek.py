@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# ccn-lite/src/py/ccn-lite-peek.py
+# ccn-iribu/src/py/ccn-iribu-peek.py
 
 '''
 ICN packet fetch utility (currently for NDN, other formats to follow)
@@ -27,8 +27,8 @@ import argparse
 import cStringIO
 import Queue
 
-import ccnlite.client
-import ccnlite.ndn2013 as ndn
+import ccniribu.client
+import ccniribu.ndn2013 as ndn
 
 # ----------------------------------------------------------------------
 # process argv
@@ -54,19 +54,21 @@ if __name__ == "__main__":
     def onData(q, pkts):
         # callback: prints packet/content, unblocks the requestor via queue q
         if pkts != None and pkts[0] != None:
-            print pkts[0],
+            print
+            pkts[0],
         if q:
             q.put(None)
 
+
     # attach to the ICN network
-    nw = ccnlite.client.Access()
+    nw = ccniribu.client.Access()
     udp = args.u.split('/')
     nw.connect(udp[0], int(udp[1]))
 
     # retrieve content
     q = Queue.Queue()
     nw.getLabeledContent(args.lci, raw=not args.c,
-                         callback=lambda data:onData(q, data))
+                         callback=lambda data: onData(q, data))
     q.get()
 
     ''' Alternative: synchronous/blocking call:

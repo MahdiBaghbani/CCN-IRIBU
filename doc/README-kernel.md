@@ -2,40 +2,40 @@
 
 ## Prerequisites
 
-Follow the [UNIX installation instructions](README-unix.md) to set up the
-CCN-lite sources and relevant environment variables.
+Follow the [UNIX installation instructions](README-unix.md) to set up the CCN-lite sources and relevant environment
+variables.
 
 The Linux Kernel Module was tested with Ubuntu 17.10, Nov, 22, 17 patches, with Kernel 4.13.
 
 ## Installation
 
-1.  Change to the directory CCNL_HOME/src/ccnl-lnxkernel
+1. Change to the directory CCNL_HOME/src/ccnl-lnxkernel
 
-    ```bash
-    cmake .
-    make
-    ```
+   ```bash
+   cmake .
+   make
+   ```
 
-    Use the target `ccn-lite-lnxkernel` to compile only the module.
+   Use the target `ccn-lite-lnxkernel` to compile only the module.
 
-2.  Insert the module:
-    ```bash
-    cd ccnl_lxkernel
-    sudo insmod ./ccn-lite-lxkernel.ko e=eth0 v=trace
-    ```
+2. Insert the module:
+   ```bash
+   cd ccnl_lxkernel
+   sudo insmod ./ccn-lite-lxkernel.ko e=eth0 v=trace
+   ```
 
-3.  Verify that the module was succesfully inserted into the kernel with:
-    ```bash
-    dmesg
-    ```
-    or alternatively
-    ```bash
-    tail /var/log/syslog
-    ```
-    Use option `-f` to continuously monitor the module's output:
-    ```bash
-    tail -f /var/log/syslog
-    ```
+3. Verify that the module was succesfully inserted into the kernel with:
+   ```bash
+   dmesg
+   ```
+   or alternatively
+   ```bash
+   tail /var/log/syslog
+   ```
+   Use option `-f` to continuously monitor the module's output:
+   ```bash
+   tail -f /var/log/syslog
+   ```
 
 ## Usage
 
@@ -62,11 +62,13 @@ You can control the module via `ccn-lite-ctrl` through the UNIX socket. For exam
 sudo $CCNL_HOME/bin/ccn-lite-ctrl debug dump | ccn-lite-ccnb2xml
 ```
 
-Notice that you need to use `sudo` issuing the control command to access the UNIX socket. Type `ccn-lite-ctrl -h` to see all available commands.
+Notice that you need to use `sudo` issuing the control command to access the UNIX socket. Type `ccn-lite-ctrl -h` to see
+all available commands.
 
 ### Removal
 
 Use `rmmod` to remove the module from the kernel:
+
 ```bash
 sudo rmmod ccn_lite_lnxkernel
 ```

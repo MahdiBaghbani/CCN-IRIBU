@@ -32,7 +32,7 @@ DOXYFILE_ENCODING      = UTF-8
 # title of most generated pages and in a few other places.
 # The default value is: My Project.
 
-PROJECT_NAME           = "CCN-Lite"
+PROJECT_NAME           = "CCN-IRIBU"
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number. This
 # could be handy for archiving the generated documentation or if some version
@@ -2055,14 +2055,14 @@ PREDEFINED             = \
     USE_UNIXSOCKET \
     USE_IPV4 \
     USE_IPV6 \
-    CCNL_UNIX \
-    CCNL_ARDUINO \
+    CCN_IRIBU_UNIX \
+    CCN_IRIBU_ARDUINO \
     USE_SUITE_NDNTLV \
     USE_SUITE_CCNB \
     USE_SUITE_CCNTLV \
     USE_SUITE_LOCALRPC \
-    CCNL_APP_RX \
-    CCNL_RIOT
+    CCN_IRIBU_APP_RX \
+    CCN_IRIBU_RIOT
 
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this

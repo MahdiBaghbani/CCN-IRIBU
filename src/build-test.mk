@@ -66,8 +66,8 @@ bt-relay-nothing:
 # Build without any USE_*
 	@MODE="make" \
 	TARGET=$@ \
-	MAKE_TARGETS="ccn-lite-relay" \
-	MODIFIY_FNAME=ccn-lite-relay.c \
+	MAKE_TARGETS="ccn-iribu-relay" \
+	MODIFIY_FNAME=ccn-iribu-relay.c \
 	UNSET_VARS="USE_CCNxDIGEST USE_DEBUG USE_DEBUG_MALLOC USE_DUP_CHECK \
 		USE_ECHO USE_LINKLAYER USE_HMAC256 USE_HTTP_STATUS USE_IPV4 USE_IPV6 \
 		USE_SCHEDULER USE_STATS USE_SUITE_CCNB USE_SUITE_CCNTLV \
@@ -79,8 +79,8 @@ bt-relay-barebones:
 # Build only with USE_IPV4 and USE_SUITE_NDNTLV
 	@MODE="make" \
 	TARGET=$@ \
-	MAKE_TARGETS="ccn-lite-relay" \
-	MODIFIY_FNAME=ccn-lite-relay.c \
+	MAKE_TARGETS="ccn-iribu-relay" \
+	MODIFIY_FNAME=ccn-iribu-relay.c \
 	SET_VARS="USE_IPV4 USE_IPV6 USE_SUITE_NDNTLV" \
 	UNSET_VARS="USE_CCNxDIGEST USE_DEBUG USE_DEBUG_MALLOC USE_ECHO \
 		USE_LINKLAYER USE_HMAC256 USE_HTTP_STATUS USE_MGMT \
@@ -92,27 +92,27 @@ bt-relay-barebones:
 bt-relay-vanilla:
 	@MODE="make" \
 	TARGET=$@ \
-	MAKE_TARGETS="ccn-lite-relay" \
+	MAKE_TARGETS="ccn-iribu-relay" \
 	./build-test-helper.sh || ${PRINT_LOG}
 
 bt-relay-frag:
 	@MODE="make" \
 	TARGET=$@ \
-	MAKE_TARGETS="ccn-lite-relay" \
+	MAKE_TARGETS="ccn-iribu-relay" \
 	MAKE_VARS="USE_FRAG=1" \
 	./build-test-helper.sh || ${PRINT_LOG}
 
 bt-relay-authCtrl:
 	@MODE="make" \
 	TARGET=$@ \
-	MAKE_TARGETS="ccn-lite-relay" \
+	MAKE_TARGETS="ccn-iribu-relay" \
 	MAKE_VARS="USE_SIGNATURES=1" \
 	./build-test-helper.sh || ${PRINT_LOG}
 
 bt-relay-all:
 	@MODE="make" \
 	TARGET=$@ \
-	MAKE_TARGETS="ccn-lite-relay" \
+	MAKE_TARGETS="ccn-iribu-relay" \
 	MAKE_VARS="USE_FRAG=1 USE_SIGNATURES=1" \
 	./build-test-helper.sh || ${PRINT_LOG}
 
@@ -120,7 +120,7 @@ bt-relay-all:
 bt-lnxkernel:
 	@MODE="make" \
 	TARGET=$@ \
-	MAKE_TARGETS="ccn-lite-lnxkernel" \
+	MAKE_TARGETS="ccn-iribu-lnxkernel" \
 	MAKE_VARS="USE_KRNL=1" \
 	./build-test-helper.sh || ${PRINT_LOG}
 
@@ -128,7 +128,7 @@ bt-lnxkernel:
 bt-omnet:
 	@MODE="make" \
 	TARGET=$@ \
-	MAKE_TARGETS="ccn-lite-omnet" \
+	MAKE_TARGETS="ccn-iribu-omnet" \
 	./build-test-helper.sh || ${PRINT_LOG}
 
 bt-all-vanilla:
